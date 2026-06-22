@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#0A0A0A;font-family:'Archivo','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+::selection{background:#0A0A0A;color:#fff}
+input,textarea,button{font-family:inherit}
+textarea{resize:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#d9d9d4;border:2px solid transparent;background-clip:content-box;border-radius:10px}
+@keyframes loreFade{from{transform:translateY(9px)}to{transform:none}}
+@keyframes loreStrike{0%{transform:scale(.985) translateY(5px)}100%{transform:none}}
+@keyframes lorePulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes loreBlink{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes loreSlideUp{from{transform:translateY(16px)}to{transform:none}}
+@keyframes loreUp{from{opacity:0;transform:translateY(42px)}to{opacity:1;transform:none}}
+@keyframes loreWordIn{0%{opacity:0;transform:translateY(70px) scale(.86)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes loreDrift{from{background-position:0 0}to{background-position:54px 54px}}
+@keyframes loreFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes loreBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+@keyframes loreMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes loreSheen{0%{transform:translateX(-120%)}60%,100%{transform:translateX(220%)}}
+</style>
+</helmet>
+
+<div style="height:100vh;width:100%;overflow:hidden;background:#0A0A0A;color:#0A0A0A;font-family:'Archivo','Noto Sans JP',sans-serif">
+
+<!-- ============ WELCOME ============ -->
+<sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+<div style="height:100vh;width:100%;background:#1E40FF;color:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:-40px;background-image:radial-gradient(rgba(255,255,255,.22) 1.6px, transparent 1.6px);background-size:27px 27px;opacity:.8;animation:loreDrift 9s linear infinite"></div>
+  <div style="position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:22px 28px;flex:none">
+    <div style="display:flex;align-items:center;gap:12px;animation:loreUp .7s cubic-bezier(.2,.8,.2,1) both">
+      <img src="mark-white.png" alt="LORE" style="width:26px;height:26px;display:block">
+      <span style="font-weight:900;letter-spacing:-.02em;font-size:20px">LORE</span>
+    </div>
+    <div style="position:relative;animation:loreUp .7s cubic-bezier(.2,.8,.2,1) both">
+      <button onClick="{{ toggleLangMenu }}" style="appearance:none;cursor:pointer;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);border-radius:30px;padding:7px 13px;color:#fff;font-weight:700;font-size:13px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18"></path></svg>
+        {{ langLabel }}<span style="font-size:9px;opacity:.85">▼</span>
+      </button>
+      <sc-if value="{{ langOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;right:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(10,10,10,.25);min-width:150px;z-index:10">
+          <button onClick="{{ onLangJa }}" style="appearance:none;cursor:pointer;display:block;width:100%;text-align:left;background:{{ jaMenuBg }};border:none;padding:13px 16px;font-size:14px;font-weight:700;color:#0A0A0A">日本語</button>
+          <button onClick="{{ onLangEn }}" style="appearance:none;cursor:pointer;display:block;width:100%;text-align:left;background:{{ enMenuBg }};border:none;padding:13px 16px;font-size:14px;font-weight:700;color:#0A0A0A">English</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  <div style="position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(16px,4vh,56px) 24px 40px;min-height:0;overflow:hidden">
+    <div style="font-weight:900;letter-spacing:-.04em;line-height:1;font-size:clamp(50px,11vw,104px);animation:loreWordIn 1.05s cubic-bezier(.2,.8,.2,1) both">LORE</div>
+    <div style="font-weight:700;font-size:clamp(14px,2.2vw,19px);opacity:.92;margin:12px 0 26px;text-align:center;animation:loreUp .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:.4s">{{ landing.tagline }}</div>
+    <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:11px;animation:loreUp .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:.55s">
+      <button onClick="{{ onOAuth }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:background .15s ease"><span style="font-weight:900;font-size:17px;letter-spacing:.02em">G</span>{{ tGoogle }}</button>
+      <button onClick="{{ onOAuth }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:background .15s ease"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-top:-2px"><path d="M16.1 12.8c0-2.2 1.7-3.2 1.8-3.3-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.4 2.5-.4 6.2 1 8.2.7 1 1.4 2.1 2.5 2 1-.0 1.3-.6 2.5-.6 1.2 0 1.5.6 2.5.6 1 0 1.7-1 2.3-2 .7-1.1 1-2.2 1-2.3 0 0-2-.8-2-3.0zM14.4 6.4c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-1 1.5-.8 2.4.9.1 1.7-.4 2.3-1.1z"></path></svg>{{ tApple }}</button>
+      <div style="display:flex;align-items:center;gap:12px;margin:5px 0">
+        <span style="flex:1;height:1px;background:rgba(255,255,255,.4)"></span>
+        <span style="font-size:12px;font-weight:700;opacity:.85">{{ tOr }}</span>
+        <span style="flex:1;height:1px;background:rgba(255,255,255,.4)"></span>
+      </div>
+      <div style="position:relative;width:100%;background:#fff;border-radius:14px;border:2px solid {{ authBorder }};transition:border-color .15s ease">
+        <span style="position:absolute;left:18px;top:{{ authLabelTop }};transform:{{ authLabelTransform }};font-size:{{ authLabelSize }};color:{{ authLabelColor }};font-weight:600;pointer-events:none;transition:all .16s cubic-bezier(.2,.8,.2,1)">{{ tEmailPh }}</span>
+        <input ref="{{ setAuthEl }}" onFocus="{{ onAuthFocus }}" onBlur="{{ onAuthBlur }}" onChange="{{ onAuthInput }}" onKeyDown="{{ onAuthKey }}" style="width:100%;background:transparent;border:none;outline:none;color:#0A0A0A;font-size:15px;font-weight:600;padding:20px 18px 7px;box-sizing:border-box">
+      </div>
+      <button onClick="{{ onAuthContinue }}" style-hover="background:rgba(255,255,255,.12)" style="width:100%;appearance:none;cursor:{{ authBtnCursor }};background:{{ authBtnBg }};color:#fff;border:1.5px solid {{ authBtnBorder }};border-radius:30px;padding:13px;font-weight:800;font-size:15px;opacity:{{ authBtnOpacity }};transition:opacity .15s ease, background .15s ease">{{ tContinue }}</button>
+      <p style="font-size:11px;line-height:1.7;color:rgba(255,255,255,.6);text-align:center;margin:8px 0 0;font-weight:500">{{ tTosPre }}<span onClick="{{ stop }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer">{{ tTosTerms }}</span>{{ tTosSep1 }}<span onClick="{{ stop }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer">{{ tTosPrivacy }}</span>{{ tTosSep2 }}<span onClick="{{ stop }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer">{{ tTosCookie }}</span>{{ tTosPost }}</p>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LOGIN ============ -->
+<sc-if value="{{ loginOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeLogin }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:380px;border-radius:14px;padding:26px 26px 24px;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-weight:900;font-size:20px">{{ tLogin }}</div>
+      <button onClick="{{ closeLogin }}" style="appearance:none;cursor:pointer;background:none;border:none;font-size:24px;color:#888;padding:0 4px;line-height:1">×</button>
+    </div>
+    <label style="display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px">lore ID</label>
+    <input ref="{{ setLoginIdEl }}" value="{{ loginId }}" onChange="{{ onLoginId }}" placeholder="maruyama" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;font-weight:600;outline:none;margin-bottom:14px;box-sizing:border-box">
+    <label style="display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px">パスワード</label>
+    <input ref="{{ setLoginPwEl }}" value="{{ loginPw }}" onChange="{{ onLoginPw }}" onKeyDown="{{ onLoginKey }}" type="password" placeholder="••••" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;font-weight:600;outline:none;box-sizing:border-box">
+    <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}">
+      <div style="color:#E5484D;font-size:12px;font-weight:700;margin-top:10px">{{ loginErr }}</div>
+    </sc-if>
+    <button onClick="{{ onLogin }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:15px;font-weight:900;font-size:15px;margin-top:18px">{{ tLogin }}</button>
+    <div style="margin-top:14px;background:#F2F2F2;border-radius:8px;padding:11px 13px;font-size:12px;color:#666;line-height:1.7;font-weight:500">デモ用アカウント<br>ID: <b style="color:#0A0A0A">maruyama</b> ／ PW: <b style="color:#0A0A0A">lore</b></div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ CONTENT SHARE ============ -->
+<sc-if value="{{ contentShareOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeContentShare }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:420px;border-radius:16px;padding:22px 22px 22px;box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:86vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-weight:900;font-size:18px">コンテンツをシェア</div>
+      <button onClick="{{ closeContentShare }}" style="appearance:none;cursor:pointer;background:none;border:none;font-size:24px;color:#888;padding:0 4px;line-height:1">×</button>
+    </div>
+    <div style="border:1px solid #e4e2dd;border-radius:14px;overflow:hidden;margin-bottom:14px">
+      <div style="padding:20px 20px 18px">
+        <sc-if value="{{ vcCloseOnly }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:10px"><span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #B9C2FF;background:#EEF1FF;color:#1E40FF;border-radius:20px;padding:3px 10px 3px 8px;font-size:11px;font-weight:700"><span style="font-size:11px;line-height:1">♥</span>親しい人</span></div>
+        </sc-if>
+        <div style="font-weight:900;font-size:19px;letter-spacing:-.01em;line-height:1.3;margin-bottom:12px">{{ vcTitle }}</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#0A0A0A;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:13px;letter-spacing:-.02em">{{ vcAuthorAvatar }}</div>
+          <div style="font-weight:800;font-size:13px">{{ vcAuthorName }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#9a9a96">{{ vcAuthorId }}</div>
+        </div>
+        <p style="font-size:14px;line-height:1.7;color:#333;font-weight:500;margin:0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">{{ vcBody }}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;padding:12px 18px;border-top:1px solid #ededea;background:#fafaf8">
+        <img src="mark-blue.png" alt="LORE" style="width:15px;height:15px;display:block">
+        <span style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96;letter-spacing:.04em">{{ contentShareUrl }}</span>
+      </div>
+    </div>
+    <div style="background:#0A0A0A;color:#fff;border-radius:14px;padding:16px 18px">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-bottom:12px">SHARE LINK</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="flex:1;min-width:0;font-family:'Space Mono',monospace;font-size:13px;word-break:break-all">{{ contentShareUrl }}</span>
+        <button onClick="{{ onContentCopy }}" style="appearance:none;cursor:pointer;flex:none;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:9px 16px;font-weight:700;font-size:13px">{{ contentCopyLabel }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SHARE LINK REFRESH ============ -->
+<sc-if value="{{ shareRefreshOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeShareRefresh }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:400px;border-radius:14px;padding:28px 26px 24px;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+    <div style="font-weight:900;font-size:20px;letter-spacing:-.01em;margin-bottom:14px">リンクを更新しますか？</div>
+    <p style="font-size:14px;line-height:1.75;color:#333;font-weight:500;margin:0 0 22px">更新すると、以前のリンクではあなたのプロフィールにアクセスできなくなります。よろしいですか？</p>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ closeShareRefresh }}" style="flex:1;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #dcdcd6;border-radius:8px;padding:14px;font-weight:800;font-size:15px">キャンセル</button>
+      <button onClick="{{ confirmShareRefresh }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">更新する</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ MAKE PUBLIC CONFIRM ============ -->
+<sc-if value="{{ pubConfirmOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closePubConfirm }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:400px;border-radius:14px;padding:28px 26px 24px;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+    <div style="font-weight:900;font-size:20px;letter-spacing:-.01em;margin-bottom:14px">プロフィールを公開しますか？</div>
+    <p style="font-size:14px;line-height:1.75;color:#333;font-weight:500;margin:0 0 14px">あなたのシェアリンクや、ユーザーIDからあなたのプロフィールを他人が覗けるようになります。</p>
+    <div style="background:#EEF1FF;border:1px solid #B9C2FF;border-radius:10px;padding:13px 15px;display:flex;gap:9px;align-items:flex-start">
+      <span style="font-size:13px;line-height:1.4;color:#1E40FF">♥</span>
+      <p style="font-size:13px;line-height:1.7;color:#1E40FF;font-weight:600;margin:0">親しい人向けのコンテンツは、あなたが指定しない限り表示されません。</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px">
+      <button onClick="{{ closePubConfirm }}" style="flex:1;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #dcdcd6;border-radius:8px;padding:14px;font-weight:800;font-size:15px">キャンセル</button>
+      <button onClick="{{ confirmPublic }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">公開する</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ RENAME CONTENT ============ -->
+<sc-if value="{{ renameOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeRename }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:400px;border-radius:14px;padding:26px 24px 22px;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+    <div style="font-weight:900;font-size:19px;letter-spacing:-.01em;margin-bottom:16px">タイトルを変更</div>
+    <input value="{{ renameVal }}" onChange="{{ onRenameInput }}" placeholder="タイトル" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;font-weight:700;outline:none;box-sizing:border-box">
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onClick="{{ closeRename }}" style="flex:1;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #dcdcd6;border-radius:8px;padding:14px;font-weight:800;font-size:15px">キャンセル</button>
+      <button onClick="{{ confirmRename }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">保存</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ IMAGE CROP ============ -->
+<sc-if value="{{ cropOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;background:rgba(10,10,10,.78);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;color:#0A0A0A;width:100%;max-width:440px;border-radius:16px;padding:20px;box-shadow:0 22px 54px rgba(0,0,0,.42)">
+    <div style="font-weight:900;font-size:18px;margin-bottom:14px">画像をトリミング</div>
+    <div ref="{{ setCropFrame }}" onPointerDown="{{ onCropDown }}" onPointerMove="{{ onCropMove }}" onPointerUp="{{ onCropUp }}" onPointerLeave="{{ onCropUp }}" style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;background:#000;touch-action:none;cursor:grab;user-select:none">
+      <img src="{{ cropSrc }}" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:translate({{ cropX }}px,{{ cropY }}px) scale({{ cropScale }});transform-origin:center;will-change:transform;pointer-events:none">
+      <div style="position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin:16px 0 6px">
+      <span style="font-size:12px;color:#888;font-weight:700;flex:none">ズーム</span>
+      <input type="range" min="1" max="3" step="0.01" value="{{ cropScale }}" onInput="{{ onCropZoom }}" style="flex:1;accent-color:#1E40FF">
+    </div>
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-bottom:16px">ドラッグで位置調整・スライダーで拡大</div>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ cancelCrop }}" style="flex:1;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #dcdcd6;border-radius:8px;padding:14px;font-weight:800;font-size:15px">キャンセル</button>
+      <button onClick="{{ confirmCrop }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">決定</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ PRIVATE USER ============ -->
+<sc-if value="{{ privUserOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closePrivUser }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:380px;border-radius:14px;padding:30px 26px 24px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center">
+    <div style="width:54px;height:54px;border-radius:15px;background:#F2F2F2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px">🔒</div>
+    <div style="font-weight:900;font-size:19px;letter-spacing:-.01em;margin-bottom:10px">{{ privUserName }}さんは非公開です</div>
+    <sc-if value="{{ puNotFriend }}" hint-placeholder-val="{{ true }}">
+      <p style="font-size:14px;line-height:1.75;color:#555;font-weight:500;margin:0 0 22px">友達になると、{{ privUserName }}さんのプロフィールを見ることができます。</p>
+      <button onClick="{{ sendPuRequest }}" disabled="{{ puPending }}" style="width:100%;appearance:none;cursor:pointer;background:{{ puBtnBg }};color:{{ puBtnFg }};border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px;margin-bottom:10px">{{ puBtnLabel }}</button>
+      <button onClick="{{ closePrivUser }}" style="width:100%;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #dcdcd6;border-radius:8px;padding:13px;font-weight:800;font-size:14px">閉じる</button>
+    </sc-if>
+    <sc-if value="{{ puIsFriend }}" hint-placeholder-val="{{ false }}">
+      <p style="font-size:14px;line-height:1.75;color:#1E40FF;font-weight:600;margin:0 0 22px">友達になりました。プロフィールを見られます。</p>
+      <button onClick="{{ openPuProfile }}" style="width:100%;appearance:none;cursor:pointer;background:#0A0A0A;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">プロフィールを見る →</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ FRIENDS LIST ============ -->
+<sc-if value="{{ friendsListOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeFriendsList }}" style="position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:#fff;color:#0A0A0A;width:100%;max-width:420px;border-radius:16px;padding:22px 20px 24px;box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-weight:900;font-size:19px">ともだち <span style="font-family:'Space Mono',monospace;color:#9a9a96;font-size:15px">{{ friendCount }}</span></div>
+      <button onClick="{{ closeFriendsList }}" style="appearance:none;cursor:pointer;background:none;border:none;font-size:24px;color:#888;padding:0 4px;line-height:1">×</button>
+    </div>
+    <sc-if value="{{ hasIncoming }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#9a9a96;margin-bottom:10px">友達申請</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <sc-for list="{{ incomingList }}" as="r" hint-placeholder-count="1">
+          <div style="display:flex;align-items:center;gap:12px;background:#F6F8FF;border:1px solid #B9C2FF;border-radius:14px;padding:12px 14px">
+            <div style="width:44px;height:44px;background:#0A0A0A;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:19px;letter-spacing:-.02em">{{ r.avatar }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-weight:800;font-size:15px">{{ r.name }}</span>
+                <sc-if value="{{ r.isPrivate }}" hint-placeholder-val="{{ false }}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                </sc-if>
+              </div>
+              <div style="font-size:12px;color:#666;font-weight:500">友達申請が届いています</div>
+            </div>
+            <button onClick="{{ r.onDecline }}" style="appearance:none;cursor:pointer;flex:none;background:#fff;color:#888;border:1px solid #dcdcd6;border-radius:999px;width:34px;height:34px;font-size:16px;line-height:1">×</button>
+            <button onClick="{{ r.onAccept }}" style="appearance:none;cursor:pointer;flex:none;background:#1E40FF;color:#fff;border:none;border-radius:999px;padding:9px 16px;font-weight:800;font-size:13px">承認</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ hasFriends }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ friendsList }}" as="f" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e4e2dd;border-radius:14px;padding:12px 14px">
+            <button onClick="{{ f.onOpen }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left">
+              <div style="width:44px;height:44px;background:#0A0A0A;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:19px;letter-spacing:-.02em">{{ f.avatar }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-weight:800;font-size:15px">{{ f.name }}</span>
+                  <sc-if value="{{ f.isPrivate }}" hint-placeholder-val="{{ false }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                  </sc-if>
+                </div>
+                <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ f.userId }}</div>
+              </div>
+            </button>
+            <button onClick="{{ f.onToggleClose }}" style="appearance:none;cursor:pointer;flex:none;display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 13px;font-weight:700;font-size:12px;background:{{ f.closeBg }};color:{{ f.closeFg }};border:1px solid {{ f.closeBorder }}"><span style="font-size:11px;line-height:1">♥</span>親しい人</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noFriends }}" hint-placeholder-val="{{ true }}">
+      <div style="text-align:center;padding:30px 10px">
+        <div style="font-size:14px;color:#888;font-weight:500;line-height:1.7">まだ友達がいません。<br>「さがす」から友達申請してみよう。</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ true }}">
+<div style="height:100vh;display:flex;flex-direction:column;background:#F2F2F2">
+  <div style="flex:none;background:#0A0A0A;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;background:#0A0A0A;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;letter-spacing:-.02em">丸</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;opacity:.6;margin-bottom:6px">像が結びはじめている</div>
+      <div style="height:5px;background:rgba(255,255,255,.16);border-radius:3px;overflow:hidden"><div style="height:100%;background:#0A0A0A;border-radius:3px;transition:width .7s cubic-bezier(.2,.8,.2,1);width:{{ obProgressPct }}"></div></div>
+    </div>
+    <button onClick="{{ onDemo }}" style="appearance:none;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:11px;flex:none">skip →</button>
+  </div>
+
+  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px">
+    <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+      <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
+        <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
+            <div style="width:28px;height:28px;background:#0A0A0A;border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+            <div style="background:#fff;border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
+            <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+          </div>
+        </sc-if>
+      </sc-for>
+
+      <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:#0A0A0A;margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:#0A0A0A;display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
+          <div style="background:#0A0A0A;color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#777;margin:10px 2px 12px">これ、当たってる？</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#0A0A0A;color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">そうかも</button>
+            <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">わからない</button>
+            <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">違うと思う</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="flex:none;background:#fff;border-top:1px solid #ededea;padding:12px 18px 16px">
+    <div style="max-width:620px;margin:0 auto">
+      <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
+            <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:#EFEFEF;border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:#0A0A0A">{{ s.text }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="自由に答えてみて…" style="flex:1;border:1px solid #e2e2dd;border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:#F7F7F5"></textarea>
+        <button onClick="{{ onSend }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ FIRST LORE ============ -->
+<sc-if value="{{ isFirstLore }}" hint-placeholder-val="{{ false }}">
+<div style="height:100vh;background:#0A0A0A;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1.5px, transparent 1.5px);background-size:30px 30px;opacity:.4"></div>
+  <div style="position:relative;animation:loreSlideUp .8s ease both;max-width:440px">
+    <div style="width:min(40vw,140px);height:min(40vw,140px);margin:0 auto;background:#fff;border-radius:30px;display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-weight:900;font-size:min(20vw,66px);letter-spacing:-.02em">丸</div>
+    <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.3em;color:rgba(255,255,255,.6);margin:26px 0 12px">{{ tReady }}</div>
+    <h2 style="font-weight:900;font-size:clamp(26px,5.5vw,40px);letter-spacing:-.02em;margin:0;line-height:1.18">あなたのコンテンツが、<br>準備できました。</h2>
+  </div>
+  <button onClick="{{ goGenerate }}" style="position:relative;margin-top:34px;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:none;border-radius:8px;padding:17px 36px;font-weight:900;font-size:16px;display:flex;align-items:center;gap:10px;animation:loreSlideUp 1s ease both">コンテンツをつくる<span style="font-family:'Space Mono',monospace">→</span></button>
+</div>
+</sc-if>
+
+<!-- ============ APP SHELL ============ -->
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+<div style="height:100vh;display:flex;background:#F2F2F2">
+  <!-- desktop sidebar -->
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ false }}">
+  <aside style="flex:none;width:72px;position:relative;z-index:30">
+    <div onMouseEnter="{{ onNavEnter }}" onMouseLeave="{{ onNavLeave }}" style="position:absolute;top:0;left:0;bottom:0;width:{{ navWidth }};background:#fff;border-right:1px solid #e4e4df;display:flex;flex-direction:column;padding:22px 14px;gap:4px;overflow:hidden;transition:width .2s ease;box-shadow:{{ navShadow }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:4px 10px 20px">
+        <img src="mark-blue.png" alt="LORE" style="width:26px;height:26px;display:block;flex:none">
+        <span style="font-weight:900;letter-spacing:-.02em;font-size:18px;opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">LORE</span>
+      </div>
+      <button onClick="{{ navHome.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navHome.bg }};color:{{ navHome.color }};font-weight:{{ navHome.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">話す</span></button>
+      <button onClick="{{ navCreate.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navCreate.bg }};color:{{ navCreate.color }};font-weight:{{ navCreate.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 5v14M5 12h14"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">つくる</span></button>
+      <button onClick="{{ navSearch.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navSearch.bg }};color:{{ navSearch.color }};font-weight:{{ navSearch.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">さがす</span></button>
+      <button onClick="{{ navProfile.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navProfile.bg }};color:{{ navProfile.color }};font-weight:{{ navProfile.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">プロフィール</span></button>
+      <button onClick="{{ navSettings.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navSettings.bg }};color:{{ navSettings.color }};font-weight:{{ navSettings.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">詳細</span></button>
+    </div>
+  </aside>
+  </sc-if>
+
+  <!-- content column -->
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:#F2F2F2">
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;background:#fff;border-bottom:1px solid #e4e4df;display:flex;align-items:center;gap:10px;padding:0 18px;height:56px">
+      <img src="mark-blue.png" alt="LORE" style="width:26px;height:26px;display:block">
+      <span style="font-weight:900;letter-spacing:-.02em;font-size:18px">LORE</span>
+    </div>
+    </sc-if>
+
+  <!-- HOME = TALK -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:#F2F2F2">
+    <div style="flex:none;background:#fff;border-bottom:1px solid #e4e4df;padding:11px 18px">
+      <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px;position:relative">
+        <div style="width:34px;height:34px;background:#0A0A0A;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em">丸</div>
+        <div style="min-width:0">
+          <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">{{ displayName }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96;letter-spacing:.04em">{{ userId }}</div>
+        </div>
+        <button onClick="{{ toggleHomeMenu }}" aria-label="メニュー" style="margin-left:auto;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px;flex:none"><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span></button>
+        <sc-if value="{{ homeMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeHomeMenu }}" style="position:fixed;inset:0;z-index:19"></div>
+          <div onClick="{{ stop }}" style="position:absolute;top:46px;right:0;z-index:20;background:#fff;border:1px solid #e4e4df;border-radius:12px;box-shadow:0 12px 30px rgba(10,10,10,.18);padding:6px;min-width:240px">
+            <button onClick="{{ toggleMute }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-radius:8px;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 12px">
+              <span style="flex:1;font-weight:700;font-size:14px;color:#0A0A0A">メッセージをミュート</span>
+              <span style="position:relative;width:42px;height:24px;border-radius:13px;flex:none;background:{{ muteTrack }};transition:background .2s">
+                <span style="position:absolute;top:3px;left:{{ muteKnob }};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span>
+              </span>
+            </button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px;min-height:0">
+      <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
+          <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
+              <div style="width:28px;height:28px;background:#0A0A0A;border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+              <div style="background:#fff;border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
+              <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+            </div>
+          </sc-if>
+        </sc-for>
+
+        <sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .3s ease both">
+            <div style="width:28px;height:28px;background:#0A0A0A;border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+            <div style="background:#fff;border-radius:20px 20px 20px 6px;padding:14px 16px;display:flex;gap:5px;align-items:center;box-shadow:0 1px 2px rgba(10,10,10,.07)">
+              <span style="width:7px;height:7px;border-radius:50%;background:#8e8e93;display:inline-block;animation:loreBlink 1.1s infinite"></span>
+              <span style="width:7px;height:7px;border-radius:50%;background:#8e8e93;display:inline-block;animation:loreBlink 1.1s infinite .2s"></span>
+              <span style="width:7px;height:7px;border-radius:50%;background:#8e8e93;display:inline-block;animation:loreBlink 1.1s infinite .4s"></span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
+            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:#0A0A0A;margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:#0A0A0A;display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
+            <div style="background:#0A0A0A;color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
+            <div style="font-family:'Space Mono',monospace;font-size:11px;color:#777;margin:10px 2px 12px">これ、当たってる？</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#0A0A0A;color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">そうかも</button>
+              <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">わからない</button>
+              <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:#fff;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">違うと思う</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex:none;background:#fff;border-top:1px solid #ededea;padding:12px 18px 16px">
+      <div style="max-width:620px;margin:0 auto">
+        <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
+              <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:#EFEFEF;border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:#0A0A0A">{{ s.text }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="今日のこと、なんでも話して…" style="flex:1;border:1px solid #e2e2dd;border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:#F7F7F5"></textarea>
+          <button onClick="{{ onSend }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- OTHER SCREENS (scrollable) -->
+  <sc-if value="{{ isScrollScreen }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow-y:auto;min-height:0">
+
+    <!-- PROFILE (X / Threads style) -->
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:620px;margin:0 auto;padding:0 0 40px">
+      <sc-if value="{{ showPrivBanner }}" hint-placeholder-val="{{ true }}">
+      <div style="background:{{ privBannerBg }};border-bottom:1px solid {{ privBannerBorder }};padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+        <div style="display:flex;align-items:center;gap:9px;min-width:0">
+          <span style="width:22px;height:22px;border-radius:6px;flex:none;background:{{ privIconBg }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;line-height:1">{{ privIcon }}</span>
+          <span style="font-size:13px;font-weight:700;color:{{ privBannerColor }};line-height:1.45">{{ privBannerText }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex:none">
+          <button onClick="{{ togglePrivate }}" aria-label="公開設定" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:800;color:{{ privBannerColor }}">非公開</span>
+            <span style="position:relative;width:42px;height:24px;border-radius:13px;background:{{ privToggleTrack }};transition:background .2s">
+              <span style="position:absolute;top:3px;left:{{ privToggleKnob }};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span>
+            </span>
+          </button>
+          <button onClick="{{ dismissPrivBanner }}" aria-label="閉じる" style="appearance:none;cursor:pointer;background:none;border:none;padding:0 2px;font-size:20px;line-height:1;color:{{ privBannerColor }};opacity:.6">×</button>
+        </div>
+      </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;justify-content:flex-start;padding:14px 18px 0">
+        <button onClick="{{ goShare }}" style="appearance:none;cursor:pointer;background:#fff;border:1px solid #e4e2dd;border-radius:999px;padding:8px 15px 8px 12px;display:flex;align-items:center;gap:7px;font-weight:800;font-size:13px;color:#0A0A0A;box-shadow:0 1px 2px rgba(10,10,10,.04)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8 7l4-3 4 3"/><path d="M5 12v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18v-6"/></svg>シェア</button>
+      </div>
+      <div style="padding:30px 18px 0;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div onClick="{{ onNudge }}" style="position:relative;width:104px;height:104px;background:#0A0A0A;border-radius:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:46px;letter-spacing:-.02em">丸</div>
+        <div style="font-weight:900;font-size:24px;letter-spacing:-.02em;margin-top:14px">{{ displayName }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:14px;color:#0A0A0A;margin-top:2px">{{ userId }}</div>
+        <p style="font-size:15px;line-height:1.6;color:#333;margin:12px 0 0;font-weight:500;max-width:34ch">{{ bio }}</p>
+        <sc-if value="{{ latestRead }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;background:#0A0A0A;color:#fff;border-radius:4px;padding:13px 15px;font-size:14px;line-height:1.55;font-weight:600;max-width:36ch;animation:loreStrike .45s ease both">{{ latestRead }}</div>
+        </sc-if>
+        <div style="display:flex;align-items:baseline;gap:18px;margin-top:16px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-weight:900;font-size:17px">{{ cardCount }}</span><span style="font-size:13px;color:#888;font-weight:600">コンテンツ</span></div>
+          <button onClick="{{ openFriendsList }}" style="position:relative;appearance:none;cursor:pointer;background:none;border:none;padding:0;display:flex;align-items:baseline;gap:6px"><span style="font-weight:900;font-size:17px;color:#0A0A0A">{{ friendCount }}</span><span style="font-size:13px;color:#888;font-weight:600">ともだち</span><sc-if value="{{ hasIncoming }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-7px;right:-12px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1">{{ incomingCount }}</span></sc-if></button>
+        </div>
+      </div>
+
+      <!-- feed (Threads style) -->
+      <div style="margin-top:18px;border-top:1px solid #e4e4df">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+          <div style="position:relative;border-bottom:1px solid #ededea">
+          <div onClick="{{ c.onOpen }}" style="cursor:pointer;display:flex;gap:12px;padding:18px;animation:loreFade .5s ease both">
+            <div style="width:40px;height:40px;background:#0A0A0A;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;letter-spacing:-.02em">丸</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-weight:800;font-size:15px">{{ displayName }}</span>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ c.feedMeta }}</span>
+                <sc-if value="{{ c.pinned }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-flex;align-items:center;gap:4px;color:#1E40FF;font-size:11px;font-weight:700"><svg width="12" height="12" viewBox="0 0 24 24" fill="#1E40FF" stroke="#1E40FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6.76l1.79 2.68A1 1 0 0 1 16.96 16H7.04a1 1 0 0 1-.83-1.56L8 10.76z"/></svg>固定中</span>
+                </sc-if>
+              </div>
+              <sc-if value="{{ c.closeOnly }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:7px"><span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #B9C2FF;background:#EEF1FF;color:#1E40FF;border-radius:20px;padding:3px 10px 3px 8px;font-size:11px;font-weight:700"><span style="font-size:11px;line-height:1">♥</span>親しい人</span></div>
+              </sc-if>
+              <div style="font-weight:800;font-size:17px;letter-spacing:-.01em;margin:8px 40px 5px 0">{{ c.title }}</div>
+              <div style="font-size:15px;line-height:1.7;color:#222;font-weight:500;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden">{{ c.body }}</div>
+              <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}">
+                <img src="{{ c.image }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-top:12px;border:1px solid #e4e4df;display:block">
+              </sc-if>
+            </div>
+          </div>
+          <button onClick="{{ c.onMenuToggle }}" style="appearance:none;cursor:pointer;position:absolute;top:14px;right:12px;background:none;border:none;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#9a9a96;padding:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+          <sc-if value="{{ c.menuOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ c.onMenuBackdrop }}" style="position:fixed;inset:0;z-index:40"></div>
+            <div style="position:absolute;top:42px;right:12px;z-index:41;background:#fff;border:1px solid #ededea;border-radius:14px;box-shadow:0 14px 38px rgba(10,10,10,.18);min-width:234px;overflow:hidden;animation:loreFade .14s ease both">
+              <button onClick="{{ c.onRename }}" style="appearance:none;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:none;border-bottom:1px solid #f2f2f0;padding:14px 16px;font-size:14px;font-weight:700;color:#0A0A0A;text-align:left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>タイトルを変更</button>
+              <button onClick="{{ c.onPin }}" style="appearance:none;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:none;border-bottom:1px solid #f2f2f0;padding:14px 16px;font-size:14px;font-weight:700;color:#0A0A0A;text-align:left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6.76l1.79 2.68A1 1 0 0 1 16.96 16H7.04a1 1 0 0 1-.83-1.56L8 10.76z"/></svg>{{ c.pinLabel }}</button>
+              <div onClick="{{ c.onCloseToggle }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid #f2f2f0;padding:14px 16px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg><span style="flex:1;font-size:14px;font-weight:700;color:#0A0A0A">親しい人だけに公開</span><span style="flex:none;width:38px;height:22px;border-radius:999px;background:{{ c.closeToggleTrack }};position:relative;transition:background .2s"><span style="position:absolute;top:3px;left:{{ c.closeToggleKnob }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s"></span></span></div>
+              <button onClick="{{ c.onDelete }}" style="appearance:none;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:none;padding:14px 16px;font-size:14px;font-weight:800;color:#E5484D;text-align:left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>削除</button>
+            </div>
+          </sc-if>
+          </div>
+        </sc-for>
+        <div style="padding:22px 18px">
+          <button onClick="{{ goGenerate }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:16px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px">コンテンツをつくる<span style="font-family:'Space Mono',monospace">+</span></button>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- OTHER USER PROFILE (same structure as own) -->
+    <sc-if value="{{ isUserProfile }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:620px;margin:0 auto;padding:0 0 40px">
+      <div style="padding:20px 18px 0;display:flex;align-items:center;justify-content:space-between;position:relative">
+        <button onClick="{{ goSearch }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← さがす</button>
+        <button onClick="{{ toggleUserMenu }}" aria-label="メニュー" style="appearance:none;cursor:pointer;background:none;border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#9a9a96;padding:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+        <sc-if value="{{ userMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeUserMenu }}" style="position:fixed;inset:0;z-index:40"></div>
+          <div style="position:absolute;top:46px;right:18px;z-index:41;background:#fff;border:1px solid #ededea;border-radius:14px;box-shadow:0 14px 38px rgba(10,10,10,.18);min-width:200px;overflow:hidden;animation:loreFade .14s ease both">
+            <button onClick="{{ blockVuUser }}" style="appearance:none;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:none;padding:14px 16px;font-size:14px;font-weight:800;color:#E5484D;text-align:left"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>ブロックする</button>
+          </div>
+        </sc-if>
+      </div>
+      <div style="padding:22px 18px 0;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div style="width:104px;height:104px;background:#0A0A0A;border-radius:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:46px;letter-spacing:-.02em">{{ vuAvatar }}</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:14px">
+          <div style="font-weight:900;font-size:24px;letter-spacing:-.02em">{{ vuName }}</div>
+          <sc-if value="{{ vuIsPrivate }}" hint-placeholder-val="{{ false }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </sc-if>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:14px;color:#0A0A0A;margin-top:2px">{{ vuUserId }}</div>
+        <p style="font-size:15px;line-height:1.6;color:#333;margin:12px 0 0;font-weight:500;max-width:34ch">{{ vuBio }}</p>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:18px">
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-weight:900;font-size:17px">{{ vuCardCount }}</span><span style="font-size:13px;color:#888;font-weight:600">コンテンツ</span></div>
+          <sc-if value="{{ vuNotFriend }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ sendVuRequest }}" disabled="{{ vuFriendDisabled }}" style="margin-left:auto;appearance:none;cursor:pointer;background:{{ vuFriendBg }};color:{{ vuFriendFg }};border:{{ vuFriendBorder }};border-radius:999px;padding:9px 18px;font-weight:800;font-size:13px">{{ vuFriendLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ vuIsFriend }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ toggleVuClose }}" style="margin-left:auto;appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:{{ vuCloseBg }};color:{{ vuCloseFg }};border:1px solid {{ vuCloseBorder }};border-radius:999px;padding:9px 14px;font-weight:700;font-size:13px;opacity:{{ vuCloseOpacity }}"><span style="font-size:12px;line-height:1">♥</span>親しい人</button>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- feed (Threads style) -->
+      <div style="margin-top:18px;border-top:1px solid #e4e4df">
+        <sc-for list="{{ vuCards }}" as="c" hint-placeholder-count="2">
+          <div onClick="{{ c.onOpen }}" style="cursor:pointer;display:flex;gap:12px;padding:18px;border-bottom:1px solid #ededea;animation:loreFade .5s ease both">
+            <div style="width:40px;height:40px;background:#0A0A0A;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;letter-spacing:-.02em">{{ vuAvatar }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-weight:800;font-size:15px">{{ vuName }}</span>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ c.feedMeta }}</span>
+              </div>
+              <div style="font-weight:800;font-size:17px;letter-spacing:-.01em;margin:8px 0 5px">{{ c.title }}</div>
+              <div style="font-size:15px;line-height:1.7;color:#222;font-weight:500">{{ c.body }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- DETAIL / SETTINGS (詳細) -->
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:560px;margin:0 auto;padding:26px 18px 60px">
+
+      <!-- settings main -->
+      <sc-if value="{{ isSettingsMain }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← lore</button>
+      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 22px">詳細</h2>
+
+      <div style="background:#fff;border:1px solid #e4e2dd;border-radius:14px;overflow:hidden;margin-bottom:24px">
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">アカウント情報</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button onClick="{{ openPasswordPage }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">パスワード変更</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button onClick="{{ openBlocked }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">ブロックしたユーザー</span><span style="font-family:'Space Mono',monospace;font-size:13px;color:#9a9a96;font-weight:700;margin-right:8px">{{ blockedCount }}</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button onClick="{{ openClosePage }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">親しい人</span><span style="font-family:'Space Mono',monospace;font-size:13px;color:#9a9a96;font-weight:700;margin-right:8px">{{ closeListCount }}</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">お問い合わせ</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">言語</span><span style="font-size:13px;color:#9a9a96;font-weight:600;margin-right:8px">日本語</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+      </div>
+
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#9a9a96;margin-bottom:10px;padding-left:2px">規約</div>
+      <div style="background:#fff;border:1px solid #e4e2dd;border-radius:14px;overflow:hidden">
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">プライバシーポリシー</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid #f0efec;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">利用規約</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+        <button style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:#0A0A0A">クッキー利用</span><span style="color:#c4c4be;font-size:18px;line-height:1">›</span></button>
+      </div>
+      </sc-if>
+
+      <!-- blocked users -->
+      <sc-if value="{{ isSubBlocked }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ backSettings }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← 詳細</button>
+      <h2 style="font-weight:900;font-size:24px;letter-spacing:-.02em;margin:8px 0 6px">ブロックしたユーザー</h2>
+      <p style="font-size:13px;color:#888;font-weight:500;margin:0 0 20px;line-height:1.6">ブロックした相手は、あなたのプロフィールやコンテンツを見られません。検索にも出てきません。</p>
+      <sc-if value="{{ hasBlocked }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ blockedList }}" as="u" hint-placeholder-count="1">
+            <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e4e2dd;border-radius:14px;padding:12px 14px">
+              <div style="width:44px;height:44px;background:#0A0A0A;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:19px;letter-spacing:-.02em">{{ u.avatar }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:800;font-size:15px">{{ u.name }}</div>
+                <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ u.userId }}</div>
+              </div>
+              <button onClick="{{ u.onUnblock }}" style="appearance:none;cursor:pointer;flex:none;background:#fff;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:999px;padding:8px 15px;font-weight:700;font-size:13px">解除</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noBlocked }}" hint-placeholder-val="{{ true }}">
+        <div style="text-align:center;padding:30px 10px;font-size:14px;color:#888;font-weight:500">ブロックしたユーザーはいません。</div>
+      </sc-if>
+      </sc-if>
+
+      <!-- close friends -->
+      <sc-if value="{{ isSubClose }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ backSettings }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← 詳細</button>
+      <h2 style="font-weight:900;font-size:24px;letter-spacing:-.02em;margin:8px 0 6px">親しい人</h2>
+      <p style="font-size:13px;color:#888;font-weight:500;margin:0 0 20px;line-height:1.6">「親しい人だけに公開」したコンテンツは、ここにいる友達だけが見られます。</p>
+      <sc-if value="{{ hasCloseList }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ closeList }}" as="u" hint-placeholder-count="1">
+            <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e4e2dd;border-radius:14px;padding:12px 14px">
+              <div style="width:44px;height:44px;background:#0A0A0A;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:19px;letter-spacing:-.02em">{{ u.avatar }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:800;font-size:15px">{{ u.name }}</div>
+                <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ u.userId }}</div>
+              </div>
+              <button onClick="{{ u.onToggleClose }}" style="appearance:none;cursor:pointer;flex:none;display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:8px 14px;font-weight:700;font-size:12px;background:#1E40FF;color:#fff;border:1px solid #1E40FF"><span style="font-size:11px;line-height:1">♥</span>解除</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noCloseList }}" hint-placeholder-val="{{ true }}">
+        <div style="text-align:center;padding:30px 10px;font-size:14px;color:#888;font-weight:500;line-height:1.7">まだ親しい人がいません。<br>友達一覧で「♥親しい人」をオンにしよう。</div>
+      </sc-if>
+      </sc-if>
+
+      <!-- password change (demo) -->
+      <sc-if value="{{ isSubPassword }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ backSettings }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← 詳細</button>
+      <h2 style="font-weight:900;font-size:24px;letter-spacing:-.02em;margin:8px 0 18px">パスワード変更</h2>
+      <div style="background:#fff;border:1px solid #e4e2dd;border-radius:14px;padding:18px 16px">
+        <label style="display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px">現在のパスワード</label>
+        <input type="password" placeholder="••••••" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;outline:none;margin-bottom:14px;box-sizing:border-box">
+        <label style="display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px">新しいパスワード</label>
+        <input type="password" placeholder="••••••" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;outline:none;margin-bottom:14px;box-sizing:border-box">
+        <label style="display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px">新しいパスワード（確認）</label>
+        <input type="password" placeholder="••••••" style="width:100%;border:1px solid #dcdcd6;border-radius:8px;padding:13px 14px;font-size:15px;outline:none;margin-bottom:18px;box-sizing:border-box">
+        <button onClick="{{ backSettings }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:15px;font-weight:900;font-size:15px">変更する</button>
+      </div>
+      </sc-if>
+
+    </div>
+    </sc-if>
+
+    <!-- CONTENT DETAIL -->
+    <sc-if value="{{ isContent }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:620px;margin:0 auto;padding:26px 18px 60px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ goContentBack }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← {{ contentBackLabel }}</button>
+        <button onClick="{{ openContentShare }}" aria-label="このコンテンツをシェア" style="appearance:none;cursor:pointer;background:#fff;border:1px solid #e4e2dd;border-radius:999px;padding:8px 15px 8px 12px;display:flex;align-items:center;gap:7px;font-weight:800;font-size:13px;color:#0A0A0A;box-shadow:0 1px 2px rgba(10,10,10,.04)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8 7l4-3 4 3"/><path d="M5 12v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18v-6"/></svg>シェア</button>
+      </div>
+      <sc-if value="{{ vcCloseOnly }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:16px 0 0"><span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #B9C2FF;background:#EEF1FF;color:#1E40FF;border-radius:20px;padding:3px 10px 3px 8px;font-size:11px;font-weight:700"><span style="font-size:11px;line-height:1">♥</span>親しい人</span></div>
+      </sc-if>
+      <h1 style="font-weight:900;font-size:clamp(26px,5vw,34px);letter-spacing:-.02em;line-height:1.25;margin:14px 0 12px">{{ vcTitle }}</h1>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
+        <div style="width:30px;height:30px;background:#0A0A0A;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;letter-spacing:-.02em">{{ vcAuthorAvatar }}</div>
+        <div style="font-weight:800;font-size:14px">{{ vcAuthorName }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ vcAuthorId }}</div>
+      </div>
+      <p style="font-size:17px;line-height:1.9;color:#1a1a1a;font-weight:500;margin:0 0 20px;white-space:pre-wrap">{{ vcBody }}</p>
+      <sc-if value="{{ vcHasImage }}" hint-placeholder-val="{{ false }}">
+        <img src="{{ vcImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid #e4e4df;border-radius:10px;display:block">
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- SEARCH -->
+    <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:560px;margin:0 auto;padding:30px 18px 60px">
+      <h2 style="font-weight:900;font-size:24px;letter-spacing:-.02em;margin:0 0 16px">さがす</h2>
+      <div style="display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #e4e2dd;border-radius:999px;padding:6px 6px 6px 18px;box-shadow:0 1px 2px rgba(10,10,10,.05)">
+        <span style="position:relative;width:18px;height:18px;flex:none;display:inline-block">
+          <span style="position:absolute;top:1px;left:1px;width:12px;height:12px;border:2px solid #9a9a96;border-radius:50%;box-sizing:border-box"></span>
+          <span style="position:absolute;top:12px;left:11px;width:6px;height:2px;border-radius:1px;background:#9a9a96;transform:rotate(45deg);transform-origin:left center"></span>
+        </span>
+        <input ref="{{ setSearchEl }}" value="{{ searchId }}" onChange="{{ onSearchInput }}" onKeyDown="{{ onSearchKey }}" placeholder="{{ tSearchPlaceholder }}" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#0A0A0A;font-size:15px;font-weight:600">
+        <button onClick="{{ onSearch }}" aria-label="検索" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:16px;font-weight:800;flex:none;display:flex;align-items:center;justify-content:center">→</button>
+      </div>
+      <div style="margin-top:26px">
+        <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:#aaa;margin-bottom:12px">PEOPLE</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ discoverUsers }}" as="u" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #e4e2dd;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(10,10,10,.04)">
+              <button onClick="{{ u.onOpen }}" style="appearance:none;cursor:pointer;text-align:left;flex:1;min-width:0;background:none;border:none;padding:0;display:flex;align-items:center;gap:13px">
+                <div style="width:46px;height:46px;background:#0A0A0A;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;letter-spacing:-.02em">{{ u.avatar }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span style="font-weight:800;font-size:15px">{{ u.name }}</span>
+                    <sc-if value="{{ u.isPrivate }}" hint-placeholder-val="{{ false }}">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    </sc-if>
+                  </div>
+                  <div style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96">{{ u.userId }}</div>
+                </div>
+              </button>
+              <button onClick="{{ u.onRemove }}" aria-label="履歴から削除" style="flex:none;appearance:none;cursor:pointer;background:none;border:none;width:30px;height:30px;border-radius:50%;color:#bbb;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- GENERATE -->
+    <sc-if value="{{ isGenerate }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:680px;margin:0 auto;padding:26px 18px 60px;position:relative">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← lore</button>
+        <button onClick="{{ openGenSettings }}" aria-label="設定" style="appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span><span style="width:4px;height:4px;border-radius:50%;background:#0A0A0A"></span></button>
+      </div>
+      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">コンテンツをつくる</h2>
+
+      <sc-if value="{{ isStepSwipe }}" hint-placeholder-val="{{ true }}">
+        <p style="font-size:14px;color:#555;line-height:1.6;margin:0 0 18px;font-weight:500">これまでの会話から、こんなコンテンツが作れるよ。</p>
+
+        <sc-if value="{{ deckEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px dashed #c9c9c4;border-radius:10px;padding:44px 24px;text-align:center">
+            <div style="width:60px;height:60px;margin:0 auto 18px;position:relative">
+              <div style="width:60px;height:46px;background:#0A0A0A;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:5px">
+                <span style="width:6px;height:6px;border-radius:50%;background:#fff"></span>
+                <span style="width:6px;height:6px;border-radius:50%;background:#fff"></span>
+                <span style="width:6px;height:6px;border-radius:50%;background:#fff"></span>
+              </div>
+              <span style="position:absolute;top:42px;left:15px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11.5px solid #0A0A0A"></span>
+            </div>
+            <div style="font-weight:800;font-size:18px;margin-bottom:22px">今は作れるコンテンツがありません。</div>
+            <button onClick="{{ goTalk }}" style="appearance:none;cursor:pointer;background:#0A0A0A;color:#fff;border:none;border-radius:4px;padding:14px 26px;font-weight:800;font-size:15px;display:inline-flex;align-items:center;gap:9px">
+              <span style="position:relative;width:18px;height:14px;flex:none;display:inline-block">
+                <span style="position:absolute;inset:0;background:#fff;border-radius:4px"></span>
+                <span style="position:absolute;bottom:-3px;left:3px;width:0;height:0;border-left:6px solid transparent;border-top:6px solid #fff"></span>
+              </span>
+              話しにいく
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasDeck }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 14px">
+            <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:13px;color:#888;font-weight:700">残り</span><span style="font-weight:900;font-size:24px;letter-spacing:-.02em;color:#0A0A0A">{{ deckCount }}</span><span style="font-size:13px;color:#888;font-weight:700">件</span></div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="display:flex;align-items:center;gap:6px;color:#E5484D"><span style="font-size:16px;font-weight:900">←</span><span style="width:24px;height:24px;border-radius:50%;border:1.5px solid #E5484D;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900">✕</span></div>
+              <div style="display:flex;align-items:center;gap:6px;color:#1E40FF"><span style="width:24px;height:24px;border-radius:50%;border:1.5px solid #1E40FF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900">+</span><span style="font-size:16px;font-weight:900">→</span></div>
+            </div>
+          </div>
+          <div style="position:relative;height:384px;margin-bottom:8px">
+            <sc-for list="{{ swipeStack }}" as="c" hint-placeholder-count="3">
+              <div ref="{{ c.ref }}" onPointerDown="{{ c.onDown }}" onPointerMove="{{ c.onMove }}" onPointerUp="{{ c.onUp }}" style="position:absolute;top:0;left:0;right:0;height:344px;background:#fff;border:1px solid #ececea;border-radius:18px;padding:28px;display:flex;flex-direction:column;box-shadow:0 6px 20px rgba(10,10,10,.10);touch-action:none;user-select:none;overflow:hidden;z-index:{{ c.z }};transform:{{ c.transform }};transition:{{ c.transition }};cursor:{{ c.cursor }}">
+                <div data-wash style="position:absolute;inset:0;background:#1E40FF;opacity:0;pointer-events:none"></div>
+                <div data-like style="position:absolute;top:24px;left:24px;background:#fff;border:2px solid #1E40FF;color:#1E40FF;font-family:'Space Mono',monospace;font-weight:700;font-size:20px;letter-spacing:.08em;padding:4px 12px;border-radius:6px;transform:rotate(-12deg);opacity:0;pointer-events:none">つくる</div>
+                <div data-nope style="position:absolute;top:24px;right:24px;background:#fff;border:2px solid #E5484D;color:#E5484D;font-family:'Space Mono',monospace;font-weight:700;font-size:20px;letter-spacing:.08em;padding:4px 12px;border-radius:6px;transform:rotate(12deg);opacity:0;pointer-events:none">けす</div>
+                <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center">
+                  <div style="font-weight:900;font-size:27px;letter-spacing:-.02em;line-height:1.22">{{ c.title }}</div>
+                  <p style="font-size:16px;line-height:1.7;color:#444;margin:14px 0 0;font-weight:500">{{ c.summary }}</p>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isStepGenerating }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 0;gap:18px">
+          <div style="width:90px;height:90px;background:#0A0A0A;border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block;animation:loreBlink 1.1s infinite"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.2em;color:#0A0A0A;animation:lorePulse 1.1s infinite">{{ tComposing }}</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStepReview }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #0A0A0A;border-radius:5px;padding:22px;margin:16px 0 16px;animation:loreStrike .5s ease both">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h4 style="font-weight:800;font-size:20px;margin:0">{{ selTitle }}</h4>
+            <button onClick="{{ onDiscard }}" style="appearance:none;cursor:pointer;display:flex;align-items:center;gap:6px;background:#FDECEC;border:1px solid #E5484D;border-radius:999px;padding:6px 13px;font-weight:700;font-size:13px;color:#E5484D;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/></svg>破棄</button>
+          </div>
+          <textarea value="{{ draftBody }}" onChange="{{ onDraftEdit }}" style="width:100%;border:1px dashed #ccc;border-radius:4px;padding:12px;font-size:15px;line-height:1.75;color:#222;min-height:140px;outline:none;font-weight:500"></textarea>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#aaa;margin-top:8px">気に入らない一文だけ、直していい。</div>
+        </div>
+        <div style="font-weight:800;font-size:14px;margin:0 0 8px">画像（1枚・任意）</div>
+        <input ref="{{ setFileEl }}" type="file" accept="image/*" onChange="{{ onPickImage }}" style="display:none">
+        <sc-if value="{{ hasPubImage }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative;margin-bottom:18px;border-radius:10px;overflow:hidden;border:1px solid #e4e4df">
+            <img src="{{ pubImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">
+            <button onClick="{{ triggerPick }}" style="appearance:none;cursor:pointer;position:absolute;bottom:10px;right:54px;background:rgba(10,10,10,.78);color:#fff;border:none;border-radius:999px;padding:7px 13px;font-weight:700;font-size:12px">変更</button>
+            <button onClick="{{ removeImage }}" aria-label="画像を削除" style="appearance:none;cursor:pointer;position:absolute;bottom:10px;right:10px;background:rgba(229,72,77,.92);color:#fff;border:none;border-radius:999px;width:34px;height:34px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noPubImage }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ triggerPick }}" style="width:100%;appearance:none;cursor:pointer;background:#fff;border:1px dashed #c9c9c4;border-radius:10px;padding:22px;margin-bottom:18px;display:flex;flex-direction:column;align-items:center;gap:8px;color:#9a9a96;font-weight:700;font-size:13px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9a9a96" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L5 21"/></svg>
+            画像を追加
+          </button>
+        </sc-if>
+        <div style="font-weight:800;font-size:13px;margin:0 0 9px">粒度を変えて作り直す</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px">
+          <sc-for list="{{ reviewGran }}" as="g" hint-placeholder-count="3">
+            <button onClick="{{ g.onClick }}" style="appearance:none;cursor:pointer;display:flex;align-items:center;gap:8px;background:transparent;border:none;padding:2px 0;font-weight:700;font-size:14px;color:#0A0A0A"><span style="width:19px;height:19px;border-radius:5px;border:1.5px solid {{ g.boxBorder }};background:{{ g.boxBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none">{{ g.check }}</span>{{ g.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-weight:800;font-size:15px;margin-bottom:10px">公開範囲</div>
+        <button onClick="{{ toggleCloseOnly }}" style="width:100%;appearance:none;cursor:pointer;text-align:left;background:{{ closeBg }};border:1px solid {{ closeBorder }};border-radius:10px;padding:15px 16px;display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <span style="width:26px;height:26px;border-radius:8px;border:1px solid {{ closeBoxBorder }};background:{{ closeBoxBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex:none">{{ closeCheck }}</span>
+          <span style="flex:1;min-width:0">
+            <span style="display:block;font-weight:800;font-size:16px;color:#0A0A0A">親しい人だけに見せる</span>
+          </span>
+        </button>
+        <button onClick="{{ onPublishSelected }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:17px;font-weight:900;font-size:16px">公開する</button>
+      </sc-if>
+
+      <!-- generate settings -->
+      <sc-if value="{{ genSettingsOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeGenSettings }}" style="position:fixed;inset:0;background:rgba(10,10,10,.35);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:78px 18px 24px">
+        <div onClick="{{ stop }}" style="background:#fff;width:100%;max-width:420px;border:1px solid #e4e4df;border-radius:14px;padding:22px 20px 24px;max-height:80vh;overflow-y:auto;box-shadow:0 18px 50px rgba(0,0,0,.25);animation:loreFade .25s ease both">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+            <div style="font-weight:900;font-size:18px">設定</div>
+            <button onClick="{{ closeGenSettings }}" style="appearance:none;cursor:pointer;background:none;border:none;font-size:24px;line-height:1;color:#888;padding:0 4px">×</button>
+          </div>
+          <div style="font-weight:800;font-size:14px;margin-bottom:4px">デフォルトの粒度</div>
+          <p style="font-size:12px;color:#888;margin:0 0 10px;font-weight:500;line-height:1.5">右スワイプで確定したとき、この粒度で生成する。</p>
+          <div style="display:flex;gap:8px;margin-bottom:26px">
+            <sc-for list="{{ defGranOptions }}" as="g" hint-placeholder-count="3">
+              <button onClick="{{ g.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:{{ g.bg }};color:{{ g.fg }};border:{{ g.border }};border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;gap:3px;align-items:center">
+                <span style="font-weight:800;font-size:14px">{{ g.label }}</span>
+                <span style="font-size:10px;opacity:.7;font-family:'Space Mono',monospace">{{ g.desc }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-weight:800;font-size:14px">削除した話</span>
+            <span style="font-family:'Space Mono',monospace;font-size:11px;color:#999">{{ deletedCount }}</span>
+          </div>
+          <sc-if value="{{ hasDeleted }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ deletedList }}" as="d" hint-placeholder-count="2">
+                <div style="background:#fff;border:1px solid #e4e2dd;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:800;font-size:15px">{{ d.title }}</div>
+                    <div style="font-size:12px;color:#999;font-weight:500;line-height:1.4">{{ d.summary }}</div>
+                  </div>
+                  <button onClick="{{ d.onRestore }}" style="appearance:none;cursor:pointer;background:none;color:#0A0A0A;border:1px solid #0A0A0A;border-radius:20px;padding:7px 14px;font-weight:700;font-size:12px;flex:none">戻す</button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noDeleted }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13px;color:#aaa;font-weight:500;padding:6px 0">まだ削除した話はない。</div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- SHARE -->
+    <sc-if value="{{ isShare }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:560px;margin:0 auto;padding:26px 18px 60px">
+      <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:#666;padding:0">← lore</button>
+      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">シェア</h2>
+      <p style="font-size:14px;color:#555;line-height:1.6;margin:0 0 22px;font-weight:500">プロフィールをシェア</p>
+
+      <sc-if value="{{ shareIsPrivate }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#FFF7ED;border:1px solid #FBD9A8;border-radius:12px;padding:13px 15px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start">
+          <span style="width:22px;height:22px;border-radius:6px;flex:none;background:#C2410C;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;line-height:1">🔒</span>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:800;color:#9A3412;line-height:1.4">このアカウントは非公開です</div>
+            <div style="font-size:12px;font-weight:500;color:#9A3412;opacity:.85;line-height:1.6;margin-top:3px">リンクを共有しても、承認した友達以外はプロフィールを見られません。</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- profile share card -->
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #e4e2dd;background:#fff;box-shadow:0 1px 2px rgba(10,10,10,.05);margin-bottom:16px">
+        <div style="padding:30px 22px 24px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <div style="width:88px;height:88px;background:#0A0A0A;border-radius:22px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:40px;letter-spacing:-.02em">丸</div>
+          <div style="font-weight:900;font-size:22px;letter-spacing:-.02em;margin-top:14px">{{ displayName }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:13px;color:#0A0A0A;margin-top:2px">{{ userId }}</div>
+          <p style="font-size:14px;line-height:1.6;color:#333;margin:12px 0 0;font-weight:500;max-width:32ch">{{ bio }}</p>
+          <div style="display:flex;align-items:baseline;gap:18px;margin-top:16px">
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-weight:900;font-size:17px">{{ cardCount }}</span><span style="font-size:13px;color:#888;font-weight:600">コンテンツ</span></div>
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-weight:900;font-size:17px">{{ friendCount }}</span><span style="font-size:13px;color:#888;font-weight:600">ともだち</span></div>
+          </div>
+        </div>
+        <sc-if value="{{ shareHasCards }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid #ededea">
+            <sc-for list="{{ shareCards }}" as="c" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid #ededea">
+                <div style="width:34px;height:34px;background:#0A0A0A;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px;letter-spacing:-.02em">丸</div>
+                <span style="flex:1;min-width:0;font-weight:800;font-size:15px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.title }}</span>
+                <sc-if value="{{ c.closeOnly }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:none;display:inline-flex;align-items:center;gap:4px;border:1px solid #B9C2FF;background:#EEF1FF;color:#1E40FF;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700"><span style="font-size:11px;line-height:1">♥</span>親しい人</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ shareEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top:1px solid #ededea;padding:18px 20px;text-align:center;font-size:13px;color:#aaa;font-weight:500">まだ公開コンテンツがありません。</div>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:7px;padding:13px 18px;border-top:1px solid #ededea;background:#fafaf8">
+          <img src="mark-blue.png" alt="LORE" style="width:16px;height:16px;display:block">
+          <span style="font-family:'Space Mono',monospace;font-size:12px;color:#9a9a96;letter-spacing:.04em">{{ shareUrl }}</span>
+        </div>
+      </div>
+
+      <div style="background:#0A0A0A;color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-bottom:12px">SHARE LINK</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onClick="{{ openShareRefresh }}" aria-label="リンクを更新" style="appearance:none;cursor:pointer;flex:none;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.32);color:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
+          <span style="flex:1;min-width:0;font-family:'Space Mono',monospace;font-size:13px;word-break:break-all;text-align:center">{{ shareUrl }}</span>
+          <button onClick="{{ onCopy }}" style="appearance:none;cursor:pointer;flex:none;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:9px 16px;font-weight:700;font-size:13px">{{ copyLabel }}</button>
+        </div>
+      </div>
+      <button onClick="{{ onPreviewPublic }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:16px;font-weight:900;font-size:15px">相手に見える画面をプレビュー →</button>
+    </div>
+    </sc-if>
+
+  </div>
+  </sc-if>
+
+  <!-- mobile bottom nav -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:none;background:#fff;border-top:1px solid #e4e4df;display:flex;height:62px">
+    <button onClick="{{ navHome.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navHome.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navHome.dot }}"></span></button>
+    <button onClick="{{ navCreate.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navCreate.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navCreate.dot }}"></span></button>
+    <button onClick="{{ navSearch.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navSearch.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navSearch.dot }}"></span></button>
+    <button onClick="{{ navProfile.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navProfile.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navProfile.dot }}"></span></button>
+    <button onClick="{{ navSettings.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navSettings.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navSettings.dot }}"></span></button>
+  </div>
+  </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ PUBLIC (recipient web view) ============ -->
+<sc-if value="{{ isPublic }}" hint-placeholder-val="{{ false }}">
+<div style="height:100vh;overflow-y:auto;background:#F2F2F2">
+  <div style="position:sticky;top:0;z-index:5;background:rgba(242,242,242,.9);backdrop-filter:blur(8px);border-bottom:1px solid #e2e2dd;display:flex;align-items:center;justify-content:space-between;padding:12px 18px">
+    <div style="display:flex;align-items:center;gap:9px">
+      <img src="mark-blue.png" alt="LORE" style="width:22px;height:22px;display:block">
+      <span style="font-weight:900;font-size:15px;letter-spacing:-.02em">LORE</span>
+    </div>
+    <button onClick="{{ onBackApp }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:11px;color:#888">← back to app</button>
+  </div>
+
+  <div style="max-width:600px;margin:0 auto;padding:0 18px 140px">
+    <div style="background:#0A0A0A;border-radius:0 0 16px 16px;padding:34px 26px 30px;color:#fff;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1.4px,transparent 1.4px);background-size:24px 24px;opacity:.5"></div>
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div style="width:min(40vw,128px);height:min(40vw,128px);background:#fff;border-radius:28px;display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-weight:900;font-size:min(20vw,60px);letter-spacing:-.02em">{{ pubAvatar }}</div>
+        <div style="margin-top:16px">
+          <div style="font-weight:900;font-size:22px;letter-spacing:-.01em">{{ displayName }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:13px;opacity:.85">{{ userId }}</div>
+        </div>
+        <p style="font-size:14px;line-height:1.6;margin:14px 0 0;font-weight:500;max-width:34ch">{{ bio }}</p>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.26em;opacity:.7;margin-top:18px">READ YOURSELF</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:22px">
+      <sc-for list="{{ publicCards }}" as="c" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid #0A0A0A;border-radius:5px;overflow:hidden;animation:loreFade .5s ease both">
+          <sc-if value="{{ c.hasImage }}" hint-placeholder-val="{{ false }}">
+            <img src="{{ c.image }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-bottom:1px solid #0A0A0A;display:block">
+          </sc-if>
+          <div style="padding:20px 22px">
+            <h4 style="font-weight:900;font-size:20px;letter-spacing:-.01em;margin:0 0 10px">{{ c.title }}</h4>
+            <p style="font-size:15px;line-height:1.75;color:#222;margin:0;font-weight:500">{{ c.body }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:#0A0A0A;color:#fff;border-radius:8px;padding:34px 26px;margin-top:26px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(10,10,10,.5) 1.4px,transparent 1.4px);background-size:22px 22px;opacity:.45"></div>
+      <div style="position:relative">
+        <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;color:#0A0A0A;margin-bottom:14px">YOUR TURN</div>
+        <h3 style="font-weight:900;font-size:clamp(24px,6vw,32px);line-height:1.15;letter-spacing:-.02em;margin:0">あなたの輪郭は、<br>どう見える？</h3>
+        <p style="font-size:14px;line-height:1.7;color:rgba(255,255,255,.7);margin:16px auto 24px;max-width:30ch;font-weight:500">話すだけ。{{ displayNameShort }}との共通点も、見えてくる。</p>
+        <button onClick="{{ onMakeOwn }}" style="appearance:none;cursor:pointer;background:#0A0A0A;color:#fff;border:none;border-radius:5px;padding:18px 32px;font-weight:900;font-size:17px;width:100%;max-width:340px">自分のloreを作る →</button>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.4);margin-top:16px">FREE · 1 minute</div>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'welcome',
+    mode: 'onboarding',
+    lang: 'ja',
+    langOpen: false,
+    searchId: '',
+    hiddenUsers: [],
+    viewUser: null,
+    privUserOpen: false,
+    privUser: null,
+    friends: {},
+    incomingRequests: ['u_akari'],
+    closeFriends: {},
+    friendsListOpen: false,
+    notifList: [
+      { icon:'七', iconBg:'#0A0A0A', text:'七海さんがあなたのloreを読みました。', time:'2時間前', unread:true },
+      { icon:'✦', iconBg:'#1E40FF', text:'新しいコンテンツの種が見つかりました。話してみよう。', time:'昨日', unread:true },
+      { icon:'灯', iconBg:'#0A0A0A', text:'灯里さんと友達になりました。', time:'3日前', unread:false },
+    ],
+    viewCard: null,
+    contentBackTo: 'profile',
+    loginOpen: false,
+    profilePrivate: true,
+    privBannerDismissed: false,
+    pubConfirmOpen: false,
+    loginId: '',
+    loginPw: '',
+    loginErr: '',
+    authFocus: false,
+    authVal: '',
+    vw: 1024,
+    messages: [],
+    input: '',
+    convIdx: 0,
+    suggestions: [],
+    pendingStrike: null,
+    obStrikes: 0,
+    cards: [],
+    candidates: [],
+    genStep: 'swipe',
+    selected: null,
+    granularity: 'normal',
+    defaultGran: 'normal',
+    deleted: [],
+    genSettingsOpen: false,
+    navExpanded: false,
+    homeMenuOpen: false,
+    msgMuted: false,
+    profileTab: 'content',
+    typing: false,
+    pubCloseOnly: false,
+    pubImage: null,
+    cropOpen: false,
+    cropSrc: '',
+    cropScale: 1,
+    cropX: 0,
+    cropY: 0,
+    draftBody: '',
+    shareCreated: false,
+    shareToken: 'k7x2qd',
+    shareRefreshOpen: false,
+    contentShareOpen: false,
+    contentShareToken: 'm3p9qz',
+    contentCopied: false,
+    copied: false,
+    blockedUsers: [],
+    userMenuOpen: false,
+    settingsSub: null,
+    latestRead: '',
+    resolution: 0.66,
+    openCardMenu: null,
+    renameId: null,
+    renameVal: '',
+  };
+
+  script = [
+    { type:'q', text:'はじめまして。重い質問はしない。最近、気づいたら時間が溶けてたことってある？', chips:['夜中にずっと地図を見てた','古い写真を整理してた'] },
+    { type:'q', text:'いいね。それやってる時、誰かに見せたい感じ？それとも一人で完結してる？', chips:['完全に一人','たまに誰かに見せたい'] },
+    { type:'strike', text:'君は、人に見せるために何かをするのがあまり好きじゃない。完結している時間そのものが、もう報酬になっている人だ。', conf:0.75 },
+    { type:'q', text:'じゃあ逆に。人といて「あ、疲れたな」って思うのは、どんな時？', chips:['盛り上がりすぎてる時','気を使い続けた時'] },
+    { type:'strike', text:'盛り上がっている場所より、その帰り道の静けさの方が好きだろう。賑わいが嫌いなんじゃない。余韻の方に本体がある。', conf:0.75 },
+    { type:'q', text:'最後にひとつ。何かを断る時、君は何を基準にしてる？', chips:['なんとなく気分で','ちゃんと理由を考える'] },
+    { type:'strike', text:'君の「まあいいか」は諦めじゃない。戦う相手を、静かに選んでいるだけだ。', conf:0.4 },
+    { type:'done' },
+  ];
+
+  homeScript = [
+    { type:'q', bubbles:['おかえり。','今日はどんな一日だった？','…と、その前に。最近、気づいたら時間を忘れて没頭してたことってある？'], chips:['あった','うーん…'] },
+    { type:'strike', text:'君は没頭できる時間を、ちゃんと贅沢だと思っている人だ。' },
+    { type:'q', bubbles:['なるほどね。','じゃあ逆に聞くね。','人といて、ふと「そろそろ帰りたいな」って思うのはどんな瞬間？'], chips:['気を使い続けた時','盛り上がりすぎた時'] },
+    { type:'strike', text:'にぎやかさが嫌いなわけじゃない。君は、余韻のほうに本体がある。' },
+    { type:'q', bubbles:['うん、わかる気がする。','最後にひとつだけ。','今日、自分でも少し意外だった選択ってあった？'], chips:['あるかも','特にない'] },
+    { type:'strike', text:'君の「まあいいか」は諦めじゃない。戦う相手を、静かに選んでいるだけだ。' },
+  ];
+
+  seedCandidates = [
+    { id:'c1', title:'退屈との付き合い方', summary:'何も起きない時間に、君がどう強いか。' },
+    { id:'c2', title:'断り方に出る性格', summary:'君が、何を守るために断るのか。' },
+    { id:'c3', title:'人との距離の取り方', summary:'近づき方より、離れ方でわかること。' },
+  ];
+
+  genMap = {
+    c1: {
+      detailed:'丸山は退屈を恐れない。予定が真っ白な日曜の朝、多くの人がスマホを開いて何かを探しはじめる時間に、彼はただ窓の外を見ていられる。沈黙が怖くない、数少ないタイプだ。一緒にいて会話が途切れても、その隙間を慌てて埋めにいかない。',
+      normal:'丸山は退屈に強い。何も起きない時間を無理に埋めようとせず、そのまま過ごせる。沈黙が怖くない、数少ない人だ。',
+      vague:'丸山は、何もない時間にわりと強いほうだ。',
+    },
+    c2: {
+      detailed:'丸山の「まあいいか」は、諦めの言葉じゃない。戦う相手を静かに選んでいるだけだ。どうでもいいことは驚くほどあっさり流すのに、本当に譲れないものの前では、声を荒げることなく、はっきりと断る。その線引きの一貫性が、彼の輪郭になっている。',
+      normal:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。',
+      vague:'丸山は、断る基準を自分の中に持っている人だ。',
+    },
+    c3: {
+      detailed:'丸山は、人への近づき方より、離れ方が丁寧だ。深く入りすぎない代わりに、一度入れた相手はそう簡単に手放さない。距離を詰めるのが遅いのは臆病だからではなく、いつでも気持ちよく離れられる関係しか、続かないと知っているからだ。',
+      normal:'丸山は近づくより、離れ方が丁寧な人だ。距離を詰めるのが遅いのは、気持ちよく離れられる関係しか続かないと知っているから。',
+      vague:'丸山は、人との距離の取り方に自分のリズムがある。',
+    },
+  };
+
+  seedCards = [
+    { id:'k1', title:'退屈に強い', body:'丸山は退屈を恐れない。何も起きない時間を無理に埋めようとせず、そのまま過ごせる。沈黙が怖くない、数少ない人だ。', conf:'0.75', closeOnly:false, image:null },
+    { id:'k2', title:'帰り道のほうが好き', body:'盛り上がっている場所より、その帰り道の静けさを丸山は選ぶ。賑わいが嫌いなんじゃない。余韻の方に本体がある。', conf:'0.75', closeOnly:false, image:null },
+    { id:'k3', title:'断り方でわかる', body:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。', conf:'0.40', closeOnly:true, image:null },
+  ];
+
+  readPool = [
+    '本当は、計画するより降りられる準備をしておきたい人だ。',
+    '頼るのが苦手なんじゃない。頼った後の「借り」の感覚に耐えられないんだ。',
+    '君は、決めるのが遅いんじゃない。覆さないと知ってるから慎重なだけだ。',
+  ];
+
+  componentDidMount() {
+    this.buildPixels();
+    this.dispRes = 0;
+    this._readIdx = 0;
+    this.setState({ cards: this.seedCards.slice(), candidates: this.seedCandidates.slice() });
+    const onResize = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', onResize);
+    this._onResize = onResize;
+    onResize();
+    requestAnimationFrame(() => this.drawAll());
+  }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); cancelAnimationFrame(this._raf); clearTimeout(this._bt); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentDidUpdate(){ requestAnimationFrame(() => this.drawAll()); this.scrollChat(); }
+
+  // ---- portrait engine ----
+  buildPixels() {
+    const N = 22; this.N = N; const c = (N-1)/2; const list = [];
+    for (let y=0;y<N;y++) for (let x=0;x<N;x++) {
+      const dx=x-c, dy=y-c, d=Math.hypot(dx,dy);
+      let on=false;
+      if (d>=7.2 && d<=9.2) on=true;
+      else if (d>=3.0 && d<=4.0 && ((x+y)%2===0)) on=true;
+      if (on) list.push({x,y,d,stray:false});
+    }
+    [[2,4],[19,3],[20,16],[3,18],[18,9],[1,11]].forEach(([x,y])=>list.push({x,y,d:99,stray:true}));
+    list.forEach((p,i)=>{
+      let s1=Math.sin(i*12.9898)*43758.5453; p.j1=(s1-Math.floor(s1))*2-1;
+      let s2=Math.sin(i*78.233)*43758.5453; p.j2=(s2-Math.floor(s2))*2-1;
+    });
+    const ord=list.map((p,i)=>({i,k:(p.d>50?2:(p.d<5?0.6:0))+Math.abs(p.j1)*0.5}));
+    ord.sort((a,b)=>a.k-b.k);
+    ord.forEach((o,rank)=>{ list[o.i].order=rank; });
+    this.pixels=list;
+  }
+  revealRef = (el) => {
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(44px)';
+    el.style.transition = 'opacity 1s cubic-bezier(.2,.8,.2,1), transform 1s cubic-bezier(.2,.8,.2,1)';
+    if (!this._io) {
+      this._io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='none'; this._io.unobserve(e.target); } });
+      }, { threshold: 0.16 });
+    }
+    this._io.observe(el);
+  };
+  portraitRef = (el) => {
+    if (!el) return;
+    if (!this._pio) {
+      this._pio = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { this.setResolution(0.97, 1900); this._pio.unobserve(e.target); } });
+      }, { threshold: 0.4 });
+    }
+    this._pio.observe(el);
+  };
+  setPortrait = (el) => {
+    if (!el) return;
+    this.canvases = this.canvases || [];
+    if (!this.canvases.includes(el)) this.canvases.push(el);
+    requestAnimationFrame(() => this.drawAll());
+  };
+  drawAll() {
+    if (!this.pixels) this.buildPixels();
+    this.canvases = (this.canvases||[]).filter(c => c && c.isConnected);
+    for (const cv of this.canvases) this.drawOne(cv, cv.dataset.fixed==='1' ? 1 : (this.dispRes||0));
+  }
+  drawOne(cv, res) {
+    const rect = cv.getBoundingClientRect();
+    const size = Math.max(28, rect.width || cv.clientWidth || 60);
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(size*dpr); cv.height = Math.round(size*dpr);
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,size,size);
+    const N=this.N, cell=size/N, total=this.pixels.length;
+    const reveal=0.12+0.88*res, sharp=res;
+    for (const p of this.pixels) {
+      const ti=p.order/total;
+      const a=Math.max(0,Math.min(1,(reveal-ti)/0.07));
+      if (a<=0) continue;
+      const jit=(1-sharp)*(1-a*0.6)*cell*2.0;
+      const ox=p.j1*jit, oy=p.j2*jit;
+      const op=a*(0.32+0.68*sharp)*(p.stray?0.7:1);
+      const s=cell*0.82*(0.55+0.45*a);
+      const cx=(p.x+0.5)*cell+ox, cy=(p.y+0.5)*cell+oy;
+      ctx.globalAlpha=op; ctx.fillStyle='#fff';
+      ctx.fillRect(cx-s/2, cy-s/2, s, s);
+    }
+    ctx.globalAlpha=1;
+  }
+  setResolution(target, dur=750) {
+    cancelAnimationFrame(this._raf);
+    const start=this.dispRes||0, t0=performance.now();
+    const tick=(t)=>{ const k=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-k,3); this.dispRes=start+(target-start)*e; this.drawAll(); if(k<1) this._raf=requestAnimationFrame(tick); };
+    this._raf=requestAnimationFrame(tick);
+  }
+
+  setChatScroll = (el) => { this._chatEl = el; };
+  scrollChat(){ if(this._chatEl){ this._chatEl.scrollTop = this._chatEl.scrollHeight; } }
+  pushBubbles(bubbles, chips){
+    const list = (bubbles||[]).slice(); let i = 0;
+    this.setState({ suggestions:[] });
+    const next = () => {
+      if (i >= list.length) { this.setState({ typing:false, suggestions:chips||[] }); return; }
+      this.setState({ typing:true });
+      this._bt = setTimeout(() => {
+        const txt = list[i]; i++;
+        this.setState(s => ({ messages:[...s.messages,{role:'ai',text:txt}], typing:false }));
+        this._bt = setTimeout(next, 480);
+      }, 720);
+    };
+    next();
+  }
+
+  // ---- navigation ----
+  setAuthEl = (el) => { if (el) this._authEl = el; };
+  onAuthFocus = () => this.setState({ authFocus:true });
+  onAuthBlur = () => this.setState({ authFocus:false });
+  onAuthInput = (e) => this.setState({ authVal:e.target.value });
+  onAuthKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onAuthContinue(); } };
+  onAuthContinue = () => {
+    const v = ((this._authEl && this._authEl.value) || '').trim().replace(/^@/, '').toLowerCase();
+    if (!v) return;
+    if (v==='maruyama' || v==='maruyama@lore.app') {
+      this.setState({ screen:'profile', resolution:0.66 });
+      this.setResolution(0.66);
+    } else {
+      this.enterNew();
+    }
+  };
+  onOAuth = () => this.enterNew();
+  pillIn = (e) => { e.currentTarget.style.background = '#e4e2dc'; };
+  pillOut = (e) => { e.currentTarget.style.background = '#fff'; };
+  enterNew = () => {
+    this.setState({ screen:'home', mode:'home', messages:[], convIdx:1, resolution:0.2 });
+    this.pushBubbles(this.homeScript[0].bubbles, this.homeScript[0].chips);
+    this.setResolution(0.2, 600);
+  };
+  onStart = () => {
+    this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, pendingStrike:null, obStrikes:0 });
+    this.setResolution(0.12, 400);
+  };
+  onDemo = () => { this.setState({ screen:'profile', resolution:0.66 }); this.setResolution(0.66); };  onEnterHome = () => this.goProfile();
+  goProfile = () => { this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66); };
+  goTalk = () => {
+    const empty = this.state.messages.length === 0;
+    this.setState({ screen:'home', mode:'home' });
+    if (empty) {
+      this.setState({ messages:[], convIdx:1 });
+      this.pushBubbles(this.homeScript[0].bubbles, this.homeScript[0].chips);
+    }
+    this.setResolution(this.state.resolution||0.66);
+  };
+  goGenerate = () => this.setState({ screen:'generate', genStep:'swipe', selected:null });
+  goShare = () => this.setState({ screen:'share', shareCreated:false, copied:false });
+  goNotif = () => this.setState({ screen:'notif' });
+  goSettings = () => this.setState({ screen:'settings', settingsSub:null });
+  openSettingsSub = (v) => this.setState({ settingsSub:v });
+  backSettings = () => this.setState({ settingsSub:null });
+
+  // ---- chat ----
+  onChatInput = (e) => this.setState({ input: e.target.value });
+  onChatKey = (e) => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } };
+  onSend = () => this.send();
+  send = (text) => {
+    const t = (text !== undefined ? text : this.state.input).trim();
+    if (!t) return;
+    this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[] }));
+    setTimeout(() => this.advance(), 480);
+  };
+  advance() {
+    const home = this.state.mode==='home';
+    const arr = home ? this.homeScript : this.script;
+    const idx = home ? (this.state.convIdx % arr.length) : this.state.convIdx;
+    const ev = arr[idx];
+    if (!ev || ev.type==='done') { if(!home) this.finishOnboarding(); return; }
+    if (ev.type==='q') {
+      this.setState(s => ({ convIdx:s.convIdx+1 }));
+      if (ev.bubbles) { this.pushBubbles(ev.bubbles, ev.chips); }
+      else { this.setState(s => ({ messages:[...s.messages,{role:'ai',text:ev.text}], suggestions:ev.chips||[] })); }
+    } else if (ev.type==='strike') {
+      this.setState(s => ({ pendingStrike:{text:ev.text,conf:ev.conf}, convIdx:s.convIdx+1, suggestions:[] }));
+    } else if (ev.type==='done') {
+      this.finishOnboarding();
+    }
+  }
+  react(kind) {
+    if (this.state.mode==='home') {
+      const next = Math.min(1, (this.state.resolution||0.66) + 0.05);
+      this.setState({ pendingStrike:null, resolution:next });
+      this.setResolution(next, 800);
+      if (kind==='disagree') {
+        setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:'そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。'}], suggestions:[] })), 420);
+      } else {
+        setTimeout(() => this.advance(), 520);
+      }
+      return;
+    }
+    const st = this.state.obStrikes + 1;
+    const res = Math.min(0.62, 0.12 + st*0.17);
+    this.setState({ pendingStrike:null, obStrikes:st });
+    this.setResolution(res, 900);
+    if (kind==='disagree') {
+      setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:'そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。'}], suggestions:[] })), 420);
+    } else {
+      setTimeout(() => this.advance(), 520);
+    }
+  }
+  reactAgree = () => this.react('agree');
+  reactUnsure = () => this.react('unsure');
+  reactDisagree = () => this.react('disagree');
+  finishOnboarding = () => { this.setState({ screen:'firstlore' }); this.setResolution(0.82, 1400); };
+
+  // ---- language + id search ----
+  setLang(l){ this.setState({ lang:l, langOpen:false }); }
+  onLangJa = () => this.setLang('ja');
+  onLangEn = () => this.setLang('en');
+  toggleLangMenu = () => this.setState(s => ({ langOpen: !s.langOpen }));
+  openContent = (c) => this.setState({ screen:'content', viewCard:c, contentBackTo:'profile' });
+  // ---- content card menu ----
+  toggleCardMenu = (id) => this.setState(s => ({ openCardMenu: s.openCardMenu===id ? null : id }));
+  closeCardMenu = () => this.setState({ openCardMenu:null });
+  pinCard = (id) => this.setState(s => ({ openCardMenu:null, cards: s.cards.map(c => c.id===id ? {...c, pinned:!c.pinned} : c) }));
+  deleteCard = (id) => this.setState(s => ({ openCardMenu:null, cards: s.cards.filter(c => c.id!==id) }));
+  toggleCardClose = (id) => this.setState(s => ({ openCardMenu:null, cards: s.cards.map(c => c.id===id ? {...c, closeOnly:!c.closeOnly} : c) }));
+  openRename = (id) => { const card = this.state.cards.find(c => c.id===id); this.setState({ openCardMenu:null, renameId:id, renameVal: card ? card.title : '' }); };
+  onRenameInput = (e) => this.setState({ renameVal: e.target.value });
+  closeRename = () => this.setState({ renameId:null });
+  confirmRename = () => {
+    const v = (this.state.renameVal||'').trim(); if (!v) return;
+    const id = this.state.renameId;
+    this.setState(s => ({ renameId:null, cards: s.cards.map(c => c.id===id ? {...c, title:v} : c) }));
+  };
+  goContentBack = () => this.setState({ screen: this.state.contentBackTo || 'profile' });
+  goSearch = () => this.setState({ screen:'search' });
+  removeFromHistory = (id) => this.setState(s => ({ hiddenUsers: [...s.hiddenUsers, id] }));
+  openLogin = () => this.setState({ loginOpen:true, loginErr:'' });
+  closeLogin = () => this.setState({ loginOpen:false });
+  togglePrivate = () => {
+    if (this.state.profilePrivate) { this.setState({ pubConfirmOpen:true }); }
+    else { this.setState({ profilePrivate:true }); }
+  };
+  closePubConfirm = () => this.setState({ pubConfirmOpen:false });
+  dismissPrivBanner = () => this.setState({ privBannerDismissed:true });
+  closePrivUser = () => this.setState({ privUserOpen:false });
+  // ---- friends ----
+  sendFriendRequest = (u) => {
+    this.setState(s => {
+      if (s.incomingRequests.includes(u.id)) {
+        return { friends: { ...s.friends, [u.id]:'friends' }, incomingRequests: s.incomingRequests.filter(id => id !== u.id) };
+      }
+      return { friends: { ...s.friends, [u.id]:'pending' } };
+    });
+  };
+  toggleClose = (u) => {
+    if ((this.state.friends[u.id]||'none') !== 'friends') return;
+    this.setState(s => ({ closeFriends: { ...s.closeFriends, [u.id]: !s.closeFriends[u.id] } }));
+  };
+  openFriendsList = () => this.setState({ friendsListOpen:true });
+  closeFriendsList = () => this.setState({ friendsListOpen:false });
+  acceptRequest = (u) => this.setState(s => ({
+    friends: { ...s.friends, [u.id]:'friends' },
+    incomingRequests: s.incomingRequests.filter(id => id !== u.id),
+  }));
+  declineRequest = (u) => this.setState(s => ({ incomingRequests: s.incomingRequests.filter(id => id !== u.id) }));
+  cancelRequest = (u) => this.setState(s => { const f = { ...s.friends }; delete f[u.id]; return { friends: f }; });
+  openUserFromList = (u) => this.setState({ friendsListOpen:false, screen:'userprofile', viewUser:u, userMenuOpen:false });
+  // ---- block / user menu ----
+  toggleUserMenu = () => this.setState(s => ({ userMenuOpen: !s.userMenuOpen }));
+  closeUserMenu = () => this.setState({ userMenuOpen:false });
+  blockUser = (u) => {
+    if (!u || !u.id) return;
+    this.setState(s => {
+      const f = { ...s.friends }; delete f[u.id];
+      const cf = { ...s.closeFriends }; delete cf[u.id];
+      return {
+        blockedUsers: s.blockedUsers.includes(u.id) ? s.blockedUsers : [...s.blockedUsers, u.id],
+        friends: f, closeFriends: cf,
+        incomingRequests: s.incomingRequests.filter(id => id !== u.id),
+        userMenuOpen:false, screen:'search', viewUser:null,
+      };
+    });
+  };
+  unblockUser = (id) => this.setState(s => ({ blockedUsers: s.blockedUsers.filter(b => b !== id) }));
+  confirmPublic = () => this.setState({ profilePrivate:false, pubConfirmOpen:false });
+  onLoginId = (e) => this.setState({ loginId:e.target.value });
+  onLoginPw = (e) => this.setState({ loginPw:e.target.value });
+  setLoginIdEl = (el) => { if (el) this._loginIdEl = el; };
+  setLoginPwEl = (el) => { if (el) this._loginPwEl = el; };
+  onLoginKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onLogin(); } };
+  onLogin = () => {
+    const id = ((this._loginIdEl && this._loginIdEl.value) || this.state.loginId || '').trim().replace(/^@/, '');
+    const pw = ((this._loginPwEl && this._loginPwEl.value) || this.state.loginPw || '').trim();
+    if (id==='maruyama' && pw==='lore') {
+      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.66 });
+      this.setResolution(0.66);
+    } else {
+      this.setState({ loginErr:'IDかパスワードが違います。' });
+    }
+  };
+  setSearchEl = (el) => { if (el) this._searchEl = el; };
+  onSearchInput = (e) => this.setState({ searchId: e.target.value });
+  onSearchKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onSearch(); } };
+  onSearch = () => {
+    const raw = (this._searchEl && this._searchEl.value) || this.state.searchId || '';
+    const q = raw.trim().replace(/^@/, '');
+    if (!q) return;
+    if (this._searchEl) this._searchEl.value = '';
+    this.setState({ screen:'public', searchId:'', viewUser:null });
+  };
+
+  // ---- portrait nudge ----
+  onNudge = () => {
+    const next = Math.min(1, (this.state.resolution||0.66) + 0.08);
+    const read = this.readPool[this._readIdx % this.readPool.length];
+    this._readIdx++;
+    this.setState({ resolution: next, latestRead: read });
+    this.setResolution(next, 700);
+  };
+
+  // ---- generate (swipe deck) ----
+  _noop = () => {};
+  setSwipeTop = (el) => { this._swipeTopEl = el; };
+  onSwipeDown = (e) => {
+    const cand = this.state.candidates[0]; const el = this._swipeTopEl;
+    if (!cand || !el) return;
+    try { el.setPointerCapture(e.pointerId); } catch(_) {}
+    el.style.transition = 'transform .14s ease, box-shadow .18s ease';
+    el.style.transform = 'scale(1.03)';
+    el.style.boxShadow = '0 18px 44px rgba(10,10,10,.20)';
+    this._drag = { sx:e.clientX, sy:e.clientY, dx:0, el, cand, lifted:false };
+  };
+  onSwipeMove = (e) => {
+    if (!this._drag) return;
+    if (!this._drag.lifted) { this._drag.lifted = true; this._drag.el.style.transition = 'none'; }
+    const dx = e.clientX - this._drag.sx, dy = e.clientY - this._drag.sy;
+    this._drag.dx = dx; const el = this._drag.el;
+    el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (dx*0.045) + 'deg) scale(1.03)';
+    const lk = el.querySelector('[data-like]'), np = el.querySelector('[data-nope]'), wash = el.querySelector('[data-wash]');
+    if (lk) lk.style.opacity = Math.max(0, Math.min(1, dx/90));
+    if (np) np.style.opacity = Math.max(0, Math.min(1, -dx/90));
+    if (wash) {
+      if (dx < 0) { wash.style.background = '#E5484D'; wash.style.opacity = Math.min(0.16, -dx/90*0.16); }
+      else { wash.style.background = '#1E40FF'; wash.style.opacity = Math.min(0.12, dx/90*0.12); }
+    }
+  };
+  onSwipeUp = (e) => {
+    if (!this._drag) return;
+    const { dx, el, cand } = this._drag; this._drag = null;
+    if (dx > 95) this.flyOut(el, 'right', cand);
+    else if (dx < -95) this.flyOut(el, 'left', cand);
+    else {
+      el.style.transition = 'transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease';
+      el.style.transform = 'none';
+      el.style.boxShadow = '0 6px 20px rgba(10,10,10,.10)';
+      const lk = el.querySelector('[data-like]'), np = el.querySelector('[data-nope]'), wash = el.querySelector('[data-wash]');
+      if (lk) lk.style.opacity = 0; if (np) np.style.opacity = 0; if (wash) wash.style.opacity = 0;
+    }
+  };
+  programmaticSwipe(dir){
+    const el = this._swipeTopEl, cand = this.state.candidates[0];
+    if (!el || !cand) return;
+    this.flyOut(el, dir, cand);
+  }
+  deckReject = () => this.programmaticSwipe('left');
+  deckConfirm = () => this.programmaticSwipe('right');
+  flyOut(el, dir, cand){
+    el.style.transition = 'transform .35s ease, opacity .35s ease';
+    const x = dir==='right' ? window.innerWidth : -window.innerWidth;
+    el.style.transform = 'translate(' + x + 'px,30px) rotate(' + (dir==='right'?16:-16) + 'deg)';
+    el.style.opacity = '0';
+    setTimeout(() => { if (dir==='right') this.confirmCandidate(cand); else this.deleteCandidateSwipe(cand); }, 300);
+  }
+  confirmCandidate(cand){
+    this.setState(s => ({ candidates:s.candidates.filter(x => x.id!==cand.id), selected:cand, granularity:s.defaultGran, genStep:'generating' }));
+    setTimeout(() => {
+      const m = this.genMap[cand.id];
+      const body = (m && m[this.state.granularity]) || cand.summary;
+      this.setState({ genStep:'review', draftBody:body, pubCloseOnly:false, pubImage:null });
+    }, 1400);
+  }
+  deleteCandidateSwipe(cand){
+    this.setState(s => ({ candidates:s.candidates.filter(x => x.id!==cand.id), deleted:[cand, ...s.deleted] }));
+    requestAnimationFrame(() => requestAnimationFrame(this.resetTopCard));
+  }
+  resetTopCard = () => {
+    const el = this._swipeTopEl;
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.transform = 'none';
+    el.style.opacity = '';
+    el.style.boxShadow = '';
+    const lk = el.querySelector('[data-like]'), np = el.querySelector('[data-nope]'), wash = el.querySelector('[data-wash]');
+    if (lk) lk.style.opacity = 0; if (np) np.style.opacity = 0; if (wash) wash.style.opacity = 0;
+  };
+  restoreDeleted(cand){
+    this.setState(s => ({ deleted:s.deleted.filter(x => x.id!==cand.id), candidates:[...s.candidates, cand] }));
+  }
+  setDefaultGran(g){ this.setState({ defaultGran:g }); }
+  openGenSettings = () => this.setState({ genSettingsOpen:true });
+  closeGenSettings = () => this.setState({ genSettingsOpen:false });
+  toggleHomeMenu = () => this.setState(s => ({ homeMenuOpen: !s.homeMenuOpen }));
+  closeHomeMenu = () => this.setState({ homeMenuOpen:false });
+  toggleMute = () => this.setState(s => ({ msgMuted: !s.msgMuted }));
+  onNavEnter = () => this.setState({ navExpanded:true });
+  onNavLeave = () => this.setState({ navExpanded:false });
+  stop = (e) => e.stopPropagation();
+  regenWithGran(g){
+    if (!this.state.selected) return;
+    this.setState({ granularity:g, genStep:'generating' });
+    setTimeout(() => {
+      const m = this.genMap[this.state.selected.id];
+      const body = (m && m[g]) || this.state.selected.summary;
+      this.setState({ genStep:'review', draftBody:body });
+    }, 800);
+  }
+  onDraftEdit = (e) => this.setState({ draftBody:e.target.value });
+  onDiscard = () => this.setState({ genStep:'swipe', selected:null, pubImage:null, pubCloseOnly:false });
+  toggleCloseOnly = () => this.setState(s => ({ pubCloseOnly: !s.pubCloseOnly }));
+  publishSelected = () => {
+    const sel = this.state.selected; if (!sel) return;
+    const confMap = { detailed:'0.75', normal:'0.60', vague:'0.40' };
+    const card = { id:'g'+Date.now(), title:sel.title, body:this.state.draftBody, conf:confMap[this.state.granularity], closeOnly:!!this.state.pubCloseOnly, image:this.state.pubImage||null, pinned:false };
+    this.setState(s => ({
+      cards:[card, ...s.cards],
+      candidates: s.candidates.filter(c => c.id !== sel.id),
+      screen:'profile', genStep:'swipe', selected:null, pubImage:null, pubCloseOnly:false,
+    }));
+  };
+
+  // ---- image upload + crop ----
+  setFileEl = (el) => { if (el) this._fileEl = el; };
+  triggerPick = () => { if (this._fileEl) this._fileEl.click(); };
+  removeImage = () => this.setState({ pubImage:null });
+  onPickImage = (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result;
+      const img = new Image();
+      img.onload = () => { this._imgEl = img; this._imgNat = { w:img.naturalWidth, h:img.naturalHeight }; this.setState({ cropOpen:true, cropSrc:url, cropScale:1, cropX:0, cropY:0 }); };
+      img.src = url;
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  };
+  setCropFrame = (el) => { if (el) this._cropFrame = el; };
+  onCropDown = (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_) {} this._cropDrag = { sx:e.clientX, sy:e.clientY, ox:this.state.cropX, oy:this.state.cropY }; };
+  onCropMove = (e) => { if (!this._cropDrag) return; const dx=e.clientX-this._cropDrag.sx, dy=e.clientY-this._cropDrag.sy; this.setState({ cropX:this._cropDrag.ox+dx, cropY:this._cropDrag.oy+dy }); };
+  onCropUp = () => { this._cropDrag = null; };
+  onCropZoom = (e) => this.setState({ cropScale: parseFloat(e.target.value) });
+  cancelCrop = () => this.setState({ cropOpen:false, cropSrc:'' });
+  confirmCrop = () => {
+    const frame = this._cropFrame, nat = this._imgNat, img = this._imgEl;
+    if (!frame || !nat || !img) { this.setState({ cropOpen:false, cropSrc:'' }); return; }
+    const Wf = frame.clientWidth, Hf = frame.clientHeight;
+    const base = Math.max(Wf/nat.w, Hf/nat.h);
+    const eff = base * (this.state.cropScale||1);
+    const OUT_W = 1280, OUT_H = Math.round(OUT_W*Hf/Wf), r = OUT_W/Wf;
+    const cnv = document.createElement('canvas'); cnv.width=OUT_W; cnv.height=OUT_H;
+    const ctx = cnv.getContext('2d');
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,OUT_W,OUT_H);
+    const dw = nat.w*eff*r, dh = nat.h*eff*r;
+    const cx = OUT_W/2 + (this.state.cropX||0)*r, cy = OUT_H/2 + (this.state.cropY||0)*r;
+    ctx.drawImage(img, cx-dw/2, cy-dh/2, dw, dh);
+    let url=''; try { url = cnv.toDataURL('image/jpeg', 0.85); } catch(_) { url=''; }
+    this.setState({ pubImage:url||this.state.cropSrc, cropOpen:false, cropSrc:'' });
+  };
+
+  // ---- share ----
+  onCreateLink = () => this.setState({ shareCreated:true, copied:false });
+  onCopy = () => { this.setState({ copied:true }); };
+  openShareRefresh = () => this.setState({ shareRefreshOpen:true });
+  closeShareRefresh = () => this.setState({ shareRefreshOpen:false });
+  confirmShareRefresh = () => this.setState({ shareToken: Math.random().toString(36).slice(2,8), shareRefreshOpen:false, copied:false });
+  openContentShare = () => this.setState({ contentShareOpen:true, contentShareToken: Math.random().toString(36).slice(2,8), contentCopied:false });
+  closeContentShare = () => this.setState({ contentShareOpen:false });
+  onContentCopy = () => this.setState({ contentCopied:true });
+  onPreviewPublic = () => this.setState({ screen:'public', viewUser:null });
+  onMakeOwn = () => { this.setState({ screen:'welcome' }); this.setResolution(0, 300); };
+  onBackApp = () => this.goProfile();
+
+  publicVisibleCards(){ return this.state.cards.filter(c => !c.closeOnly); }
+
+  renderVals() {
+    const s = this.state;
+    const isMobile = s.vw < 760;
+    const screen = s.screen;
+    const blue='#0A0A0A', ink='#0A0A0A';
+
+    const ja = s.lang !== 'en';
+    const h1Lines = ja ? ['話すほど、','あなたに','近づく。'] : ['The more you talk,','the closer','you get to you.'];
+    const leadLines = ja ? ['うまく言えなくていい。','ただ、自分のことを話すだけ。'] : ["You don't need the right words.",'Just talk about yourself.'];
+    const tStart = ja ? 'はじめる' : 'Get started';
+    const tDemo = ja ? '完成したloreを見る（デモ）' : 'See a finished lore (demo)';
+    const tSub = 'The more you talk, the clearer you become.';
+    const tSearchLabel = ja ? 'lore IDで他の人のloreを見る' : 'Find someone by their lore ID';
+    const tSearchPh = ja ? 'maruyama' : 'maruyama';
+    const tSearchBtn = ja ? '見る' : 'View';
+    const tLogin = ja ? 'ログイン' : 'Log in';
+    const tGoogle = ja ? 'Googleで続ける' : 'Continue with Google';
+    const tApple = ja ? 'Appleで続ける' : 'Continue with Apple';
+    const tOr = ja ? 'または' : 'or';
+    const tEmailPh = ja ? 'メールアドレス' : 'Email';
+    const tContinue = ja ? 'メールで続ける' : 'Continue with email';
+    const tTosPre = ja ? '続けると、' : 'By continuing, you agree to our ';
+    const tTosTerms = ja ? '利用規約' : 'Terms of Service';
+    const tTosSep1 = ja ? '・' : ', ';
+    const tTosPrivacy = ja ? 'プライバシーポリシー' : 'Privacy Policy';
+    const tTosSep2 = ja ? '・' : ', and ';
+    const tTosCookie = ja ? 'Cookieの使用' : 'Cookie Use';
+    const tTosPost = ja ? 'に同意したものとみなされます。' : '.';
+    const tSearchPlaceholder = ja ? 'ユーザーidを検索' : 'Search by user ID';
+    const langLabel = ja ? '日本語' : 'English';
+    const jaMenuBg = ja ? '#f0efec' : '#fff';
+    const enMenuBg = ja ? '#fff' : '#f0efec';
+    const L = ja ? {
+      tagline:'話すほど、あなたが見えてくる。',
+      s1ey:'WHAT IS LORE', s1t:'ただ、話すだけ。', s1b:'うまく言葉にできなくていい。あなたが話すほど、LORE はあなたの“輪郭”を描いていく。',
+      s2ey:'HOW IT WORKS', s2t:'3つのステップ。',
+      s3ey:'LAYERS', s3t:'見せる相手を、選べる。', s3b:'一般にはここまで。親しい人には、もっと深く。同じ自分の、違う見せ方。',
+      ctaey:'READ YOURSELF', ctat:'あなたの lore を、\nはじめよう。',
+    } : {
+      tagline:'The more you talk, the closer you get to you.',
+      s1ey:'WHAT IS LORE', s1t:'Just talk.', s1b:"You don't need the right words. The more you talk, the more LORE draws your outline.",
+      s2ey:'HOW IT WORKS', s2t:'Three steps.',
+      s3ey:'LAYERS', s3t:'Choose who sees what.', s3b:'This much for everyone. More, for the close ones. One you, shown differently.',
+      ctaey:'READ YOURSELF', ctat:'Start\nyour lore.',
+    };
+    const steps = ja ? [
+      { n:'01', t:'話す', b:'今日のこと、なんでもない一日のこと。ただ、思ったままに。' },
+      { n:'02', t:'読まれる', b:'AI が、あなたでも気づかなかった輪郭を、そっと言い当てる。' },
+      { n:'03', t:'つくる＆シェア', b:'会話から生まれたコンテンツを、見せたい人にだけ届ける。' },
+    ] : [
+      { n:'01', t:'Talk', b:'Your day. Your nothing-days. Just as it comes.' },
+      { n:'02', t:'Get read', b:'AI quietly names the outline even you hadn’t noticed.' },
+      { n:'03', t:'Create & share', b:'Content born from talk — delivered only to who you choose.' },
+    ];
+
+    const activeKey = screen==='home' ? 'home' : (screen==='content' ? 'profile' : (screen==='userprofile' ? 'search' : (screen==='notif' ? 'notif' : screen)));
+    const mkNav = (key, onClick) => { const a = activeKey===key; return { onClick, color: a?ink:'#8c8c88', weight: a?'800':'600', bg: a?'#f0efec':'transparent', dot: a?ink:'transparent' }; };
+    const navHome = mkNav('home', this.goTalk);
+    const navCreate = mkNav('generate', this.goGenerate);
+    const navSearch = mkNav('search', this.goSearch);
+    const navProfile = mkNav('profile', this.goProfile);
+    const navShare = mkNav('share', this.goShare);
+    const navNotif = mkNav('notif', this.goNotif);
+    const navSettings = mkNav('settings', this.goSettings);
+
+    const notifs = (s.notifList||[]).map(n => ({ ...n, bg: n.unread ? '#F6F8FF' : '#fff' }));
+
+    const suggestions = (s.suggestions||[]).map(t => ({ text:t, onClick:() => this.send(t) }));
+
+    const sortedCards = [...s.cards].sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
+    const cards = sortedCards.map(c => {
+      const closeOnly = !!c.closeOnly;
+      return {
+        ...c,
+        closeOnly,
+        pinned: !!c.pinned,
+        feedMeta: 'maruyama',
+        onOpen: () => this.openContent(c),
+        hasImage: !!c.image, image: c.image || '',
+        menuOpen: s.openCardMenu===c.id,
+        onMenuToggle: (e) => { e.stopPropagation(); this.toggleCardMenu(c.id); },
+        onMenuBackdrop: (e) => { e.stopPropagation(); this.closeCardMenu(); },
+        onRename: (e) => { e.stopPropagation(); this.openRename(c.id); },
+        onPin: (e) => { e.stopPropagation(); this.pinCard(c.id); },
+        onCloseToggle: (e) => { e.stopPropagation(); this.toggleCardClose(c.id); },
+        onDelete: (e) => { e.stopPropagation(); this.deleteCard(c.id); },
+        pinLabel: c.pinned ? '固定を解除' : 'プロフィールに固定',
+        closeToggleTrack: closeOnly ? '#1E40FF' : '#cfcfca',
+        closeToggleKnob: closeOnly ? '19px' : '3px',
+      };
+    });
+    const vc = s.viewCard || {};
+    const contentFromUser = s.contentBackTo==='userprofile' && !!s.viewUser;
+
+    const swipeStack = s.candidates.slice(0,3).map((c,i) => {
+      const top = i===0;
+      return {
+        id:c.id, title:c.title, summary:c.summary,
+        z: String(30 - i),
+        transform: top ? 'none' : 'translateY(' + (i*8) + 'px) scale(' + (1 - i*0.025).toFixed(3) + ') rotate(' + (i===1 ? -3 : 3) + 'deg)',
+        transition: 'transform .35s cubic-bezier(.2,.8,.2,1)',
+        cursor: top ? 'grab' : 'default',
+        ref: top ? this.setSwipeTop : this._noop,
+        onDown: top ? this.onSwipeDown : undefined,
+        onMove: top ? this.onSwipeMove : undefined,
+        onUp: top ? this.onSwipeUp : undefined,
+      };
+    });
+    const deckEmpty = s.candidates.length===0;
+    const hasDeck = s.candidates.length>0;
+    const deletedList = s.deleted.map(d => ({ ...d, onRestore:() => this.restoreDeleted(d) }));
+
+    const granDefs = [
+      { key:'detailed', label:'詳しく', desc:'具体的に' },
+      { key:'normal', label:'普通', desc:'ちょうどよく' },
+      { key:'vague', label:'ぼかす', desc:'抽象的に' },
+    ];
+    const reviewGran = granDefs.map((g,i) => ({
+      label:g.label, onClick:() => this.regenWithGran(g.key),
+      bg: s.granularity===g.key ? blue : '#fff',
+      fg: s.granularity===g.key ? '#fff' : ink,
+      divider: i===0 ? 'none' : '1px solid #0A0A0A',
+      checkOpacity: s.granularity===g.key ? '1' : '0',
+      boxBorder: s.granularity===g.key ? '#1E40FF' : '#c9c9c4',
+      boxBg: s.granularity===g.key ? '#1E40FF' : 'transparent',
+      check: s.granularity===g.key ? '✓' : '',
+    }));
+    const defGranOptions = granDefs.map(g => ({
+      label:g.label, desc:g.desc, onClick:() => this.setDefaultGran(g.key),
+      bg: s.defaultGran===g.key ? '#EEF1FF' : '#fff',
+      fg: '#0A0A0A',
+      border: s.defaultGran===g.key ? '1px solid #1E40FF' : '1px solid #e4e2dd',
+    }));
+    const granLabelMap = { detailed:'詳しく', normal:'普通', vague:'ぼかす' };
+    const pink = '#1E40FF';
+    const closeOn = !!s.pubCloseOnly;
+
+    const otherUsers = [
+      { id:'u_nanami', name:'七海', userId:'nanami', avatar:'七', private:false,
+        bio:'夜型。写真と、名前のない感情を整理するのが好き。',
+        cards:[
+          { title:'続けてしまうこと', feedMeta:'READ · 2日前', body:'やめようと思っても夜に写真を撮りに出てしまう。誰に見せるでもなく、撮った時間だけが残る。', cover:false },
+          { title:'静かな場所のリスト', feedMeta:'READ · 5日前', body:'人の少ない時間の駅、閉店間際の本屋、雨上がりの川沿い。落ち着ける場所には共通点がある気がしている。', cover:false },
+        ] },
+      { id:'u_akari', name:'灯里', userId:'akari', avatar:'灯', private:true,
+        bio:'言葉より、間（ま）。手紙と、長い散歩。',
+        cards:[
+          { title:'返さなかった手紙', feedMeta:'READ · 1週間前', body:'書いたけど出さなかった手紙が引き出しにある。出さないことで、守れたものもある気がしている。', cover:false },
+        ] },
+    ];
+    const fstate = (id) => s.friends[id] || 'none';
+    const discoverUsers = otherUsers.filter(u => !s.hiddenUsers.includes(u.id) && !s.blockedUsers.includes(u.id)).map(u => ({
+      ...u,
+      isPrivate: u.private,
+      onRemove: () => this.removeFromHistory(u.id),
+      onOpen: () => (u.private && fstate(u.id)!=='friends')
+        ? this.setState({ privUserOpen:true, privUser:u })
+        : this.setState({ screen:'userprofile', viewUser:u }),
+    }));
+
+    const vu = (screen==='public' && s.viewUser) ? s.viewUser : null;
+    const vuser = s.viewUser || {};
+    const vuFstate = vuser.id ? (s.friends[vuser.id]||'none') : 'none';
+    const vuIsFriend = vuFstate === 'friends';
+    const vuIsClose = !!(vuser.id && s.closeFriends[vuser.id]);
+    const vuFriendBtn = {
+      none:    { label:'＋ 友達申請', bg:'#1E40FF', fg:'#fff', border:'none', disabled:false },
+      pending: { label:'申請取り消し', bg:'#FDECEC', fg:'#E5484D', border:'1px solid #F3B5B5', disabled:false },
+      friends: { label:'✓ ともだち', bg:'#fff',    fg:'#1E40FF', border:'1px solid #B9C2FF', disabled:true },
+    }[vuFstate];
+    const onVuFriendBtn = () => {
+      if (!vuser.id) return;
+      if (vuFstate==='none') this.sendFriendRequest(vuser);
+      else if (vuFstate==='pending') this.cancelRequest(vuser);
+    };
+    const sendVuRequest = onVuFriendBtn;
+    const toggleVuClose = () => { if (vuser.id) this.toggleClose(vuser); };
+    const blockVuUser = () => { if (vuser.id) this.blockUser(vuser); };
+
+    const friendsList = otherUsers
+      .filter(u => (s.friends[u.id]||'none')==='friends' && !s.blockedUsers.includes(u.id))
+      .map(u => {
+        const close = !!s.closeFriends[u.id];
+        return { ...u, close, isPrivate: u.private, onOpen: () => this.openUserFromList(u), onToggleClose: () => this.toggleClose(u),
+          closeBg: close ? '#1E40FF' : '#fff', closeFg: close ? '#fff' : '#1E40FF', closeBorder: close ? '#1E40FF' : '#B9C2FF' };
+      });
+    const incomingList = otherUsers
+      .filter(u => s.incomingRequests.includes(u.id) && !s.blockedUsers.includes(u.id))
+      .map(u => ({ ...u, isPrivate: u.private, onAccept: () => this.acceptRequest(u), onDecline: () => this.declineRequest(u) }));
+    const closeList = friendsList.filter(u => u.close);
+    const blockedList = otherUsers
+      .filter(u => s.blockedUsers.includes(u.id))
+      .map(u => ({ ...u, isPrivate: u.private, onUnblock: () => this.unblockUser(u.id) }));
+
+    const pu = s.privUser || {};
+    const puFstate = pu.id ? (s.friends[pu.id]||'none') : 'none';
+    const puBtn = { none:'＋ 友達申請', pending:'申請中', friends:'✓ ともだち' }[puFstate];
+    const sendPuRequest = () => { if (puFstate==='none' && pu.id) this.sendFriendRequest(pu); };
+
+    const publicCards = (vu ? (vu.cards||[]) : this.publicVisibleCards()).map(c => ({ ...c, hasImage: !!c.image, image: c.image || '' }));
+
+    const isScrollScreen = ['profile','userprofile','generate','share','content','search','notif','settings'].includes(screen);
+
+    return {
+      isMobile, isDesktop: !isMobile,
+      isWelcome: screen==='welcome',
+      isOnboarding: screen==='onboarding',
+      isFirstLore: screen==='firstlore',
+      isApp: ['home','profile','userprofile','generate','share','content','search','notif','settings'].includes(screen),
+      isSettings: screen==='settings', goSettings:this.goSettings,
+      isNotif: screen==='notif', notifs,
+      isScrollScreen,
+      isHome: screen==='home', isProfile: screen==='profile', isGenerate: screen==='generate',
+      isUserProfile: screen==='userprofile',
+      vuName: vuser.name||'', vuUserId: vuser.userId||'', vuBio: vuser.bio||'', vuAvatar: vuser.avatar||'', vuIsPrivate: !!vuser.private,
+      vuCards: (vuser.cards||[]).map(c => ({ ...c, onOpen: () => this.setState({ screen:'content', viewCard:c, contentBackTo:'userprofile' }) })), vuCardCount: (vuser.cards||[]).length,
+      vuFriendLabel: vuFriendBtn.label, vuFriendBg: vuFriendBtn.bg, vuFriendFg: vuFriendBtn.fg, vuFriendBorder: vuFriendBtn.border, vuFriendDisabled: vuFriendBtn.disabled,
+      vuIsFriend, vuIsClose, vuNotFriend: !vuIsFriend, sendVuRequest, toggleVuClose,
+      vuCloseBg: vuIsClose ? '#1E40FF' : '#fff', vuCloseFg: vuIsClose ? '#fff' : '#1E40FF', vuCloseBorder: vuIsClose ? '#1E40FF' : '#dcdcd6', vuCloseOpacity: vuIsClose ? '1' : '.5',
+      friendsList, friendCount: friendsList.length, hasFriends: friendsList.length>0, noFriends: friendsList.length===0,
+      incomingList, incomingCount: incomingList.length, hasIncoming: incomingList.length>0,
+      acceptRequest:this.acceptRequest, declineRequest:this.declineRequest,
+      friendsListOpen:s.friendsListOpen, openFriendsList:this.openFriendsList, closeFriendsList:this.closeFriendsList,
+      puBtnLabel: puBtn, sendPuRequest, puPending: puFstate==='pending', puIsFriend: puFstate==='friends', puNotFriend: puFstate!=='friends',
+      puBtnBg: puFstate==='pending' ? '#F2F2F2' : '#1E40FF', puBtnFg: puFstate==='pending' ? '#aaa' : '#fff',
+      openPuProfile: () => this.setState({ privUserOpen:false, screen:'userprofile', viewUser:pu }),
+      privUserName: pu.name||'',
+      isShare: screen==='share',
+      isPublic: screen==='public',
+      userMenuOpen:s.userMenuOpen, toggleUserMenu:this.toggleUserMenu, closeUserMenu:this.closeUserMenu, blockVuUser,
+      settingsSub:s.settingsSub, isSettingsMain: !s.settingsSub,
+      isSubBlocked: s.settingsSub==='blocked', isSubClose: s.settingsSub==='close', isSubPassword: s.settingsSub==='password',
+      openBlocked: () => this.openSettingsSub('blocked'), openClosePage: () => this.openSettingsSub('close'), openPasswordPage: () => this.openSettingsSub('password'), backSettings:this.backSettings,
+      blockedList, blockedCount: blockedList.length, hasBlocked: blockedList.length>0, noBlocked: blockedList.length===0,
+      closeList, closeListCount: closeList.length, hasCloseList: closeList.length>0, noCloseList: closeList.length===0,
+
+      setPortrait:this.setPortrait, setChatScroll:this.setChatScroll,
+      onStart:this.onStart, onDemo:this.onDemo, onEnterHome:this.onEnterHome,
+      lang:s.lang, onLangJa:this.onLangJa, onLangEn:this.onLangEn,
+      jaBg: ja ? '#fff' : 'transparent', jaFg: ja ? blue : '#fff',
+      enBg: ja ? 'transparent' : '#fff', enFg: ja ? '#fff' : blue,
+      h1Lines, leadLines, tStart, tDemo, tSub, tSearchLabel, tSearchPh, tSearchBtn,
+      searchId:s.searchId, onSearchInput:this.onSearchInput, onSearchKey:this.onSearchKey, onSearch:this.onSearch, setSearchEl:this.setSearchEl,
+      tLogin, tSearchPlaceholder, langLabel, jaMenuBg, enMenuBg,
+      tComposing: ja ? 'つくっています…' : 'COMPOSING…',
+      tReady: ja ? 'リード完了' : 'READY',
+      tRead: ja ? 'リード' : 'READ',
+      landing:L, steps, revealRef:this.revealRef, portraitRef:this.portraitRef,
+      tGoogle, tApple, tOr, tEmailPh, tContinue,
+      tTosPre, tTosTerms, tTosSep1, tTosPrivacy, tTosSep2, tTosCookie, tTosPost,
+      onOAuth:this.onOAuth, onAuthContinue:this.onAuthContinue, onAuthKey:this.onAuthKey, setAuthEl:this.setAuthEl,
+      pillIn:this.pillIn, pillOut:this.pillOut,
+      onAuthFocus:this.onAuthFocus, onAuthBlur:this.onAuthBlur, onAuthInput:this.onAuthInput,
+      authBorder: s.authFocus ? '#1E40FF' : '#e4e4df',
+      authBtnOpacity: (s.authVal||'').trim().length>0 ? '1' : '.45',
+      authBtnCursor: (s.authVal||'').trim().length>0 ? 'pointer' : 'default',
+      authBtnBg: 'transparent',
+      authBtnBorder: (s.authVal||'').trim().length>0 ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.4)',
+      authLabelTop: (s.authFocus || (s.authVal||'').length>0) ? '7px' : '50%',
+      authLabelTransform: (s.authFocus || (s.authVal||'').length>0) ? 'translateY(0)' : 'translateY(-50%)',
+      authLabelSize: (s.authFocus || (s.authVal||'').length>0) ? '10px' : '14px',
+      authLabelColor: s.authFocus ? '#1E40FF' : '#8a8a86',
+      loginOpen:s.loginOpen, loginId:s.loginId, loginPw:s.loginPw, loginErr:s.loginErr,
+      pubConfirmOpen:s.pubConfirmOpen, closePubConfirm:this.closePubConfirm, confirmPublic:this.confirmPublic, togglePrivate:this.togglePrivate,
+      showPrivBanner: !s.privBannerDismissed, dismissPrivBanner:this.dismissPrivBanner,
+      privBannerBg: s.profilePrivate ? '#FFF7ED' : '#EEF1FF',
+      privBannerBorder: s.profilePrivate ? '#FBD9A8' : '#B9C2FF',
+      privBannerColor: s.profilePrivate ? '#9A3412' : '#1E40FF',
+      privIconBg: s.profilePrivate ? '#C2410C' : '#1E40FF',
+      privIcon: s.profilePrivate ? '🔒' : '🌐',
+      privBannerText: s.profilePrivate ? 'あなたのプロフィールは現在非公開です。' : 'プロフィールは公開中です。',
+      privToggleTrack: s.profilePrivate ? '#C2410C' : '#cfcfca',
+      privToggleKnob: s.profilePrivate ? '21px' : '3px',
+      openLogin:this.openLogin, closeLogin:this.closeLogin, onLoginId:this.onLoginId, onLoginPw:this.onLoginPw, onLoginKey:this.onLoginKey, onLogin:this.onLogin, stop:this.stop,
+      setLoginIdEl:this.setLoginIdEl, setLoginPwEl:this.setLoginPwEl,
+      goTalk:this.goTalk, goProfile:this.goProfile, goGenerate:this.goGenerate, goShare:this.goShare, goSearch:this.goSearch,
+      navHome, navCreate, navProfile, navShare, navSearch, navNotif, goNotif:this.goNotif, navSettings,
+      navWidth: s.navExpanded ? '230px' : '72px', navLabelOpacity: s.navExpanded ? '1' : '0',
+      navShadow: s.navExpanded ? '4px 0 24px rgba(10,10,10,.10)' : 'none', onNavEnter:this.onNavEnter, onNavLeave:this.onNavLeave,
+      isSearch: screen==='search',
+      langOpen:s.langOpen, toggleLangMenu:this.toggleLangMenu,
+      isContent: screen==='content',
+      vcTitle: vc.title||'', vcBody: vc.body||'',
+      vcAuthorName: contentFromUser ? s.viewUser.name : '丸山',
+      vcAuthorId: contentFromUser ? s.viewUser.userId : 'maruyama',
+      vcAuthorAvatar: contentFromUser ? s.viewUser.avatar : '丸',
+      goContentBack:this.goContentBack, contentBackLabel: contentFromUser ? s.viewUser.name : 'lore',
+      openContentShare:this.openContentShare, closeContentShare:this.closeContentShare, onContentCopy:this.onContentCopy,
+      contentShareOpen:s.contentShareOpen, contentShareUrl:'lore.app/c/'+s.contentShareToken, contentCopyLabel: s.contentCopied ? 'コピー済' : 'コピー',
+      vcCloseOnly: !!vc.closeOnly,
+      vcHasImage: !!vc.image, vcImage: vc.image || '',
+
+      messages: s.messages.map(m => ({ ...m, isAI:m.role==='ai', isUser:m.role==='user' })),
+      input:s.input, onChatInput:this.onChatInput, onChatKey:this.onChatKey, onSend:this.onSend,
+      typing:s.typing,
+      suggestions, hasSuggestions: suggestions.length>0,
+      pendingStrike:s.pendingStrike,
+      reactAgree:this.reactAgree, reactUnsure:this.reactUnsure, reactDisagree:this.reactDisagree,
+      obProgressPct: Math.round(Math.min(1, s.convIdx/this.script.length)*100)+'%',
+
+      displayName: vu ? vu.name : '丸山', displayNameShort: vu ? vu.name : '丸山', userId: vu ? vu.userId : 'maruyama',
+      bio: vu ? vu.bio : 'だいたい一番後ろの席にいる。旅と、その帰り道が好き。',
+      pubAvatar: vu ? vu.avatar : '丸',
+      discoverUsers, privUserOpen:s.privUserOpen, closePrivUser:this.closePrivUser,
+      cards, cardCount:s.cards.length,
+      renameOpen: s.renameId!==null, renameVal: s.renameVal,
+      onRenameInput:this.onRenameInput, closeRename:this.closeRename, confirmRename:this.confirmRename,
+      onNudge:this.onNudge, latestRead:s.latestRead,
+
+      isStepSwipe: s.genStep==='swipe',
+      isStepGenerating: s.genStep==='generating', isStepReview: s.genStep==='review',
+      swipeStack, deckEmpty, hasDeck, deckCount: s.candidates.length,
+      deckReject:this.deckReject, deckConfirm:this.deckConfirm,
+      selTitle: s.selected ? s.selected.title : '', selSummary: s.selected ? s.selected.summary : '',
+      reviewGran, granLabel: granLabelMap[s.granularity],
+      onDraftEdit:this.onDraftEdit, draftBody:s.draftBody, onDiscard:this.onDiscard,
+      onPublishSelected:this.publishSelected, toggleCloseOnly:this.toggleCloseOnly,
+      setFileEl:this.setFileEl, onPickImage:this.onPickImage, triggerPick:this.triggerPick, removeImage:this.removeImage,
+      hasPubImage: !!s.pubImage, noPubImage: !s.pubImage, pubImage: s.pubImage || '',
+      cropOpen:s.cropOpen, cropSrc:s.cropSrc, cropScale:s.cropScale, cropX:s.cropX, cropY:s.cropY,
+      setCropFrame:this.setCropFrame, onCropDown:this.onCropDown, onCropMove:this.onCropMove, onCropUp:this.onCropUp,
+      onCropZoom:this.onCropZoom, cancelCrop:this.cancelCrop, confirmCrop:this.confirmCrop,
+      closeCheck: closeOn ? '♥' : '', closeHint: closeOn ? '一般には表示されません' : 'オフなら、みんなに公開されます',
+      closeBg: closeOn ? '#EEF1FF' : '#fff', closeBorder: closeOn ? '#A9B6FF' : '#dcdcd6',
+      closeBoxBorder: closeOn ? pink : '#c9c9c4', closeBoxBg: closeOn ? pink : 'transparent',
+      genSettingsOpen: s.genSettingsOpen, openGenSettings:this.openGenSettings, closeGenSettings:this.closeGenSettings, stop:this.stop,
+      homeMenuOpen: s.homeMenuOpen, toggleHomeMenu:this.toggleHomeMenu, closeHomeMenu:this.closeHomeMenu, toggleMute:this.toggleMute,
+      muteTrack: s.msgMuted ? '#1E40FF' : '#cfcfca', muteKnob: s.msgMuted ? '21px' : '3px',
+      defGranOptions, deletedList, deletedCount: s.deleted.length, hasDeleted: s.deleted.length>0, noDeleted: s.deleted.length===0,
+
+      shareCreated:s.shareCreated, shareNotCreated:!s.shareCreated,
+      shareUrl:'lore.app/s/'+s.shareToken,
+      shareIsPrivate: s.profilePrivate,
+      shareCards: s.cards.filter(c => !c.closeOnly).slice(0,3).map(c => ({ title:c.title })),
+      shareHasCards: s.cards.filter(c => !c.closeOnly).length>0, shareEmpty: s.cards.filter(c => !c.closeOnly).length===0,
+      shareRefreshOpen: s.shareRefreshOpen, openShareRefresh:this.openShareRefresh, closeShareRefresh:this.closeShareRefresh, confirmShareRefresh:this.confirmShareRefresh,
+      copyLabel: s.copied ? 'コピー済' : 'コピー',
+      onCreateLink:this.onCreateLink, onCopy:this.onCopy, onPreviewPublic:this.onPreviewPublic,
+
+      publicCards, onMakeOwn:this.onMakeOwn, onBackApp:this.onBackApp,
+    };
+  }
+}
+</script>
+</body>
+</html>
