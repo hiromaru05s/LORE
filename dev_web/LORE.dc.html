@@ -6,8 +6,8 @@
 <script src="./support.js"></script>
 <!-- LORE バックエンド接続。URL/キーを入れると実バックエンド、未設定ならデモのまま動く。 -->
 <script>
-  // window.LORE_CONVEX_URL = "https://<deployment>.convex.cloud";
-  // window.LORE_CLERK_PUBLISHABLE_KEY = "pk_test_...";
+  window.LORE_CONVEX_URL = "https://elated-ptarmigan-991.convex.cloud";
+  // window.LORE_CLERK_PUBLISHABLE_KEY = "pk_test_...";  // Clerkサインインを有効化する時に設定（今は ALLOW_DEV_USER=1 のデモユーザーで動く）
 </script>
 <script type="module" src="./lore-convex.js"></script>
 </head>
@@ -2054,24 +2054,25 @@ class Component extends DCLogic {
   _renderTurn = (r) => {
     if (!r) return;
     if (typeof r.resolution==='number') this.setResolution(r.resolution, 700);
-    if (r.done) { this.finishOnboarding(); return; }
+    if (r.done) { this.setState({ typing:false }); this.finishOnboarding(); return; }
     if (r.move==='strike' && r.strike) {
-      this.setState({ pendingStrike:{ text:r.message }, pendingFragmentId:r.strike.fragmentId, suggestions:[], awaitingMiss:false });
+      this.setState({ typing:false, pendingStrike:{ text:r.message }, pendingFragmentId:r.strike.fragmentId, suggestions:[], awaitingMiss:false });
     } else {
-      this.setState(s => ({ messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
+      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
     }
   };
   _startBackend = async (mode) => {
-    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], pendingStrike:null, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1 });
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], pendingStrike:null, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true });
     this.setResolution(mode==='home'?0.2:0.12, 400);
     try {
       const r = await this._be().startSession(mode);
-      this.setState({ sessionId:r.sessionId, messages:[{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
+      this.setState({ typing:false, sessionId:r.sessionId, messages:[{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
       if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
-    } catch(e){ this._beError(e); }
+    } catch(e){ this.setState({ typing:false }); this._beError(e); }
   };
   _sendBackend = async (text) => {
     const be=this._be(), sid=this.state.sessionId;
+    this.setState({ typing:true });
     try {
       let r;
       if (this.state.awaitingMiss && this.state.pendingFragmentId) {
@@ -2082,18 +2083,18 @@ class Component extends DCLogic {
       }
       this.setState({ sending:false });
       this._renderTurn(r);
-    } catch(e){ this.setState({ sending:false }); this._beError(e); }
+    } catch(e){ this.setState({ sending:false, typing:false }); this._beError(e); }
   };
   _reactBackend = async (kind) => {
     const be=this._be(), sid=this.state.sessionId, fid=this.state.pendingFragmentId;
-    this.setState({ pendingStrike:null });
+    this.setState({ pendingStrike:null, typing:true });
     try {
       const r = await be.react(sid, fid, kind);
       if (typeof r.resolution==='number') this.setResolution(r.resolution, 800);
-      if (r.needMiss) { this.setState(s => ({ awaitingMiss:true, suggestions:[], messages:[...s.messages,{ role:'ai', text:this._recoverMsg() }] })); return; }
-      if (r.done) { this.finishOnboarding(); return; }
-      if (r.next) this._renderTurn(r.next);
-    } catch(e){ this._beError(e); }
+      if (r.needMiss) { this.setState(s => ({ typing:false, awaitingMiss:true, suggestions:[], messages:[...s.messages,{ role:'ai', text:this._recoverMsg() }] })); return; }
+      if (r.done) { this.setState({ typing:false }); this.finishOnboarding(); return; }
+      if (r.next) this._renderTurn(r.next); else this.setState({ typing:false });
+    } catch(e){ this.setState({ typing:false }); this._beError(e); }
   };
 
   // ---- chat ----
@@ -2969,7 +2970,7 @@ class Component extends DCLogic {
       themeTrack: s.dark ? '#1E40FF' : 'var(--track)', themeKnob: s.dark ? '21px' : '3px',
       logoMark: s.dark ? 'mark-white.png' : 'mark-blue.png',
       searchNotFound:s.searchNotFound, clearSearchNotFound:this.clearSearchNotFound,
-      canInstall:s.canInstall, installApp:this.installApp,
+      canInstall: s.canInstall && isMobile, installApp:this.installApp,
       ownCardsEmpty: s.cards.length===0,
       vuCardEmpty: (vuser.cards||[]).filter(c => !c.closeOnly || vuIsClose).length===0,
       showSticky: s.scrolled && (screen==='profile' || screen==='userprofile'),
