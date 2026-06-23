@@ -3,7 +3,7 @@
 export type Role = 'ai' | 'user';
 export type TurnType = 'question' | 'answer' | 'strike' | 'reaction' | 'miss' | 'reflection' | 'system';
 export type InputMode = 'tap' | 'choice_free' | 'free';
-export type Move = 'dig' | 'pivot' | 'strike' | 'reflect' | 'reask' | 'close' | 'open';
+export type Move = 'dig' | 'pivot' | 'strike' | 'reflect' | 'reask' | 'close' | 'open' | 'ask_boundary';
 export type FragmentType = 'trait' | 'event' | 'preference' | 'value' | 'relation' | 'pattern';
 export type Valence = 'pos' | 'neg' | 'neu';
 export type FragmentStatus = 'proposed' | 'agreed' | 'unsure' | 'corrected' | 'retired';
@@ -24,6 +24,8 @@ export interface ControllerCtx {
   turnsSinceStrike: number;
   domainRepeat: number;
   turnCount: number;
+  boundaryRemaining: number;    // まだ聞いていない境界テーマの数
+  turnsSinceBoundary: number;   // 最後に境界を聞いてからのターン数
 }
 
 /** FE に返す1ターン分の AI 応答。 */

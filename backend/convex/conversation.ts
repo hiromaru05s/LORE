@@ -3,13 +3,18 @@ import { action, internalMutation, internalQuery, query } from './_generated/ser
 import { api, internal } from './_generated/api';
 import { decideMove } from './lib/controller';
 import { scoreAnswer, materialWeight } from './lib/scoring';
-import { generateTurn, generateStrike, generateRestrike } from './lib/generate';
+import { generateTurn, generateStrike, generateRestrike, generateBoundaryAsk } from './lib/generate';
 import { reactionPatch, missPatch, halfLifeFor } from './lib/belief';
 import { capture, EV } from './lib/analytics';
 import { relationFor, memoryFor, reaskDueFor, resolutionForUser, contourFor, prefsFor } from './helpers';
 import { resolveUserId } from './users';
 
 const nowIso = () => new Date().toISOString();
+
+/** 残りの境界テーマから今回聞く1つを選ぶ。今の話題に関係するものを優先、なければ先頭。 */
+function pickBoundaryTopic(remaining: string[], domain: string): string {
+  return remaining.find((t) => domain && domain.includes(t)) || remaining[0];
+}
 
 // ───────────────────────── 内部: 読み込み ─────────────────────────
 export const loadCtx = internalQuery({
@@ -28,6 +33,8 @@ export const loadCtx = internalQuery({
       recentTurns: recentRows.reverse().map((t) => ({ role: t.role, text: t.text })),
       relation: await relationFor(ctx, uid), memory: await memoryFor(ctx, uid),
       prefs: await prefsFor(ctx, uid),
+      pendingBoundary: s!.pendingBoundary ?? null,
+      turnsSinceBoundary: s!.turnCount - (s!.lastBoundaryTurn ?? -999),
     };
   },
 });
@@ -80,6 +87,40 @@ export const saveAiTurn = internalMutation({
   },
 });
 
+// ask_boundary を保存し、session に「いま聞いてるテーマ」を刻む（次の発話＝その回答）。
+export const saveBoundaryAsk = internalMutation({
+  args: { uid: v.id('users'), sessionId: v.id('sessions'), topic: v.string(), text: v.string() },
+  handler: async (ctx, a) => {
+    await ctx.db.insert('turns', { userId: a.uid, sessionId: a.sessionId, role: 'ai', type: 'question', text: a.text, inputMode: 'tap', refs: { boundaryTopic: a.topic } });
+    const s = await ctx.db.get(a.sessionId);
+    await ctx.db.patch(a.sessionId, { lastMove: 'ask_boundary', turnCount: s!.turnCount + 1, turnsSinceStrike: s!.turnsSinceStrike + 1, pendingBoundary: a.topic, lastBoundaryTurn: s!.turnCount + 1 });
+    return await resolutionForUser(ctx, a.uid);
+  },
+});
+
+// 境界質問への回答を取り込む（採点せず preferences に保持）。pendingBoundary を消す。
+export const consumeBoundaryAnswer = internalMutation({
+  args: { uid: v.id('users'), sessionId: v.id('sessions'), text: v.string() },
+  handler: async (ctx, a) => {
+    const s = await ctx.db.get(a.sessionId);
+    const topic = s?.pendingBoundary;
+    if (!topic) return { consumed: false as const };
+    const ng = /避け|嫌|無理|やめ|ダメ|だめ|やだ|遠慮|NG/i.test(a.text);
+    await ctx.db.insert('turns', { userId: a.uid, sessionId: a.sessionId, role: 'user', type: 'answer', text: a.text, inputMode: 'tap', refs: { boundaryTopic: topic, boundaryNg: ng } });
+    const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q) => q.eq('userId', a.uid)).unique();
+    if (rel) {
+      const prefs: any = rel.preferences || {};
+      const asked: string[] = Array.isArray(prefs.boundariesAsked) ? prefs.boundariesAsked : [];
+      const ngList: string[] = Array.isArray(prefs.boundariesNg) ? prefs.boundariesNg : [];
+      const nextAsked = asked.includes(topic) ? asked : [...asked, topic];
+      const nextNg = ng && !ngList.includes(topic) ? [...ngList, topic] : ngList;
+      await ctx.db.patch(rel._id, { preferences: { ...prefs, boundariesAsked: nextAsked, boundariesNg: nextNg } });
+    }
+    await ctx.db.patch(a.sessionId, { pendingBoundary: undefined });
+    return { consumed: true as const, ng, topic };
+  },
+});
+
 export const saveStrike = internalMutation({
   args: { uid: v.id('users'), sessionId: v.id('sessions'), strike: v.any(), domain: v.string(), evidenceTurnId: v.optional(v.string()), contourId: v.id('contours') },
   handler: async (ctx, a) => {
@@ -119,6 +160,16 @@ export const sendTurn = action({
     if (!text) throw new Error('empty text');
     const inputMode = a.inputMode || 'choice_free';
 
+    // 直前が境界質問なら、この発話はその回答。採点せず preferences に取り込み、会話を続ける。
+    const bd: any = await ctx.runMutation(internal.conversation.consumeBoundaryAnswer, { uid, sessionId: a.sessionId, text });
+    if (bd.consumed) {
+      const bcx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: '日常' });
+      const bgin = { move: 'dig' as const, inputMode: 'choice_free' as const, recentTurns: bcx.recentTurns, lastAnswer: '', fragments: bcx.fragments, relation: bcx.relation, memory: bcx.memory, struck: bcx.struck, domain: '日常', intensity: bcx.prefs.strikeIntensity, avoidTopics: bcx.prefs.boundariesNg, tone: bcx.prefs.tone, depth: bcx.prefs.depth };
+      const bturn = await generateTurn(bgin);
+      const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move: 'dig', inputMode: 'choice_free', text: bturn.message });
+      return { move: 'dig', inputMode: 'choice_free', message: bturn.message, choices: bturn.choices, resolution };
+    }
+
     const score = await scoreAnswer(text);
     const { turnId, contourId } = await ctx.runMutation(internal.conversation.recordAnswer, { uid, sessionId: a.sessionId, text, inputMode, domain: score.domain, materialW: materialWeight(score.scores) });
     const cx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: score.domain });
@@ -126,10 +177,17 @@ export const sendTurn = action({
     const { move, inputMode: outMode } = decideMove({
       lastMove: cx.lastMove, lastScore: score.scores, contourMaterial: cx.contourMaterial,
       reaskDueCount: cx.reaskCount, turnsSinceStrike: cx.turnsSinceStrike, domainRepeat: cx.domainRepeat, turnCount: cx.turnCount,
+      boundaryRemaining: cx.prefs.boundaryRemaining.length, turnsSinceBoundary: cx.turnsSinceBoundary,
     });
 
     const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth };
 
+    if (move === 'ask_boundary') {
+      const topic = pickBoundaryTopic(cx.prefs.boundaryRemaining, score.domain);
+      const ba = await generateBoundaryAsk({ ...gin, move: 'ask_boundary', boundaryTopic: topic });
+      const resolution = await ctx.runMutation(internal.conversation.saveBoundaryAsk, { uid, sessionId: a.sessionId, topic, text: ba.message });
+      return { move: 'ask_boundary', inputMode: 'tap', message: ba.message, choices: ba.choices, resolution };
+    }
     if (move === 'strike') {
       const s = await generateStrike(gin);
       const { fragmentId, resolution } = await ctx.runMutation(internal.conversation.saveStrike, { uid, sessionId: a.sessionId, strike: s, domain: score.domain, evidenceTurnId: turnId, contourId });

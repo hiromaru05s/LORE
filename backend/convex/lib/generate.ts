@@ -18,7 +18,14 @@ export interface GenInput {
   avoidTopics?: string[];   // 境界でNG設定されたテーマ（踏み込まない）
   tone?: string;            // 口調（friendly|polite）
   depth?: string;           // 返しの深さ（light|deep）
+  boundaryTopic?: string;   // ask_boundary で許可を取りに行くテーマ
 }
+
+/** 境界質問の固定二択（LLMに作らせず routing を保証）。FEはlabelをそのまま送る→BEがpendingBoundaryで解釈。 */
+export const BOUNDARY_CHOICES = [
+  { label: 'うん、大丈夫', value: 'ok' },
+  { label: 'そこは避けたい', value: 'ng' },
+];
 
 const avoidLine = (topics?: string[]) => (topics && topics.length) ? `\n次のテーマには踏み込まない（相手がNGと設定）: ${topics.join(' / ')}。` : '';
 const styleLine = (tone?: string, depth?: string) => {
@@ -35,6 +42,16 @@ export async function generateTurn(g: GenInput): Promise<any> {
     extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
+}
+
+/** 境界の許可取り(ask_boundary)を Flash で生成。message のみLLM、choices は固定二択で routing 保証。 */
+export async function generateBoundaryAsk(g: GenInput): Promise<any> {
+  const user = buildContext({
+    relation: g.relation, recentTurns: g.recentTurns, lastAnswer: g.lastAnswer,
+    extra: `【今回の手: ask_boundary】今回確認したいテーマ＝「${g.boundaryTopic || ''}」。${MOVE_INSTRUCTION.ask_boundary}${styleLine(g.tone, g.depth)}`,
+  });
+  const out = await llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: 'ask_boundary', topic: g.boundaryTopic } });
+  return { message: out.message, choices: BOUNDARY_CHOICES };
 }
 
 /** 言い当て(strike)を Pro で生成。 */

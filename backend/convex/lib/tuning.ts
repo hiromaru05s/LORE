@@ -7,6 +7,8 @@ export const TUNING = {
   MIN_TURNS_BEFORE_STRIKE: 4, // セッション開始からこのターン数までは strike しない（=数回会話してから）
   DOMAIN_REPEAT_MAX: 3,       // 同 domain 連続でこれを超えたら pivot
   SESSION_CLOSE_TURNS: 10,    // セッションがこの長さを超え strike 直後なら close
+  BOUNDARY_FIRST_TURN: 6,     // 最初の境界質問はこのターン数以降（=まず一発ゾワッを見せてから）
+  BOUNDARY_PACE_TURNS: 5,     // 境界質問どうしの最小ターン間隔（細切れ・少しずつ）
   HALFLIFE_DAYS: { value: 180, preference: 90, trait: 120, pattern: 120 } as Record<string, number>,
   PREMIUM_PER_WEEK: 2,
   GRAN_CONF: { detailed: 0.75, normal: 0.6, vague: 0.4 } as Record<string, number>,

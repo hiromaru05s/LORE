@@ -120,6 +120,8 @@ export default defineSchema({
     turnsSinceStrike: v.number(),
     pendingFragment: v.optional(v.id('fragments')),
     turnCount: v.number(),
+    pendingBoundary: v.optional(v.string()),   // 直前のask_boundaryで聞いたテーマ（次の発話=その回答）
+    lastBoundaryTurn: v.optional(v.number()),  // 最後に境界を聞いた turnCount（間隔制御用）
   }).index('by_user', ['userId']),
 
   // 最小ともだち申請（受信表示＋承認のみ。フォロー/通知は無し）

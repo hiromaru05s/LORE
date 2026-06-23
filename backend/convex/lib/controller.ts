@@ -17,13 +17,15 @@ export function decideMove(ctx: ControllerCtx): { move: Move; inputMode: InputMo
   else if (ctx.turnCount >= TUNING.MIN_TURNS_BEFORE_STRIKE && ctx.contourMaterial >= TUNING.STRIKE_THRESHOLD && ctx.turnsSinceStrike >= TUNING.STRIKE_PACE_TURNS) move = 'strike';
   else if (ctx.turnCount >= TUNING.SESSION_CLOSE_TURNS && ctx.lastMove === 'strike') move = 'close';
   else if (ctx.domainRepeat >= TUNING.DOMAIN_REPEAT_MAX) move = 'pivot';   // 同じ話題が続きすぎた時だけ転換
+  // 境界の聞き取り（consent）: ゾワッを先に見せてから、間隔を空けて1つずつ細切れに。
+  else if (ctx.boundaryRemaining > 0 && ctx.turnCount >= TUNING.BOUNDARY_FIRST_TURN && ctx.turnsSinceBoundary >= TUNING.BOUNDARY_PACE_TURNS && ctx.lastMove !== 'strike') move = 'ask_boundary';
   else if (ctx.lastMove !== 'reflect' && ctx.turnCount % 3 === 2) move = 'reflect';   // たまに相槌だけ（淡々と質問攻めにしない）
   else move = 'dig';   // 基本は相手の話を深掘り（具体的な話に乗る。話題を勝手に変えない）
 
   return { move, inputMode: pickInputMode(move) };
 }
 
-/** 反応は tap、それ以外の質問は常にチップ付き(choice_free)。自由入力も併用できる。 */
+/** 反応は tap、境界質問は二択tap、それ以外の質問は常にチップ付き(choice_free)。自由入力も併用できる。 */
 function pickInputMode(move: Move): InputMode {
-  return move === 'strike' ? 'tap' : 'choice_free';
+  return (move === 'strike' || move === 'ask_boundary') ? 'tap' : 'choice_free';
 }

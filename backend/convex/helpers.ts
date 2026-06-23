@@ -32,13 +32,23 @@ export async function contourFor(ctx: any, uid: any, domain: string) {
   return c;
 }
 
+/** 会話中にAIが「踏み込んでいい？」と1つずつ聞いていく境界テーマ（FEチップと同一）。 */
+export const BOUNDARY_TOPICS = ['恋愛', '家族', '仕事', 'お金', '過去', 'コンプレックス'];
+
 /** 受信ダイヤル(preferences)を既定値付きで読む。 */
 export async function prefsFor(ctx: any, uid: any) {
   const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q: any) => q.eq('userId', uid)).unique();
   const p = (rel && rel.preferences) || {};
+  const ng: string[] = Array.isArray(p.boundariesNg) ? p.boundariesNg : [];
+  const asked: string[] = Array.isArray(p.boundariesAsked) ? p.boundariesAsked : [];
+  // 既に聞いた or 手動でNG設定済み のテーマは再質問しない。残りが聞く対象。
+  const known = new Set<string>([...ng, ...asked]);
+  const remaining = BOUNDARY_TOPICS.filter((t) => !known.has(t));
   return {
     strikeIntensity: p.strikeIntensity || 'gentle',
-    boundariesNg: Array.isArray(p.boundariesNg) ? p.boundariesNg : [],
+    boundariesNg: ng,
+    boundariesAsked: asked,
+    boundaryRemaining: remaining,
     tone: p.tone || null,
     depth: p.depth || null,
     intro: p.intro || {},
