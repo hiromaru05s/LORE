@@ -53,11 +53,7 @@ export const ContentSchema = z.object({
   title: z.string(),
   format: z.enum(['timeline', 'contrast', 'constellation', 'roughtext']),
   payload: z.any().nullable().default(null),
-  bodies: z.object({
-    detailed: z.string(),
-    normal: z.string(),
-    vague: z.string(),
-  }),
+  bodies: z.object({ detailed: z.string(), normal: z.string(), vague: z.string() }),
 });
 
 export type ScoreOut = z.infer<typeof ScoreSchema>;

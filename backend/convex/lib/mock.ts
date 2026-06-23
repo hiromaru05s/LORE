@@ -1,6 +1,6 @@
 // MOCK モード：APIキー未設定でも全パイプラインが動くよう、purpose ごとに有効な JSON を生成する。
-// 文章品質より「構造の正しさと LORE らしさ」を優先。実LLM接続時はこのファイルは使われない。
-import type { Purpose } from './provider';
+// 実LLM接続時は使われない。Convex非依存・純粋。
+export type Purpose = 'score' | 'turn' | 'strike' | 'restrike' | 'seeds' | 'format' | 'content';
 
 const clamp3 = (n: number) => Math.max(0, Math.min(3, Math.round(n)));
 
@@ -8,14 +8,13 @@ function guessDomain(text: string): string {
   const t = text || '';
   if (/仕事|会社|職場|上司|同僚|打ち上げ|プロジェクト/.test(t)) return '仕事';
   if (/恋|彼|彼女|好きな人|付き合/.test(t)) return '恋愛';
-  if (/親|family|家族|母|父|実家|兄|姉|弟|妹/.test(t)) return '家族';
+  if (/親|家族|母|父|実家|兄|姉|弟|妹/.test(t)) return '家族';
   if (/友達|人といて|集まり|飲み|パーティ|端っこ|端|みんな/.test(t)) return '対人';
   if (/旅|趣味|本|映画|音楽|ゲーム|地図|写真/.test(t)) return '趣味';
   if (/昔|子供|高校|大学|頃|当時|あの時/.test(t)) return '過去';
   if (/大事|譲れ|べき|信じ|価値/.test(t)) return '価値観';
   return '日常';
 }
-
 function guessType(text: string): string {
   const t = text || '';
   if (/時|頃|昔|去年|高校|大学|当時/.test(t)) return 'event';
@@ -47,11 +46,7 @@ function mockScore(h: any) {
   const emo = /嬉|悲|寂|怖|疲|不安|嫌|好き|つら|楽し|落ち着|怒|焦|安心|消耗|逃げ/.test(text) ? 2 : (len > 40 ? 1 : 0);
   const insight = /なぜ|理由|だと思う|気づ|かもしれ|本当は|自分でも|逃げかも/.test(text) ? 3 : (/多分|たぶん|かも/.test(text) ? 1 : 0);
   const spec = clamp3(Math.floor(len / 22));
-  return {
-    scores: { specificity: clamp3(spec), emotionalDepth: clamp3(emo), selfInsight: clamp3(insight) },
-    domain: guessDomain(text),
-    type: guessType(text),
-  };
+  return { scores: { specificity: clamp3(spec), emotionalDepth: clamp3(emo), selfInsight: clamp3(insight) }, domain: guessDomain(text), type: guessType(text) };
 }
 
 function mockTurn(h: any) {
@@ -68,32 +63,23 @@ function mockTurn(h: any) {
   };
   const chips: Record<string, string[]> = {
     open: ['夜中にずっと地図を見てた', '古い写真を整理してた'],
-    dig: ['一人の時', '人といる時'],
-    pivot: ['あるかも', '特にない'],
-    reflect: ['うん', '…どうかな'],
-    reask: ['時間', '誠実さ'],
-    close: [],
+    dig: ['一人の時', '人といる時'], pivot: ['あるかも', '特にない'],
+    reflect: ['うん', '…どうかな'], reask: ['時間', '誠実さ'], close: [],
   };
   return { message: msgs[move] || msgs.pivot, choices: free ? [] : (chips[move] || []).map(c => ({ label: c, value: c })) };
 }
 
 function mockStrike(h: any) {
-  const idx = (h.struck || 0) % READS.length;
-  const r = READS[idx];
-  const conf = h.struck >= 2 ? 0.4 : 0.75;
+  const r = READS[(h.struck || 0) % READS.length];
   return {
     message: r.message,
     components: { subject: r.subject, claim: r.claim, qualifier: r.qualifier, valence: r.valence },
-    confidence: conf,
-    type: r.type,
-    domain: h.domain || r.domain,
+    confidence: h.struck >= 2 ? 0.4 : 0.75, type: r.type, domain: h.domain || r.domain,
     missCandidates: MISS_CANDIDATES.slice(0, 4),
   };
 }
 
 function mockRestrike(h: any) {
-  const type = h.missType;
-  const base = h.fragmentText || '君には、まだ言葉になっていない輪郭がある。';
   const map: Record<string, string> = {
     opposite: 'なるほど、逆か。じゃあ君はむしろ、自分から場を動かしたい側なのかもしれない。',
     degree: 'そこまで強くはない、か。…でも、芯のところには確かにそれがある。',
@@ -104,60 +90,44 @@ function mockRestrike(h: any) {
     custom: `そっか。「${h.detail || ''}」——そこにこそ、君の輪郭がある。`,
   };
   return {
-    message: map[type] || base,
+    message: map[h.missType] || '君には、まだ言葉になっていない輪郭がある。',
     components: { subject: 'あなた', claim: '訂正後の輪郭', qualifier: '', valence: 'neu' },
-    confidence: 0.7,
-    type: 'trait',
-    domain: h.domain || '日常',
-    missCandidates: MISS_CANDIDATES.slice(0, 4),
-  };
-}
-
-function mockSeeds(h: any) {
-  const frags: any[] = (h.agreed || []).slice(0, 3);
-  if (frags.length === 0) {
-    return { seeds: [{ title: 'いまの自分', summary: 'まだ言葉になっていない輪郭。', domain: '日常', suggestedFormat: 'roughtext', sourceFragmentIds: [] }] };
-  }
-  const titles = ['退屈との付き合い方', '断り方に出る性格', '人との距離の取り方', '余韻の置き場所', '選び方のクセ'];
-  return {
-    seeds: frags.map((f, i) => ({
-      title: titles[i % titles.length],
-      summary: (f.text || '').slice(0, 28),
-      domain: f.domain || '日常',
-      suggestedFormat: pickFormat(frags),
-      sourceFragmentIds: [f.id].filter(Boolean),
-    })),
+    confidence: 0.7, type: 'trait', domain: h.domain || '日常', missCandidates: MISS_CANDIDATES.slice(0, 4),
   };
 }
 
 function pickFormat(frags: any[]): string {
-  const types = frags.map(f => f.type);
+  const types = (frags || []).map(f => f.type);
   if (types.filter((t: string) => t === 'event').length >= 3) return 'timeline';
   if (types.filter((t: string) => t === 'preference' || t === 'relation').length >= 4) return 'constellation';
-  if (frags.some((f: any) => f.reask?.history?.length)) return 'contrast';
+  if ((frags || []).some((f: any) => f.reask?.history?.length)) return 'contrast';
   return 'roughtext';
 }
 
-function mockFormat(h: any) {
-  const fmt = pickFormat(h.fragments || []);
-  return { format: fmt, reason: 'mock: 手元の素材の型から選定' };
+function mockSeeds(h: any) {
+  const frags: any[] = (h.agreed || []).slice(0, 3);
+  if (frags.length === 0) return { seeds: [{ title: 'いまの自分', summary: 'まだ言葉になっていない輪郭。', domain: '日常', suggestedFormat: 'roughtext', sourceFragmentIds: [] }] };
+  const titles = ['退屈との付き合い方', '断り方に出る性格', '人との距離の取り方', '余韻の置き場所', '選び方のクセ'];
+  return { seeds: frags.map((f, i) => ({ title: titles[i % titles.length], summary: (f.text || '').slice(0, 28), domain: f.domain || '日常', suggestedFormat: pickFormat(frags), sourceFragmentIds: [f.id].filter(Boolean) })) };
 }
+
+function mockFormat(h: any) { return { format: pickFormat(h.fragments || []), reason: 'mock: 素材の型から選定' }; }
 
 function mockContent(h: any) {
   const title = h.title || 'いまの自分';
-  const seedSummary = h.summary || '何も起きない時間に、君がどう強いか。';
-  const detailed = `丸山は${seedSummary} 予定が真っ白な日曜の朝、多くの人がスマホを開いて何かを探しはじめる時間に、彼はただ窓の外を見ていられる。沈黙が怖くない、数少ないタイプだ。`;
-  const normal = `丸山は${seedSummary} 何も起きない時間を無理に埋めようとせず、そのまま過ごせる。`;
-  const vague = `丸山は、${seedSummary.slice(0, 12)}…そういう人だ。`;
+  const sm = h.summary || '何も起きない時間に、君がどう強いか。';
   let payload: any = null;
-  if (h.format === 'timeline') {
-    payload = { events: (h.events || []).map((e: any) => ({ when: e.when || '', label: e.label || '', body: e.body || '' })) };
-  } else if (h.format === 'contrast') {
-    payload = { before: '半年前の自分', after: '今の自分', pivot: 'その間に起きたこと' };
-  } else if (h.format === 'constellation') {
-    payload = { nodes: (h.fragments || []).slice(0, 5).map((f: any, i: number) => ({ id: i, label: (f.text || '').slice(0, 8) })), links: [] };
-  }
-  return { title, format: h.format || 'roughtext', payload, bodies: { detailed, normal, vague } };
+  if (h.format === 'timeline') payload = { events: (h.events || []).map((e: any) => ({ when: e.when || '', label: e.label || '', body: e.body || '' })) };
+  else if (h.format === 'contrast') payload = { before: '半年前の自分', after: '今の自分', pivot: 'その間に起きたこと' };
+  else if (h.format === 'constellation') payload = { nodes: (h.fragments || []).slice(0, 5).map((f: any, i: number) => ({ id: i, label: (f.text || '').slice(0, 8) })), links: [] };
+  return {
+    title, format: h.format || 'roughtext', payload,
+    bodies: {
+      detailed: `丸山は${sm} 予定が真っ白な日曜の朝、多くの人がスマホを開いて何かを探しはじめる時間に、彼はただ窓の外を見ていられる。沈黙が怖くない、数少ないタイプだ。`,
+      normal: `丸山は${sm} 何も起きない時間を無理に埋めようとせず、そのまま過ごせる。`,
+      vague: `丸山は、${sm.slice(0, 12)}…そういう人だ。`,
+    },
+  };
 }
 
 export function mockGenerate(purpose: Purpose, hints: any): any {

@@ -11,5 +11,6 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src", "test"]
+  "//": "オフライン検証用: Convex非依存の純粋lib + test のみを型チェックする。convex/ 配下のfunctionsは `npx convex dev` 実行時にConvexが型チェック＆codegenする。",
+  "include": ["convex/lib", "test"]
 }
