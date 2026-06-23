@@ -3,7 +3,7 @@
   "short_name": "LORE",
   "description": "AIと話すほど、あなたの輪郭が浮かび上がる。共有できる内面プロフィール。",
   "lang": "ja",
-  "start_url": "./LORE.dc.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

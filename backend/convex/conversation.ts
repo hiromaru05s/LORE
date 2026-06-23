@@ -16,18 +16,25 @@ function pickBoundaryTopic(remaining: string[], domain: string): string {
   return remaining.find((t) => domain && domain.includes(t)) || remaining[0];
 }
 
+/** 極短文＝strike燃料にならない自明ターン。採点(LLM)をスキップして材料0扱い（品質中立）。 */
+function isTrivialAnswer(text: string): boolean {
+  return text.replace(/\s/g, '').length <= 4;
+}
+
 // ───────────────────────── 内部: 読み込み ─────────────────────────
 export const loadCtx = internalQuery({
-  args: { uid: v.id('users'), sessionId: v.id('sessions'), domain: v.string() },
+  args: { uid: v.id('users'), sessionId: v.id('sessions'), domain: v.optional(v.string()) },
   handler: async (ctx, { uid, sessionId, domain }) => {
     const s = await ctx.db.get(sessionId);
     const user = await ctx.db.get(uid);
-    const contour = await contourFor(ctx, uid, domain);
+    // domain未指定なら直近の話題(lastDomain)で引く＝今ターンの採点を待たずに先読みできる（並列化用）
+    const dom = domain || s!.lastDomain || '日常';
+    const contour = await contourFor(ctx, uid, dom);
     const due = await reaskDueFor(ctx, uid);
-    const fragsDom = await ctx.db.query('fragments').withIndex('by_user_domain', (q) => q.eq('userId', uid).eq('domain', domain)).collect();
+    const fragsDom = await ctx.db.query('fragments').withIndex('by_user_domain', (q) => q.eq('userId', uid).eq('domain', dom)).collect();
     const recentRows = await ctx.db.query('turns').withIndex('by_session', (q) => q.eq('sessionId', sessionId)).order('desc').take(8);
     return {
-      lastMove: s!.lastMove, turnsSinceStrike: s!.turnsSinceStrike, turnCount: s!.turnCount, domainRepeat: s!.domainRepeat, mode: s!.mode,
+      lastMove: s!.lastMove, turnsSinceStrike: s!.turnsSinceStrike, turnCount: s!.turnCount, domainRepeat: s!.domainRepeat, mode: s!.mode, lastDomain: s!.lastDomain,
       contourMaterial: contour?.material ?? 0, struck: contour?.struck ?? 0,
       reaskCount: due.length, reaskText: due[0]?.text ?? null,
       fragments: fragsDom.slice(0, 5).map((f) => ({ text: f.text, confidence: f.confidence, status: f.status })),
@@ -175,31 +182,40 @@ export const sendTurn = action({
       return { move: 'dig', inputMode: 'choice_free', message: bturn.message, choices: bturn.choices, resolution };
     }
 
-    const score = await scoreAnswer(text);
-    const { turnId, contourId } = await ctx.runMutation(internal.conversation.recordAnswer, { uid, sessionId: a.sessionId, text, inputMode, domain: score.domain, materialW: materialWeight(score.scores) });
-    const cx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: score.domain });
-
+    // ── レイテンシ最適化（品質中立）──
+    // 手は「前ターンまでの状態」で決め、採点(LLM)と本文生成(LLM)を並列に走らせる（直列2回→並列1回ぶん）。
+    // 今回の採点は recordAnswer 経由で“次ターンの燃料”になる（strikeタイミングはペーシング閾値内でほぼ不変）。
+    const cx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId });   // domain=直近話題
     const { move, inputMode: outMode } = decideMove({
-      lastMove: cx.lastMove, lastScore: score.scores, contourMaterial: cx.contourMaterial,
+      lastMove: cx.lastMove, lastScore: null, contourMaterial: cx.contourMaterial,
       reaskDueCount: cx.reaskCount, turnsSinceStrike: cx.turnsSinceStrike, domainRepeat: cx.domainRepeat, turnCount: cx.turnCount,
       boundaryRemaining: cx.prefs.boundaryRemaining.length, turnsSinceBoundary: cx.turnsSinceBoundary,
     });
+    const ctxDomain = cx.lastDomain || '日常';
+    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: ctxDomain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth };
 
-    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth };
+    // #4 自明ターン（極短文）は採点をスキップ＝材料0扱い（LLM呼び出しを1回に）
+    const scoreP: Promise<any> = isTrivialAnswer(text)
+      ? Promise.resolve({ scores: { specificity: 0, emotionalDepth: 0, selfInsight: 0 }, domain: ctxDomain, type: 'trait' })
+      : scoreAnswer(text);
+    const rec = (score: any) => ctx.runMutation(internal.conversation.recordAnswer, { uid, sessionId: a.sessionId, text, inputMode, domain: score.domain, materialW: materialWeight(score.scores) });
 
     if (move === 'ask_boundary') {
-      const topic = pickBoundaryTopic(cx.prefs.boundaryRemaining, score.domain);
-      const ba = await generateBoundaryAsk({ ...gin, move: 'ask_boundary', boundaryTopic: topic });
+      const topic = pickBoundaryTopic(cx.prefs.boundaryRemaining, ctxDomain);
+      const [score, ba] = await Promise.all([scoreP, generateBoundaryAsk({ ...gin, move: 'ask_boundary', boundaryTopic: topic })]);
+      await rec(score);
       const resolution = await ctx.runMutation(internal.conversation.saveBoundaryAsk, { uid, sessionId: a.sessionId, topic, text: ba.message });
       return { move: 'ask_boundary', inputMode: 'tap', message: ba.message, choices: ba.choices, resolution };
     }
     if (move === 'strike') {
-      const s = await generateStrike(gin);
+      const [score, s] = await Promise.all([scoreP, generateStrike(gin)]);
+      const { turnId, contourId } = await rec(score);
       const { fragmentId, resolution } = await ctx.runMutation(internal.conversation.saveStrike, { uid, sessionId: a.sessionId, strike: s, domain: score.domain, evidenceTurnId: turnId, contourId });
       await capture(EV.STRIKE_SHOWN, uid, { domain: score.domain });
       return { move, inputMode: 'tap', message: s.message, strike: { fragmentId, components: s.components, confidence: s.confidence }, missCandidates: s.missCandidates, resolution };
     }
-    const turn = await generateTurn(gin);
+    const [score, turn] = await Promise.all([scoreP, generateTurn(gin)]);
+    await rec(score);
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move, inputMode: outMode, text: turn.message });
     return { move, inputMode: outMode, message: turn.message, choices: outMode === 'free' ? [] : turn.choices, resolution };
   },
