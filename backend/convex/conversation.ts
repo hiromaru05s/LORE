@@ -99,7 +99,7 @@ export const saveStrike = internalMutation({
 // ───────────────────────── public actions ─────────────────────────
 export const startSession = action({
   args: { mode: v.optional(v.string()) },
-  handler: async (ctx, { mode }) => {
+  handler: async (ctx, { mode }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m = mode === 'home' ? 'home' : 'onboarding';
     const sessionId = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
@@ -112,7 +112,7 @@ export const startSession = action({
 
 export const sendTurn = action({
   args: { sessionId: v.id('sessions'), text: v.string(), inputMode: v.optional(v.string()) },
-  handler: async (ctx, a) => {
+  handler: async (ctx, a): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const text = (a.text || '').trim();
     if (!text) throw new Error('empty text');
@@ -161,7 +161,7 @@ export const applyReactionMut = internalMutation({
 
 export const react = action({
   args: { sessionId: v.id('sessions'), fragmentId: v.id('fragments'), kind: v.string() },
-  handler: async (ctx, a) => {
+  handler: async (ctx, a): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const r = await ctx.runMutation(internal.conversation.applyReactionMut, { uid, sessionId: a.sessionId, fragmentId: a.fragmentId, kind: a.kind });
     await capture(EV.STRIKE_REACTION, uid, { kind: a.kind });

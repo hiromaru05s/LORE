@@ -49,7 +49,7 @@ export const getCandidates = query({
 // 生成（フォーマット選定 Flash ＋ 本文 Pro, action）。spec §5-2。永続化はせず draft を返す（reviewステップ）。
 export const generate = action({
   args: { seedId: v.id('contentSeeds'), granularity: v.optional(v.string()) },
-  handler: async (ctx, { seedId, granularity }) => {
+  handler: async (ctx, { seedId, granularity }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const data = await ctx.runQuery(internal.content.seedWithFrags, { seedId });
     if (!data) throw new Error('seed not found');
