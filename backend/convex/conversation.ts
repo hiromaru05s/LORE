@@ -6,7 +6,7 @@ import { scoreAnswer, materialWeight } from './lib/scoring';
 import { generateTurn, generateStrike, generateRestrike, generateBoundaryAsk } from './lib/generate';
 import { reactionPatch, missPatch, halfLifeFor } from './lib/belief';
 import { capture, EV } from './lib/analytics';
-import { relationFor, memoryFor, reaskDueFor, resolutionForUser, contourFor, prefsFor } from './helpers';
+import { relationFor, memoryFor, reaskDueFor, resolutionForUser, contourFor, prefsFor, intakeMemoryLines } from './helpers';
 import { resolveUserId } from './users';
 
 const nowIso = () => new Date().toISOString();
@@ -21,6 +21,7 @@ export const loadCtx = internalQuery({
   args: { uid: v.id('users'), sessionId: v.id('sessions'), domain: v.string() },
   handler: async (ctx, { uid, sessionId, domain }) => {
     const s = await ctx.db.get(sessionId);
+    const user = await ctx.db.get(uid);
     const contour = await contourFor(ctx, uid, domain);
     const due = await reaskDueFor(ctx, uid);
     const fragsDom = await ctx.db.query('fragments').withIndex('by_user_domain', (q) => q.eq('userId', uid).eq('domain', domain)).collect();
@@ -31,7 +32,7 @@ export const loadCtx = internalQuery({
       reaskCount: due.length, reaskText: due[0]?.text ?? null,
       fragments: fragsDom.slice(0, 5).map((f) => ({ text: f.text, confidence: f.confidence, status: f.status })),
       recentTurns: recentRows.reverse().map((t) => ({ role: t.role, text: t.text })),
-      relation: await relationFor(ctx, uid), memory: await memoryFor(ctx, uid),
+      relation: await relationFor(ctx, uid), memory: [...intakeMemoryLines(user?.intake), ...(await memoryFor(ctx, uid))],
       prefs: await prefsFor(ctx, uid),
       pendingBoundary: s!.pendingBoundary ?? null,
       turnsSinceBoundary: s!.turnCount - (s!.lastBoundaryTurn ?? -999),
@@ -141,12 +142,14 @@ export const saveStrike = internalMutation({
 
 // ───────────────────────── public actions ─────────────────────────
 export const startSession = action({
-  args: { mode: v.optional(v.string()) },
-  handler: async (ctx, { mode }): Promise<any> => {
+  args: { mode: v.optional(v.string()), quiet: v.optional(v.boolean()) },
+  handler: async (ctx, { mode, quiet }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m = mode === 'home' ? 'home' : 'onboarding';
     const open: any = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
     const sessionId = open.sessionId; const firstMeeting = open.firstMeeting;
+    // quiet: セッションだけ用意して開始発話は出さない（インテーク後など、FE側で導入済みのとき）
+    if (quiet) return { sessionId, quiet: true };
     const relation = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId, domain: '日常' });
     const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常', firstMeeting });
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId, move: 'open', inputMode: 'choice_free', text: turn.message });

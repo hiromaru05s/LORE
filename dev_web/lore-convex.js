@@ -114,10 +114,11 @@ const Backend = {
   getMe() { return this._q('users:getMe', {}); },
   setPrivate(isPrivate) { return this._m('users:setPrivate', { isPrivate }); },
   setPreferences(prefs) { return this._m('users:setPreferences', prefs); },   // {strikeIntensity,boundariesNg,tone}
+  saveIntake(answers) { return this._m('users:saveIntake', { answers }); },   // 初回基本情報
   isPremium() { return this._q('entitlements:isPremium', {}); },
 
   // ── 会話 ──
-  startSession(mode = 'onboarding') { return this._a('conversation:startSession', { mode }); },
+  startSession(mode = 'onboarding', quiet = false) { return this._a('conversation:startSession', { mode, quiet }); },
   sendTurn(sessionId, text, inputMode = 'choice_free') { return this._a('conversation:sendTurn', { sessionId, text, inputMode }); },
   react(sessionId, fragmentId, kind) { return this._a('conversation:react', { sessionId, fragmentId, kind }); },
   miss(sessionId, fragmentId, type, detail) { return this._a('conversation:miss', { sessionId, fragmentId, type, detail }); },

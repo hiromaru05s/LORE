@@ -74,10 +74,22 @@ export const getMe = query({
     return {
       displayName: u!.displayName, userId: `@${u!.userId}`, bio: u!.bio, avatar: u!.avatar,
       profilePrivate: u!.profilePrivate, resolution, isPremium: !!ent?.isPremium,
+      intakeDone: !!u!.intake, intake: u!.intake || null,
       cards: cards.map((c) => ({ id: c._id, title: c.title, body: c.body, format: c.format, payload: c.payload, conf: c.conf, layers: c.layers, isPremium: c.isPremium, pinned: c.pinned })),
       incomingRequests: reqs.map((r) => ({ id: r._id, name: r.fromName, fromUser: r.fromUser })),
       preferences: await prefsFor(ctx, uid),
     };
+  },
+});
+
+/** 初回オンボーディングの基本情報を保存（完了フラグ兼用）。 */
+export const saveIntake = mutation({
+  args: { answers: v.any() },
+  handler: async (ctx, a) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid) throw new Error('not authenticated');
+    await ctx.db.patch(uid, { intake: { ...(a.answers || {}), doneAt: new Date().toISOString() } });
+    return { ok: true };
   },
 });
 

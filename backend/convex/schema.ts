@@ -12,6 +12,7 @@ export default defineSchema({
     bio: v.string(),
     avatar: v.string(),
     profilePrivate: v.boolean(),
+    intake: v.optional(v.any()),          // 初回オンボーディングで聞いた基本情報（本人申告）。完了済みフラグも兼ねる
   })
     .index('by_clerk', ['clerkId'])
     .index('by_handle', ['userId']),

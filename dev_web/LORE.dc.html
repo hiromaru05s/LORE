@@ -654,6 +654,13 @@ textarea{resize:none}
             </sc-for>
           </div>
         </sc-if>
+        <sc-if value="{{ intakeAgeActive }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:11px;background:var(--surface2);border-radius:16px;padding:13px 18px">
+            <div style="font-weight:900;font-size:26px;min-width:78px;text-align:center;color:var(--text)">{{ ageVal }}<span style="font-size:13px;font-weight:700;opacity:.55"> 歳</span></div>
+            <input type="range" min="13" max="80" value="{{ ageVal }}" onChange="{{ onAgeInput }}" onInput="{{ onAgeInput }}" style="flex:1;accent-color:#1E40FF;cursor:pointer">
+            <button onClick="{{ intakeAgeConfirm }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:18px;padding:10px 20px;font-weight:800;font-size:14px;flex:none">決定</button>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:8px;align-items:flex-end">
           <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s128 }}" style="flex:1;border:1px solid var(--border);border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:var(--surface2)"></textarea>
           <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
@@ -1645,6 +1652,10 @@ class Component extends DCLogic {
     authEmail: '',
     authCode: '',
     authBusy: false,
+    intakeActive: false,   // 初回基本情報インテーク中
+    intakeIdx: -1,
+    intakeAnswers: {},
+    ageVal: 25,
     vw: 1024,
     messages: [],
     input: '',
@@ -1721,6 +1732,22 @@ class Component extends DCLogic {
     { type:'strike', text:'にぎやかさが嫌いなわけじゃない。君は、余韻のほうに本体がある。' },
     { type:'q', bubbles:['うん、わかる気がする。','最後にひとつだけ。','今日、自分でも少し意外だった選択ってあった？'], chips:['あるかも','特にない'] },
     { type:'strike', text:'君の「まあいいか」は諦めじゃない。戦う相手を、静かに選んでいるだけだ。' },
+  ];
+
+  // 初回オンボーディングの基本情報インテーク（テンプレ。選択UI中心・年齢のみスライダー）
+  intakeFlow = [
+    { key:'firstTime', q:['はじめまして。僕は LORE。','まずは、かんたんな質問からいくね。','LORE を使うのは初めて？'], chips:['はじめて','前にも使ったことある'] },
+    { key:'gender',    q:['ありがとう。','性別を教えてもらえる？'], chips:['男性','女性','答えたくない'] },
+    { key:'age',       type:'age', q:['歳はいくつ？','下のバーで選んでね。'] },
+    { key:'introvert', q:['自分が内向的になりやすいのって、どんな時？'], chips:['大勢の場','初対面の人といる時','疲れてる時','いつも内向的','内向的になる場面はない'] },
+    { key:'extrovert', q:['逆に、自分が外向的になれるのは？'], chips:['気心知れた人と','好きな話題の時','テンション上がる場で','いつも外向的','外向的になる場面はない'], skipIf:(a)=> a.introvert==='いつも内向的' },
+    { key:'energy',    q:['一人の時間と、人といる時間。どっちで充電される？'], chips:['一人の時間','人といる時間','どっちも','時と場合による'] },
+    { key:'decision',  q:['何かを決めるとき、近いのはどれ？'], chips:['直感でパッと','じっくり考えて','人に相談して','流れに任せる'] },
+    { key:'weekend',   q:['休みの日は、どう過ごすのが好き？'], chips:['家でゆっくり','外に出かける','趣味に没頭','人と会う','その時の気分'] },
+    { key:'worry',     q:['悩みごとがある時は？'], chips:['誰かに話したい','一人で抱えがち','考えてから話す','あまり悩まない'] },
+    { key:'novelty',   q:['新しいことには、どう向き合う方？'], chips:['すぐ飛び込む','慎重に様子見','興味があれば','あまり乗り気じゃない'] },
+    { key:'pace',      q:['毎日の生活は、どっち寄り？'], chips:['きっちり計画的','行き当たりばったり','だいたい決まってる','その時々'] },
+    { key:'value',     q:['最後に。今いちばん大事にしたいものは？'], chips:['仕事や成長','人とのつながり','自分の時間','楽しさ','心の安定'] },
   ];
 
   seedCandidates = [
@@ -2036,7 +2063,81 @@ class Component extends DCLogic {
   onAuthKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onAuthContinue(); } };
   // 認証完了後にアプリへ入る（直接呼び＋lore-authedイベントの二重発火を一度に集約。
   //  二重だと1回目が認証トークン未反映でデモユーザー扱いになり「やあ久しぶり」が一瞬出る）
-  _enterAuthed = () => { if (this._entered) return; this._entered = true; this.setState({ authStage:'idle', authBusy:false, authCode:'' }); this._startBackend('home'); };
+  _enterAuthed = () => {
+    if (this._entered) return; this._entered = true;
+    this.setState({ authStage:'idle', authBusy:false, authCode:'' });
+    const be = this._be();
+    if (!be) { this._startBackend('home'); return; }
+    // 初回（インテーク未完了）なら基本情報インテーク、完了済みなら通常会話
+    this.setState({ screen:'home', mode:'home', messages:[], suggestions:[], reactionMode:false, sessionId:null, typing:true });
+    this.setResolution(0.12, 400);
+    be.getMe().then(me => {
+      if (me && me.intakeDone) this._startBackend('home');
+      else this._startIntake();
+    }).catch(e => { this._beError(e); this._startBackend('home'); });
+  };
+
+  // ---- 初回基本情報インテーク（テンプレ） ----
+  _startIntake = () => {
+    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
+    this.setResolution(0.12, 400);
+    this._intakeNext();
+  };
+  _intakeNext = () => {
+    let i = this.state.intakeIdx + 1;
+    const a = this.state.intakeAnswers;
+    while (i < this.intakeFlow.length && this.intakeFlow[i].skipIf && this.intakeFlow[i].skipIf(a)) i++;
+    if (i >= this.intakeFlow.length) { this._finishIntake(); return; }
+    const q = this.intakeFlow[i];
+    this.setState({ intakeIdx:i, suggestions:[] });
+    this._seqBubbles(q.q, () => {
+      if (q.type==='age') this.setState({ suggestions:['答えたくない'] });
+      else this.setState({ suggestions:q.chips });
+    });
+  };
+  intakeAnswer = (text) => {
+    const i = this.state.intakeIdx; if (i<0 || i>=this.intakeFlow.length) return;
+    const q = this.intakeFlow[i];
+    const ans = { ...this.state.intakeAnswers };
+    ans[q.key] = (q.type==='age') ? (text==='答えたくない' ? '答えたくない' : Number(text)) : text;
+    const shown = (q.type==='age' && text!=='答えたくない') ? (text + '歳') : String(text);
+    this.setState(s => ({ messages:[...s.messages,{role:'user',text:shown}], intakeAnswers:ans, suggestions:[], input:'' }));
+    this._intakeNext();
+  };
+  intakeAgeConfirm = () => this.intakeAnswer(String(this.state.ageVal));
+  onAgeInput = (e) => this.setState({ ageVal: Number(e.target.value) });
+  _finishIntake = async () => {
+    const a = this.state.intakeAnswers;
+    const be = this._be();
+    if (be) { try { await be.saveIntake(a); } catch(e){ this._beError(e); } }
+    this.setState({ intakeActive:false, suggestions:[] });
+    const firstTime = a.firstTime !== '前にも使ったことある';
+    const lines = ['ありがとう。なんとなく、君の輪郭が見えてきた気がする。'];
+    if (firstTime) {
+      lines.push('LORE はね、これから話していくうちに、君が自分でもまだ言葉にしてない自分を、僕が少しずつ言い当てていく場所なんだ。');
+      lines.push('ここで話したことをもとに、君を表すコンテンツの候補を僕が出すよ。気に入ったものは「つくる」から形にできる。');
+      lines.push('作ったものはプロフィールに溜まっていく。友達にシェアすれば、君のことをもっと知ってもらうきっかけになるはず。');
+    }
+    lines.push('さて、前置きはこのくらいで。最近、どう？');
+    this._seqBubbles(lines, async () => {
+      if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
+      this.setState({ suggestions:['実はいいことあったんだ','まあ、いつも通りかな'] });
+    }, 650);
+  };
+  // AIバブルを順番に出すヘルパ（typingを挟みながら）
+  _seqBubbles = (lines, done, delay) => {
+    const arr = (lines||[]).slice(); delay = delay || 520;
+    clearTimeout(this._it);
+    const step = () => {
+      if (!arr.length) { this.setState({ typing:false }); done && done(); return; }
+      const txt = arr.shift();
+      this.setState(s => ({ messages:[...s.messages,{ role:'ai', text:txt }] }));
+      if (arr.length) { this.setState({ typing:true }); this._it = setTimeout(step, delay); }
+      else { this.setState({ typing:false }); done && done(); }
+    };
+    this.setState({ typing:true });
+    this._it = setTimeout(step, 380);
+  };
   // Google: OAuthリダイレクト（戻ってきたら lore-authed で _enterAuthed）
   onGoogle = () => {
     const be = this._be();
@@ -2191,6 +2292,7 @@ class Component extends DCLogic {
     if (this.state.sending || this.state.typing) return;   // 二重送信・AI応答中ガード
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
+    if (this.state.intakeActive) { this.intakeAnswer(t); return; }   // インテーク中は回答として処理
     // （会話中のダミーレート制限は撤去。プラン画面は別導線から開く。本番の制限は別途設計）
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
     if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
@@ -2875,6 +2977,8 @@ class Component extends DCLogic {
           { text: t.s67, onClick: () => this.reactDisagree() },
         ]
       : (s.suggestions||[]).map(txt => ({ text:txt, onClick:() => this.send(txt) }));
+    const _curIntakeQ = (s.intakeActive && s.intakeIdx>=0 && s.intakeIdx<this.intakeFlow.length) ? this.intakeFlow[s.intakeIdx] : null;
+    const intakeAgeActive = !!(_curIntakeQ && _curIntakeQ.type==='age');
 
     const sortedCards = [...s.cards].sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
     const cards = sortedCards.map(c => {
@@ -3203,6 +3307,7 @@ class Component extends DCLogic {
       sendBtnCursor: (s.sending || s.typing || !(s.input||'').trim()) ? 'default' : 'pointer',
       imgBusy: s.imgBusy, imgBtnOpacity: s.imgBusy ? '.5' : '1',
       suggestions, hasSuggestions: suggestions.length>0,
+      intakeAgeActive, ageVal: s.ageVal, onAgeInput: this.onAgeInput, intakeAgeConfirm: this.intakeAgeConfirm,
       reactAgree:this.reactAgree, reactUnsure:this.reactUnsure, reactDisagree:this.reactDisagree,
       obProgressPct: Math.round(Math.min(1, s.convIdx/this.script.length)*100)+'%',
 
