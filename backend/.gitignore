@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.local
+convex/_generated/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+.DS_Store

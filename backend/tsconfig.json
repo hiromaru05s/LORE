@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
+  },
+  "//": "オフライン検証用: Convex非依存の純粋lib + test のみを型チェックする。convex/ 配下のfunctionsは `npx convex dev` 実行時にConvexが型チェック＆codegenする。",
+  "include": ["convex/lib", "test"]
+}

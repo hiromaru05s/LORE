@@ -1,0 +1,17 @@
+{
+  "name": "LORE — READ YOURSELF",
+  "short_name": "LORE",
+  "description": "AIと話すほど、あなたの輪郭が浮かび上がる。共有できる内面プロフィール。",
+  "lang": "ja",
+  "start_url": "./LORE.dc.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0A",
+  "theme_color": "#1E40FF",
+  "icons": [
+    { "src": "mark-blue.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "mark-blue.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
