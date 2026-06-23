@@ -16,6 +16,8 @@ import { makeFunctionReference } from 'https://esm.sh/convex@1.17.0/server';
 
 const CONVEX_URL = (typeof window !== 'undefined' && window.LORE_CONVEX_URL) || '';
 const CLERK_PK = (typeof window !== 'undefined' && window.LORE_CLERK_PUBLISHABLE_KEY) || '';
+// OAuthの戻り先＝この実アプリページ自身（origin+pathname。"/"=index.htmlの転送ページに行かせない）
+const APP_URL = (typeof window !== 'undefined') ? (location.origin + location.pathname) : '/';
 
 const fn = (name) => makeFunctionReference(name);
 
@@ -36,8 +38,12 @@ const Backend = {
         this._clerk = new Clerk(CLERK_PK);
         await this._clerk.load();
         // OAuth(Google)リダイレクトからの復帰を処理（authenticateWithRedirect の戻り）
-        if (/__clerk|handshake|sign-in|sso/i.test(location.search + location.hash)) {
-          try { await this._clerk.handleRedirectCallback({}); } catch (e) { console.warn('[LORE] redirect callback', e); }
+        if (/__clerk/i.test(location.search + location.hash)) {
+          try {
+            await this._clerk.handleRedirectCallback({ afterSignInUrl: APP_URL, afterSignUpUrl: APP_URL });
+            // セッション確立後、URLからClerkパラメータを掃除（リロード時の再処理防止）
+            try { history.replaceState({}, '', APP_URL); } catch (_) {}
+          } catch (e) { console.warn('[LORE] redirect callback', e); }
         }
         this._client.setAuth(async () => {
           try { return (await this._clerk.session?.getToken({ template: 'convex' })) ?? null; }
@@ -59,8 +65,8 @@ const Backend = {
     if (!this._clerk) throw new Error('clerk not configured');
     return this._clerk.client.signIn.authenticateWithRedirect({
       strategy: 'oauth_google',
-      redirectUrl: location.origin + '/',
-      redirectUrlComplete: location.origin + '/',
+      redirectUrl: APP_URL,            // 戻り先＝実アプリのページ（/ ではなく LORE.dc.html 自身）
+      redirectUrlComplete: APP_URL,
     });
   },
   // Email: パスワードレス。コードを送る（既存ユーザーはサインイン、無ければサインアップ）。

@@ -2034,8 +2034,9 @@ class Component extends DCLogic {
   onAuthBlur = () => this.setState({ authFocus:false });
   onAuthInput = (e) => this.setState({ authVal:e.target.value });
   onAuthKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onAuthContinue(); } };
-  // 認証完了後にアプリへ入る
-  _enterAuthed = () => { this.setState({ authStage:'idle', authBusy:false, authCode:'' }); this._startBackend('home'); };
+  // 認証完了後にアプリへ入る（直接呼び＋lore-authedイベントの二重発火を一度に集約。
+  //  二重だと1回目が認証トークン未反映でデモユーザー扱いになり「やあ久しぶり」が一瞬出る）
+  _enterAuthed = () => { if (this._entered) return; this._entered = true; this.setState({ authStage:'idle', authBusy:false, authCode:'' }); this._startBackend('home'); };
   // Google: OAuthリダイレクト（戻ってきたら lore-authed で _enterAuthed）
   onGoogle = () => {
     const be = this._be();
@@ -2379,7 +2380,7 @@ class Component extends DCLogic {
     this.showToast(this.tt('報告を送信しました。ありがとうございます。','Report sent. Thank you.','신고를 보냈어요. 감사합니다.'));
   };
   // ---- settings: logout / account / contact / feedback ----
-  logout = () => { this.setState({ screen:'welcome', settingsSub:null, accountUnlocked:false }); this.setResolution(0, 300); };
+  logout = () => { this._entered = false; const be = this._be(); if (be && be.signOut) be.signOut(); this.setState({ screen:'welcome', settingsSub:null, accountUnlocked:false, sessionId:null, messages:[] }); this.setResolution(0, 300); };
   openAccount = () => this.setState({ settingsSub:'account', accountUnlocked:false, accountGate:'', accountGateErr:'' });
   openContact = () => this.setState({ settingsSub:'contact', contactCat:'', contactText:'' });
   openFeedback = () => this.setState({ settingsSub:'feedback', feedbackText:'' });
