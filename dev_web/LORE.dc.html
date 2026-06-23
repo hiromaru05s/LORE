@@ -118,7 +118,7 @@ textarea{resize:none}
       <div style="color:#E5484D;font-size:12px;font-weight:700;margin-top:10px">{{ loginErr }}</div>
     </sc-if>
     <button onClick="{{ onLogin }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:15px;font-weight:900;font-size:15px;margin-top:18px">{{ tLogin }}</button>
-    <div style="margin-top:14px;background:var(--bg);border-radius:8px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.7;font-weight:500">{{ t.s87 }}<br>ID: <b style="color:var(--text)">maruyama</b> ／ PW: <b style="color:var(--text)">lore</b></div>
+    <div style="margin-top:14px;background:var(--bg);border-radius:8px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.7;font-weight:500">{{ t.s87 }}<br>ID: <b style="color:var(--text)">maruyama</b> ／ PW: <b style="color:var(--text)">lore</b><br>Premium: <b style="color:var(--text)">premium</b> ／ PW: <b style="color:var(--text)">lore</b></div>
   </div>
 </div>
 </sc-if>
@@ -821,6 +821,10 @@ textarea{resize:none}
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
+        <button onClick="{{ goPlanBtn }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;gap:10px;padding:16px 16px"><img src="mark-blue.png" alt="" style="width:18px;height:18px;display:block;flex:none"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ planRowLabel }}</span><span style="font-weight:800;font-size:13px;color:{{ planBadgeFg }};background:{{ planBadgeBg }};border-radius:999px;padding:3px 10px;margin-right:8px">{{ planBadgeLabel }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
         <button onClick="{{ openAccount }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s78 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
         <button onClick="{{ openPasswordPage }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s80 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
         <button onClick="{{ openBlocked }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s106 }}</span><span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);font-weight:700;margin-right:8px">{{ blockedCount }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
@@ -934,7 +938,7 @@ textarea{resize:none}
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
           <div style="display:flex;align-items:center;padding:15px 16px;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s4 }}</span><span style="font-weight:800;font-size:15px;color:var(--text)">{{ displayName }}</span></div>
           <div style="display:flex;align-items:center;padding:15px 16px;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">lore ID</span><span style="font-weight:800;font-size:15px;color:var(--text);font-family:'Space Mono',monospace">@{{ userId }}</span></div>
-          <div style="display:flex;align-items:center;padding:15px 16px"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s24 }}</span><span style="font-weight:700;font-size:14px;color:var(--text)">maruyama@lore.app</span></div>
+          <div style="display:flex;align-items:center;padding:15px 16px"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s24 }}</span><span style="font-weight:700;font-size:14px;color:var(--text)">maruyama@yourlore.xyz</span></div>
         </div>
         <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#E5484D;margin-bottom:10px;padding-left:2px">{{ t.s59 }}</div>
         <button onClick="{{ askDeleteAccount }}" style="width:100%;appearance:none;cursor:pointer;background:var(--surface);color:#E5484D;border:1px solid #F3B5B5;border-radius:12px;padding:15px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>{{ t.s84 }}</button>
@@ -1058,8 +1062,17 @@ textarea{resize:none}
         <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);padding:0">← lore</button>
         <button onClick="{{ openGenSettings }}" aria-label="{{ t.s16 }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
       </div>
-      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">{{ t.s95 }}</h2>
+      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">{{ genHeading }}</h2>
 
+      <!-- premium: コンテンツ / レポート タブ -->
+      <sc-if value="{{ isPremium }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:4px;margin:6px 0 18px">
+        <button onClick="{{ setTabContent }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:8px;padding:10px 8px;font-weight:800;font-size:14px;background:{{ tabContentBg }};color:{{ tabContentFg }}">{{ t.s55 }}</button>
+        <button onClick="{{ setTabReport }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:8px;padding:10px 8px;font-weight:800;font-size:14px;background:{{ tabReportBg }};color:{{ tabReportFg }};display:flex;align-items:center;justify-content:center;gap:6px">{{ reportTabLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;background:#1E40FF;color:#fff;border-radius:4px;padding:2px 5px">PRO</span></button>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ genTabContent }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ isStepSwipe }}" hint-placeholder-val="{{ true }}">
         <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 18px;font-weight:500">{{ t.s147 }}</p>
 
@@ -1166,6 +1179,87 @@ textarea{resize:none}
         </button>
         <button onClick="{{ onPublishSelected }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:17px;font-weight:900;font-size:16px">{{ t.s37 }}</button>
       </sc-if>
+      </sc-if>
+
+      <!-- premium: 月次レポート タブ -->
+      <sc-if value="{{ genTabReport }}" hint-placeholder-val="{{ false }}">
+
+        <!-- ロック：コンテンツ10件未満（予告型・空演出にしない） -->
+        <sc-if value="{{ reportLocked }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;text-align:center">
+          <div style="width:64px;height:64px;margin:0 auto 16px;background:var(--ink);border-radius:18px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="" style="width:56%;height:56%;object-fit:contain;opacity:.9"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:#1E40FF;margin-bottom:10px">MONTHLY REPORT</div>
+          <div style="font-weight:900;font-size:20px;letter-spacing:-.02em;margin-bottom:10px;line-height:1.4">{{ reportLockTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:var(--text2);font-weight:500;margin:0 auto 18px;max-width:34ch">{{ reportLockBody }}</p>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg);border-radius:999px;padding:9px 16px;font-weight:800;font-size:14px">{{ reportCountLine }}</div>
+          <div style="margin-top:18px"><button onClick="{{ goTalkBtn }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:10px;padding:13px 24px;font-weight:900;font-size:15px">{{ reportTalkCta }}</button></div>
+        </div>
+        </sc-if>
+
+        <!-- 作成可能 -->
+        <sc-if value="{{ reportReady }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--ink);color:#fff;border-radius:16px;padding:28px 22px;text-align:center">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55);margin-bottom:12px">MONTHLY REPORT · {{ reportMonth }}</div>
+          <div style="font-weight:900;font-size:23px;letter-spacing:-.02em;line-height:1.4;margin-bottom:12px">{{ reportReadyTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.78);font-weight:500;margin:0 auto 22px;max-width:32ch">{{ reportReadyBody }}</p>
+          <button onClick="{{ createReport }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:10px;padding:15px 30px;font-weight:900;font-size:16px">{{ reportCreateCta }}</button>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);margin-top:14px">{{ reportQuotaLine }}</div>
+        </div>
+        </sc-if>
+
+        <!-- 今月分は使用済み（持ち越し説明） -->
+        <sc-if value="{{ reportNoQuota }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;text-align:center">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);margin-bottom:10px">MONTHLY REPORT</div>
+          <div style="font-weight:900;font-size:19px;letter-spacing:-.02em;margin-bottom:10px">{{ reportDoneTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:var(--text2);font-weight:500;margin:0 auto;max-width:32ch">{{ reportDoneBody }}</p>
+        </div>
+        </sc-if>
+
+        <!-- 生成中 -->
+        <sc-if value="{{ reportGenerating }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 0;gap:18px">
+          <div style="width:90px;height:90px;background:var(--ink);border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="" style="width:100%;height:100%;object-fit:contain;animation:loreBlink 1.1s infinite"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--text);animation:lorePulse 1.1s infinite">{{ reportComposing }}</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:500">{{ reportComposingSub }}</div>
+        </div>
+        </sc-if>
+
+        <!-- レポート表示 -->
+        <sc-if value="{{ reportView }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--text);border-radius:8px;padding:26px 22px 22px;margin-top:6px;animation:loreStrike .5s ease both">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:#1E40FF;margin-bottom:8px">READ · {{ reportMonth }}</div>
+          <div style="font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:1.3;margin-bottom:12px">{{ reportDataTitle }}</div>
+          <p style="font-size:15px;line-height:1.85;color:var(--text2);font-weight:500;margin:0 0 22px">{{ reportDataExcerpt }}</p>
+
+          <!-- 先月比較（予告型・封であって空欄でない） -->
+          <div style="background:var(--bg);border:1px dashed var(--border);border-radius:12px;padding:16px 16px;margin-bottom:22px;display:flex;gap:12px;align-items:flex-start">
+            <span style="flex:none;width:30px;height:30px;border-radius:9px;background:#1E40FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px">↗</span>
+            <div style="min-width:0">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.16em;color:#1E40FF;margin-bottom:5px">VS LAST MONTH</div>
+              <div style="font-size:13.5px;line-height:1.75;color:var(--text2);font-weight:600">{{ reportCompareTeaser }}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <sc-for list="{{ reportSections }}" as="r" hint-placeholder-count="6">
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px">{{ r.label }}</div>
+                <div style="font-weight:900;font-size:18px;letter-spacing:-.01em;margin-bottom:8px">{{ r.title }}</div>
+                <p style="font-size:14.5px;line-height:1.85;color:var(--text2);font-weight:500;margin:0">{{ r.body }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:7px;padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);margin:14px 0">
+          <img src="mark-blue.png" alt="LORE" style="width:16px;height:16px;display:block">
+          <span style="font-size:12px;color:var(--muted);font-weight:600;line-height:1.5">{{ reportShareNote }}</span>
+        </div>
+        <button onClick="{{ publishReport }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:17px;font-weight:900;font-size:16px">{{ reportPublishCta }}</button>
+        </sc-if>
+
+      </sc-if>
 
       <!-- generate settings -->
       <sc-if value="{{ genSettingsOpen }}" hint-placeholder-val="{{ false }}">
@@ -1270,6 +1364,87 @@ textarea{resize:none}
         </div>
       </div>
       <button onClick="{{ onPreviewPublic }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:16px;font-weight:900;font-size:15px">{{ t.s136 }}</button>
+    </div>
+    </sc-if>
+
+    <!-- PLAN / PAYWALL -->
+    <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:560px;margin:0 auto;padding:26px 18px 60px">
+      <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);padding:0">← lore</button>
+
+      <!-- レートリミット起点の文脈 -->
+      <sc-if value="{{ planFromRate }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--warnBg);border:1px solid var(--warnBorder);border-radius:12px;padding:13px 15px;margin:14px 0 8px;display:flex;gap:10px;align-items:flex-start">
+        <span style="flex:none;width:22px;height:22px;border-radius:6px;background:var(--warnIcon);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px">⏳</span>
+        <div style="font-size:13px;font-weight:700;color:var(--warnText);line-height:1.6">{{ planRateMsg }}</div>
+      </div>
+      </sc-if>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0 14px">
+        <img src="mark-blue.png" alt="LORE" style="width:26px;height:26px;display:block">
+        <h2 style="font-weight:900;font-size:22px;letter-spacing:-.02em;margin:0">LORE <span style="color:#1E40FF">Premium</span></h2>
+      </div>
+
+      <!-- トライアル見出し -->
+      <div style="font-weight:900;font-size:30px;letter-spacing:-.03em;line-height:1.25;margin:0 0 20px;white-space:pre-line">{{ trialHeadline }}</div>
+
+      <!-- 比較（左右） -->
+      <div style="display:flex;gap:12px;margin-bottom:22px;align-items:stretch">
+        <!-- FREE -->
+        <div style="flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 15px;box-shadow:0 6px 18px rgba(10,10,10,.06)">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);font-weight:700;margin-bottom:16px">FREE</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ planFreeRows }}" as="r" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.02em;margin-bottom:2px">{{ r.label }}</div>
+                <div style="font-size:14px;line-height:1.45;color:var(--text2);font-weight:800">{{ r.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <!-- PREMIUM -->
+        <div style="flex:1;min-width:0;background:var(--ink);color:#fff;border:1.5px solid #1E40FF;border-radius:18px;padding:18px 15px;position:relative;box-shadow:0 18px 44px rgba(30,64,255,.34), 0 4px 14px rgba(10,10,10,.3)">
+          <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#1E40FF;color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(30,64,255,.5)">{{ planRecommend }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#9db0ff;font-weight:700;margin-bottom:16px">PREMIUM</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ planPremiumRows }}" as="r" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.02em;margin-bottom:2px;display:flex;align-items:center;gap:5px"><span style="color:#1E40FF">✦</span>{{ r.label }}</div>
+                <div style="font-size:14px;line-height:1.45;color:#fff;font-weight:800">{{ r.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <sc-if value="{{ planIsFree }}" hint-placeholder-val="{{ true }}">
+        <!-- 月額 / 年額 トグル -->
+        <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px;box-shadow:inset 0 1px 2px rgba(10,10,10,.05)">
+          <button onClick="{{ setBillingMonthly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ monBg }};color:{{ monFg }};box-shadow:{{ monShadow }}">{{ monthlyLabel }}</button>
+          <button onClick="{{ setBillingYearly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ yrBg }};color:{{ yrFg }};box-shadow:{{ yrShadow }};display:flex;align-items:center;justify-content:center;gap:6px">{{ yearlyLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;background:#1E40FF;color:#fff;border-radius:5px;padding:2px 6px">{{ yearlySave }}</span></button>
+        </div>
+
+        <!-- トライアル価格ブロック -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 18px;margin-bottom:14px;box-shadow:0 10px 28px rgba(10,10,10,.10);display:flex;align-items:center;gap:14px">
+          <div style="flex:none;width:46px;height:46px;border-radius:13px;background:var(--accentBg);display:flex;align-items:center;justify-content:center;font-size:22px">🎁</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:900;font-size:19px;letter-spacing:-.02em;line-height:1.3">{{ trialPriceMain }}</div>
+            <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:3px">{{ trialAfterPre }} <span style="color:var(--text);font-weight:800">{{ planPriceBlank }}</span> {{ periodWord }}</div>
+          </div>
+        </div>
+
+        <button onClick="{{ upgradePlan }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:13px;padding:18px;font-weight:900;font-size:16px;box-shadow:0 12px 30px rgba(30,64,255,.40)">{{ trialCta }}</button>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin:13px 0 0;font-weight:500;line-height:1.7">{{ planFinePrint }}</p>
+      </sc-if>
+      <sc-if value="{{ planIsPremium }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--accentBg);border:1px solid #B9C2FF;border-radius:12px;padding:15px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(30,64,255,.12)">
+          <span style="flex:none;width:26px;height:26px;border-radius:8px;background:#1E40FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px">✓</span>
+          <span style="font-size:14px;font-weight:700;color:#1E40FF;line-height:1.5">{{ planActiveMsg }}</span>
+        </div>
+        <button onClick="{{ cancelPlan }}" style="width:100%;appearance:none;cursor:pointer;background:var(--surface);color:#E5484D;border:1px solid #F3B5B5;border-radius:12px;padding:15px;font-weight:800;font-size:15px">{{ planCancelCta }}</button>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin:12px 0 0;font-weight:500;line-height:1.6">{{ planCancelNote }}</p>
+      </sc-if>
     </div>
     </sc-if>
 
@@ -1473,7 +1648,16 @@ class Component extends DCLogic {
     openCardMenu: null,
     renameId: null,
     renameVal: '',
+    plan: 'free',
+    talkCount: 0,
+    planFromRate: false,
+    billingCycle: 'monthly',
+    genTab: 'content',
+    reportStep: 'idle',
+    reportData: null,
+    reportQuota: 0,
   };
+  FREE_TALK_LIMIT = 3;
 
   script = [
     { type:'q', text:'はじめまして。重い質問はしない。最近、気づいたら時間が溶けてたことってある？', chips:['夜中にずっと地図を見てた','古い写真を整理してた'] },
@@ -1523,6 +1707,22 @@ class Component extends DCLogic {
     { id:'k1', title:'退屈に強い', body:'丸山は退屈を恐れない。何も起きない時間を無理に埋めようとせず、そのまま過ごせる。沈黙が怖くない、数少ない人だ。', closeOnly:false, image:null },
     { id:'k2', title:'帰り道のほうが好き', body:'盛り上がっている場所より、その帰り道の静けさを丸山は選ぶ。賑わいが嫌いなんじゃない。余韻の方に本体がある。', closeOnly:false, image:null },
     { id:'k3', title:'断り方でわかる', body:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。', closeOnly:true, image:null },
+  ];
+
+  // プレミアムデモ用：レポート解放（10件以上）を見せるための蓄積済みコンテンツ
+  premiumSeedCards = [
+    { id:'p1', title:'退屈に強い', body:'丸山は退屈を恐れない。何も起きない時間を無理に埋めようとせず、そのまま過ごせる。沈黙が怖くない、数少ない人だ。', closeOnly:false, image:null },
+    { id:'p2', title:'帰り道のほうが好き', body:'盛り上がっている場所より、その帰り道の静けさを丸山は選ぶ。賑わいが嫌いなんじゃない。余韻の方に本体がある。', closeOnly:false, image:null },
+    { id:'p3', title:'断り方でわかる', body:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。', closeOnly:false, image:null },
+    { id:'p4', title:'人との間合い', body:'近づくより、離れ方が丁寧。距離を詰めるのが遅いのは、気持ちよく離れられる関係しか続かないと知っているから。', closeOnly:false, image:null },
+    { id:'p5', title:'計画より、降りる準備', body:'本当は、計画を立てるより、いつでも降りられる準備をしておきたい人だ。逃げ道があるから、深く入れる。', closeOnly:false, image:null },
+    { id:'p6', title:'借りの感覚', body:'頼るのが苦手なんじゃない。頼った後に残る「借り」の感覚に耐えられないだけだ。', closeOnly:false, image:null },
+    { id:'p7', title:'決めるのが遅い理由', body:'丸山は決めるのが遅いんじゃない。一度決めたら覆さないと知っているから、慎重なだけだ。', closeOnly:false, image:null },
+    { id:'p8', title:'旅の本体', body:'目的地より、移動している時間が好き。着いてしまうと、少しだけ寂しい。', closeOnly:false, image:null },
+    { id:'p9', title:'一番後ろの席', body:'だいたい一番後ろの席にいる。全体が見える場所が落ち着く。中心にいるより、端から眺めていたい。', closeOnly:false, image:null },
+    { id:'p10', title:'静けさの選び方', body:'人の少ない時間の駅、閉店間際の本屋。落ち着ける場所には、いつも共通点がある。', closeOnly:false, image:null },
+    { id:'p11', title:'強がりに見えるらしい', body:'本当は、頼られるより頼りたい日のほうが多い。でも、それをうまく言葉にできない。', closeOnly:true, image:null },
+    { id:'p12', title:'言わなかったこと', body:'言わずに飲み込んだ言葉のほうが、口に出した言葉より自分を作っている気がする。', closeOnly:false, image:null },
   ];
 
   readPool = [
@@ -1791,7 +1991,7 @@ class Component extends DCLogic {
   onAuthContinue = () => {
     const v = ((this._authEl && this._authEl.value) || '').trim().replace(/^@/, '').toLowerCase();
     if (!v) return;
-    if (v==='maruyama' || v==='maruyama@lore.app') {
+    if (v==='maruyama' || v==='maruyama@yourlore.xyz') {
       this.setState({ screen:'profile', resolution:0.66 });
       this.setResolution(0.66);
     } else {
@@ -1904,6 +2104,12 @@ class Component extends DCLogic {
     if (this.state.sending || this.state.typing) return;   // 二重送信・AI応答中ガード
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
+    // 無料プランのレートリミット（ちょっと話すと上限 → プラン説明へ）
+    if (this.state.plan !== 'premium' && this.state.mode === 'home') {
+      const n = (this.state.talkCount || 0) + 1;
+      if (n > this.FREE_TALK_LIMIT) { this.goPlan(true); return; }
+      this.setState({ talkCount: n });
+    }
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
     if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
@@ -2156,8 +2362,12 @@ class Component extends DCLogic {
     const id = ((this._loginIdEl && this._loginIdEl.value) || this.state.loginId || '').trim().replace(/^@/, '');
     const pw = ((this._loginPwEl && this._loginPwEl.value) || this.state.loginPw || '').trim();
     if (id==='maruyama' && pw==='lore') {
-      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.66 });
+      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.66, plan:'free', talkCount:0, reportQuota:0 });
       this.setResolution(0.66);
+    } else if (id==='premium' && pw==='lore') {
+      // 有料会員デモ：プレミアム状態＋レポート解放（蓄積済みコンテンツ）
+      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.82, plan:'premium', reportQuota:1, talkCount:0, cards:this.premiumSeedCards.slice(), genTab:'content', reportStep:'idle' });
+      this.setResolution(0.82);
     } else {
       this.setState({ loginErr:'IDかパスワードが違います。' });
     }
@@ -2330,6 +2540,68 @@ class Component extends DCLogic {
       candidates: s.candidates.filter(c => c.id !== sel.id),
       screen:'profile', genStep:'swipe', selected:null, pubImage:null, pubCloseOnly:false,
     }));
+  };
+
+  // ---- plan / billing (demo) ----
+  goPlan = (fromRate) => this.setState({ screen:'plan', planFromRate: fromRate===true });
+  upgradePlan = () => {
+    this.setState(s => {
+      const have = s.cards.slice();
+      const extra = this.premiumSeedCards.filter(pc => !have.some(c => c.id===pc.id));
+      const merged = have.length >= 10 ? have : [...have, ...extra].slice(0, 12);
+      return { plan:'premium', reportQuota:1, talkCount:0, planFromRate:false, cards:merged, screen:'profile' };
+    });
+    this.showToast(this.tt('Premium になりました（デモ）','You are now Premium (demo)','Premium이 됐어요 (데모)'));
+  };
+  cancelPlan = () => {
+    this.setState({ plan:'free', reportQuota:0 });
+    this.showToast(this.tt('プランを解約しました（デモ）','Subscription cancelled (demo)','구독을 해지했어요 (데모)'));
+  };
+
+  // ---- monthly report (premium) ----
+  setGenTab = (tab) => this.setState({ genTab: tab });
+  buildReport(){
+    const month = this.tt('2026年6月','June 2026','2026년 6월');
+    return {
+      month,
+      title: this.tt('丸山のレポート — '+month, "Maruyama's Report — "+month, '마루야마의 리포트 — '+month),
+      excerpt: this.tt('この一ヶ月、丸山の輪郭はより静かに、より頑固になった。賑わいの外側に居場所を見つけ、「まあいいか」の奥にある一貫した線が、はっきりしてきた。',
+        'Over this month, Maruyama’s contour grew quieter and more stubborn — finding a place outside the noise, the consistent line beneath every “whatever” coming into focus.',
+        '이번 달, 마루야마의 윤곽은 더 조용하고 더 완고해졌어요. 떠들썩함의 바깥에서 자리를 찾고, “뭐 어때”의 안쪽에 있는 일관된 선이 또렷해졌어요.'),
+      compareTeaser: this.tt('まだ比較対象がない。来月、ここに「先月のあなたとの差分」が最初に現れる。',
+        'No prior month yet. Next month, the first “difference from last month” appears right here.',
+        '아직 비교 대상이 없어요. 다음 달, 여기에 “지난달의 당신과의 차이”가 처음 나타나요.'),
+      sections: [
+        { label:'CONTOUR', title:this.tt('全体像','The whole shape','전체 상'),
+          body:this.tt('丸山を一枚で言うなら「余白に強い人」だ。空白の時間、沈黙、予定のない休日——多くの人が落ち着かなくなる場面で、彼はむしろ呼吸が深くなる。これは無関心ではなく、選別だ。どうでもいいものに手数を使わない代わりに、本当に大事な一点には静かに全部を賭ける。','If Maruyama were one line: someone strong in empty space. Silence, unplanned days — where others get restless, he breathes deeper. Not indifference but selection: spending nothing on what doesn’t matter, quietly betting everything on the one thing that does.','마루야마를 한 장으로 말하면 “여백에 강한 사람”이에요. 공백, 침묵, 계획 없는 휴일에서 그는 오히려 호흡이 깊어져요. 무관심이 아니라 선별이에요.') },
+        { label:'PATTERN', title:this.tt('あなたが繰り返すこと','What you repeat','당신이 반복하는 것'),
+          body:this.tt('「一番後ろの席」「帰り道」「閉店間際の本屋」。丸山が落ち着く場所には、いつも同じ構造がある——全体が見えて、いつでも静かに抜けられる場所。中心ではなく縁、到着ではなく移動。彼は世界に参加しながら、片足だけ外に置いている。','“The back seat,” “the walk home,” “the bookstore before closing.” The places he settles share one structure: you can see the whole, and slip out quietly anytime. The edge, not the center; moving, not arriving.','“가장 뒷자리”, “돌아가는 길”, “폐점 직전의 서점”. 그가 안정되는 장소에는 늘 같은 구조가 있어요 — 전체가 보이고 언제든 조용히 빠져나갈 수 있는 곳.') },
+        { label:'CORE', title:this.tt('譲れないものの正体','The thing you won’t give up','양보할 수 없는 것의 정체'),
+          body:this.tt('丸山の「まあいいか」は弱さじゃない。むしろ逆で、戦う相手を絞るための装置だ。九割を受け流せるからこそ、残りの一割で一歩も引かない。その線引きの一貫性が、彼を信用できる人間にしている。','His “whatever” isn’t weakness — it’s a device for narrowing what he fights for. Because he can let ninety percent slide, he won’t budge an inch on the last ten. That consistency is what makes him trustworthy.','그의 “뭐 어때”는 약함이 아니에요. 오히려 싸울 상대를 좁히기 위한 장치예요. 9할을 흘려보내기에 남은 1할에서 한 걸음도 물러서지 않아요.') },
+        { label:'TENSION', title:this.tt('強さの裏にあるもの','Beneath the strength','강함 뒤에 있는 것'),
+          body:this.tt('独りに強い彼の奥には、「頼りたいのに頼れない」矛盾がある。借りの感覚に耐えられず、頼られる側を演じ続ける。強がりに見えるのは、弱さがないからではなく、弱さの置き場所をまだ見つけていないからだ。','Beneath his solitude is a contradiction: he wants to lean on someone but can’t. Unable to bear the feeling of owing, he keeps playing the one leaned on. He looks tough not because he lacks weakness, but because he hasn’t found where to put it.','홀로 강한 그의 안쪽에는 “기대고 싶은데 기댈 수 없는” 모순이 있어요. 빚진 느낌을 견디지 못해 기대어지는 쪽을 계속 연기해요.') },
+        { label:'DISTANCE', title:this.tt('人との間合い','How you keep distance','사람과의 간격'),
+          body:this.tt('丸山は近づき方より、離れ方が丁寧だ。距離を詰めるのが遅いのは臆病だからではなく、「気持ちよく離れられる関係しか続かない」と知っているから。だから一度内側に入れた相手は、そう簡単には手放さない。','He’s more careful about how he leaves than how he arrives. He’s slow to close distance not from timidity but because he knows only relationships you can leave cleanly will last. So whoever he lets inside, he doesn’t release easily.','그는 다가가는 방식보다 떠나는 방식이 정중해요. 거리를 좁히는 게 느린 건 “기분 좋게 떠날 수 있는 관계만 지속된다”는 걸 알기 때문이에요.') },
+        { label:'NEXT', title:this.tt('次に向かう場所','Where you’re headed','다음에 향하는 곳'),
+          body:this.tt('次の一ヶ月、丸山の課題は「弱さの置き場所」だ。飲み込んだ言葉を、一人だけでいいから誰かに渡せたとき、彼の輪郭はもう一段深く解像する。来月のレポートは、たぶんそこを映す。','Next month’s edge for him is where to put his weakness. The moment he can hand even one swallowed sentence to one person, his contour resolves a step deeper. Next month’s report will likely reflect exactly that.','다음 한 달, 그의 과제는 “약함의 둘 자리”예요. 삼킨 말을 단 한 사람에게라도 건넬 수 있을 때, 그의 윤곽은 한 단계 더 또렷해져요.') },
+      ],
+    };
+  }
+  createReport = () => {
+    if (this.state.reportStep==='generating') return;
+    if ((this.state.cards||[]).length < 10) return;
+    if ((this.state.reportQuota||0) <= 0) return;
+    this.setState({ reportStep:'generating' });
+    setTimeout(() => {
+      this.setState(s => ({ reportStep:'view', reportData:this.buildReport(), reportQuota: Math.max(0, (s.reportQuota||0)-1) }));
+    }, 1600);
+  };
+  resetReport = () => this.setState({ reportStep:'idle', reportData:null });
+  publishReport = () => {
+    const r = this.state.reportData; if (!r) return;
+    const card = { id:'rep'+Date.now(), title:r.title, body:r.excerpt, closeOnly:false, image:null, pinned:true, isReport:true };
+    this.setState(s => ({ cards:[card, ...s.cards], genTab:'content', reportStep:'idle', reportData:null, screen:'profile' }));
+    this.showToast(this.tt('レポートを公開しました','Report published','리포트를 공개했어요'));
   };
 
   // ---- image upload + crop ----
@@ -2614,7 +2886,7 @@ class Component extends DCLogic {
       .map(c => ({ ...c, hasImage: !!c.image, image: c.image || '', onOpen: () => this.openPublicContent(c) }));
 
     const publicContent = screen==='content' && s.contentBackTo==='public';
-    const isScrollScreen = ['profile','userprofile','generate','share','content','search','settings'].includes(screen) && !publicContent;
+    const isScrollScreen = ['profile','userprofile','generate','share','content','search','settings','plan'].includes(screen) && !publicContent;
 
     const _dispName = vu ? vu.name : s.profileName;
     const _puName = (s.privUser||{}).name || '';
@@ -2634,7 +2906,7 @@ class Component extends DCLogic {
       isWelcome: screen==='welcome',
       isOnboarding: screen==='onboarding',
       isFirstLore: screen==='firstlore',
-      isApp: ['home','profile','userprofile','generate','share','content','search','settings'].includes(screen) && !publicContent,
+      isApp: ['home','profile','userprofile','generate','share','content','search','settings','plan'].includes(screen) && !publicContent,
       isPublicContent: publicContent,
       isSettings: screen==='settings', goSettings:this.goSettings,
       isScrollScreen,
@@ -2771,7 +3043,7 @@ class Component extends DCLogic {
       vcAuthorAvatar: contentFromUser ? s.viewUser.avatar : '丸',
       goContentBack:this.goContentBack, contentBackLabel: contentFromUser ? s.viewUser.name : (s.contentBackTo==='public' ? 'プロフィール' : 'lore'),
       openContentShare:this.openContentShare, closeContentShare:this.closeContentShare, onContentCopy:this.onContentCopy,
-      contentShareOpen:s.contentShareOpen, contentShareUrl:'lore.app/c/'+s.contentShareToken, contentCopyLabel: s.contentCopied ? 'コピー済' : 'コピー',
+      contentShareOpen:s.contentShareOpen, contentShareUrl:'yourlore.xyz/c/'+s.contentShareToken, contentCopyLabel: s.contentCopied ? 'コピー済' : 'コピー',
       vcCloseOnly: !!vc.closeOnly,
       vcHasImage: !!vc.image, vcImage: vc.image || '',
 
@@ -2796,6 +3068,88 @@ class Component extends DCLogic {
       onRenameInput:this.onRenameInput, closeRename:this.closeRename, confirmRename:this.confirmRename,
       onNudge:this.onNudge, latestRead:s.latestRead,
 
+      // ---- plan / paywall ----
+      isPlan: screen==='plan',
+      isPremium: s.plan==='premium',
+      planFromRate: !!s.planFromRate,
+      planRateMsg: pick('今日の無料の会話量に達しました。Premium なら、この続きを無制限に話せます。','You’ve reached today’s free conversation limit. With Premium you can keep talking, unlimited.','오늘의 무료 대화량에 도달했어요. Premium이면 계속 무제한으로 이야기할 수 있어요.'),
+      planBadgeLabel: s.plan==='premium' ? 'PREMIUM' : 'FREE',
+      planBadgeBg: s.plan==='premium' ? '#1E40FF' : 'var(--surface3)',
+      planBadgeFg: s.plan==='premium' ? '#fff' : 'var(--muted)',
+      planRowLabel: pick('プラン','Plan','플랜'),
+      planRecommend: pick('おすすめ','BEST','추천'),
+      trialHeadline: pick('LORE プレミアムを\n無料で試そう','Try LORE Premium\nfor free','LORE 프리미엄을\n무료로 써보기'),
+      planFreeRows: [
+        { label:pick('会話','Talk','대화'), val:pick('毎日上限あり','Daily limit','매일 상한 있음') },
+        { label:pick('コンテンツ生成','Content','콘텐츠 생성'), val:pick('1日 20回まで','20 / day','하루 20회') },
+        { label:pick('プレミアム生成','Premium gen.','프리미엄 생성'), val:pick('週 1回','1 / week','주 1회') },
+        { label:pick('月次レポート','Monthly report','월간 리포트'), val:pick('—','—','—') },
+      ],
+      planPremiumRows: [
+        { label:pick('会話','Talk','대화'), val:pick('無制限','Unlimited','무제한') },
+        { label:pick('コンテンツ生成','Content','콘텐츠 생성'), val:pick('1日 100回','100 / day','하루 100회') },
+        { label:pick('プレミアム生成','Premium gen.','프리미엄 생성'), val:pick('週 50回','50 / week','주 50회') },
+        { label:pick('月次レポート','Monthly report','월간 리포트'), val:pick('月1回・先月比較・持ち越し可','Monthly · vs last month','월 1회 · 지난달 비교') },
+      ],
+      // 月額 / 年額 トグル
+      monthlyLabel: pick('月額','Monthly','월간'), yearlyLabel: pick('年額','Yearly','연간'),
+      yearlySave: pick('2ヶ月分お得','2 mo free','2개월 무료'),
+      setBillingMonthly: () => this.setState({ billingCycle:'monthly' }),
+      setBillingYearly: () => this.setState({ billingCycle:'yearly' }),
+      monBg: s.billingCycle!=='yearly' ? 'var(--surface)' : 'transparent',
+      monFg: s.billingCycle!=='yearly' ? 'var(--text)' : 'var(--muted)',
+      monShadow: s.billingCycle!=='yearly' ? '0 2px 6px rgba(10,10,10,.12)' : 'none',
+      yrBg: s.billingCycle==='yearly' ? 'var(--surface)' : 'transparent',
+      yrFg: s.billingCycle==='yearly' ? 'var(--text)' : 'var(--muted)',
+      yrShadow: s.billingCycle==='yearly' ? '0 2px 6px rgba(10,10,10,.12)' : 'none',
+      // 30日トライアル・価格は空けておく
+      trialPriceMain: pick('30日間は ¥0','30 days for ¥0','30일간 ¥0'),
+      trialAfterPre: pick('その後は','then','이후'),
+      planPriceBlank: '¥—',
+      periodWord: s.billingCycle==='yearly' ? pick('/ 年','/ yr','/ 년') : pick('/ 月','/ mo','/ 월'),
+      trialCta: pick('30日間無料ではじめる','Start 30-day free trial','30일 무료로 시작하기'),
+      planIsFree: s.plan!=='premium', planIsPremium: s.plan==='premium',
+      upgradePlan:this.upgradePlan, cancelPlan:this.cancelPlan, goPlanBtn: () => this.goPlan(false),
+      planFinePrint: pick('30日間は無料。その後は自動更新（いつでも解約可）。デモのため実際の請求は発生しません。','Free for 30 days, then auto-renews. Cancel anytime. No real billing in this demo.','30일간 무료, 이후 자동 갱신(언제든 해지 가능). 데모라 실제 청구는 없어요.'),
+      planActiveMsg: pick('Premium を利用中です。','You’re on Premium.','Premium 이용 중이에요.'),
+      planCancelCta: pick('プランを解約する','Cancel subscription','구독 해지'),
+      planCancelNote: pick('解約しても、今の請求期間の終わりまでは Premium を使えます。','You keep Premium until the end of the current period.','해지해도 현재 결제 기간 끝까지 Premium을 쓸 수 있어요.'),
+
+      // ---- generate tabs + monthly report ----
+      genHeading: (s.plan==='premium' && s.genTab==='report') ? pick('レポート','Report','리포트') : t.s95,
+      genTabContent: !(s.plan==='premium' && s.genTab==='report'),
+      genTabReport: s.plan==='premium' && s.genTab==='report',
+      setTabContent: () => this.setGenTab('content'), setTabReport: () => this.setGenTab('report'),
+      reportTabLabel: pick('レポート','Report','리포트'),
+      tabContentBg: s.genTab!=='report' ? 'var(--surface)' : 'transparent', tabContentFg: s.genTab!=='report' ? 'var(--text)' : 'var(--muted)',
+      tabReportBg: s.genTab==='report' ? 'var(--surface)' : 'transparent', tabReportFg: s.genTab==='report' ? 'var(--text)' : 'var(--muted)',
+      reportLocked: s.reportStep==='idle' && s.cards.length<10,
+      reportReady: s.reportStep==='idle' && s.cards.length>=10 && (s.reportQuota||0)>0,
+      reportNoQuota: s.reportStep==='idle' && s.cards.length>=10 && (s.reportQuota||0)<=0,
+      reportGenerating: s.reportStep==='generating',
+      reportView: s.reportStep==='view' && !!s.reportData,
+      reportMonth: pick('2026年6月','June 2026','2026년 6월'),
+      reportLockTitle: pick('最初のレポートまで、あと少し','Your first report is close','첫 리포트까지 조금만'),
+      reportLockBody: pick('レポートは、十分に積み上がった内面データから一気に書き上げる。10個のコンテンツが集まると、最初の1通が生成できる。','A report is written all at once from enough accumulated data. Once you have 10 contents, your first one can be generated.','리포트는 충분히 쌓인 내면 데이터로 한 번에 써내요. 콘텐츠가 10개 모이면 첫 한 통을 생성할 수 있어요.'),
+      reportCountLine: pick('いま '+s.cards.length+' / 10','Now '+s.cards.length+' / 10', '지금 '+s.cards.length+' / 10'),
+      reportTalkCta: pick('話してコンテンツを増やす','Talk to make more','대화로 콘텐츠 늘리기'),
+      goTalkBtn:this.goTalk,
+      reportReadyTitle: pick('今月のレポートが、準備できました。','Your report for this month is ready.','이번 달 리포트가 준비됐어요.'),
+      reportReadyBody: pick('これまでのすべての会話とコンテンツから、いまのあなたをあらゆる角度で読み解く。','From everything you’ve talked about and made, we read who you are now — from every angle.','지금까지의 모든 대화와 콘텐츠에서 지금의 당신을 모든 각도로 읽어내요.'),
+      reportCreateCta: pick('レポートを作成','Create report','리포트 작성'),
+      reportQuotaLine: pick('今月分 · 1通','This month · 1 left','이번 달 · 1통'),
+      reportDoneTitle: pick('今月のレポートは作成済み','This month’s report is done','이번 달 리포트는 작성 완료'),
+      reportDoneBody: pick('次のレポートは来月。未使用の月があれば、翌月に持ち越されます。','The next one is next month. Unused months carry over.','다음 리포트는 다음 달에. 사용하지 않은 달은 이월돼요.'),
+      reportComposing: ja ? 'よみといています…' : pick('','COMPOSING…','읽어내는 중…'),
+      reportComposingSub: pick('数か月分の輪郭を、一枚に束ねています。','Binding months of contours into one.','몇 달치 윤곽을 한 장으로 묶고 있어요.'),
+      reportDataTitle: s.reportData ? s.reportData.title : '',
+      reportDataExcerpt: s.reportData ? s.reportData.excerpt : '',
+      reportCompareTeaser: s.reportData ? s.reportData.compareTeaser : '',
+      reportSections: s.reportData ? s.reportData.sections : [],
+      reportShareNote: pick('一部を選んでコンテンツとして公開・共有できます。','Publish and share parts of it as content.','일부를 골라 콘텐츠로 공개·공유할 수 있어요.'),
+      reportPublishCta: pick('レポートを公開する','Publish report','리포트 공개하기'),
+      createReport:this.createReport, publishReport:this.publishReport,
+
       isStepSwipe: s.genStep==='swipe',
       isStepGenerating: s.genStep==='generating', isStepReview: s.genStep==='review',
       isStepError: s.genStep==='error', retryGenerate:this.retryGenerate, backToDeck:this.backToDeck,
@@ -2819,7 +3173,7 @@ class Component extends DCLogic {
       defGranOptions, deletedList, deletedCount: s.deleted.length, hasDeleted: s.deleted.length>0, noDeleted: s.deleted.length===0,
 
       shareCreated:s.shareCreated, shareNotCreated:!s.shareCreated,
-      shareUrl:'lore.app/s/'+s.shareToken,
+      shareUrl:'yourlore.xyz/s/'+s.shareToken,
       shareIsPrivate: s.profilePrivate,
       shareCards: [...s.cards].filter(c => !c.closeOnly).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0)).slice(0,3).map(c => ({ title:c.title, pinned: !!c.pinned })),
       shareHasCards: s.cards.filter(c => !c.closeOnly).length>0, shareEmpty: s.cards.filter(c => !c.closeOnly).length===0,

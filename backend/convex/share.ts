@@ -14,7 +14,7 @@ export const createShare = mutation({
     const layer = a.layer === 'close' ? 'close' : 'general';
     await ctx.db.insert('shareLinks', { token, userId: uid, scope, contentId: a.contentId, layer, revoked: false });
     const path = scope === 'content' ? `/c/${token}` : `/s/${token}`;
-    return { token, url: `lore.app${path}`, scope, layer };
+    return { token, url: `yourlore.xyz${path}`, scope, layer };
   },
 });
 
