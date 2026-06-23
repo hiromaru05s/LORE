@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<!-- LORE バックエンド接続。URL/キーを入れると実バックエンド、未設定ならデモのまま動く。 -->
+<script>
+  // window.LORE_CONVEX_URL = "https://<deployment>.convex.cloud";
+  // window.LORE_CLERK_PUBLISHABLE_KEY = "pk_test_...";
+</script>
+<script type="module" src="./lore-convex.js"></script>
 </head>
 <body>
 <x-dc>
@@ -186,6 +192,21 @@ textarea{resize:none}
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onClick="{{ closeProfileEdit }}" style="flex:1;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:14px;font-weight:800;font-size:15px">{{ t.s54 }}</button>
       <button onClick="{{ saveProfileEdit }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">{{ t.s1 }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LORE ID CHANGE CONFIRM ============ -->
+<sc-if value="{{ idChangeConfirm }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ cancelIdChange }}" style="position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:var(--surface);color:var(--text);width:100%;max-width:400px;border-radius:16px;padding:26px 24px 22px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+    <div style="width:50px;height:50px;border-radius:14px;background:var(--accentBg);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+    <div style="font-weight:900;font-size:19px;letter-spacing:-.01em;margin-bottom:10px">{{ idChangeTitle }}</div>
+    <p style="font-size:14px;line-height:1.8;color:var(--muted);font-weight:500;margin:0 0 22px">{{ idChangeBody }}</p>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ cancelIdChange }}" style="flex:1;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:14px;font-weight:800;font-size:15px">{{ idChangeCancel }}</button>
+      <button onClick="{{ confirmIdChange }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">{{ idChangeOk }}</button>
     </div>
   </div>
 </div>
@@ -1389,6 +1410,7 @@ class Component extends DCLogic {
     profileAvatarImg: null,
     profileEditOpen: false,
     editName: '', editId: '', editBio: '', editAvatarImg: null,
+    idChangeConfirm: false,
     deleteConfirmId: null,
     reportOpen: false, reportTarget: '', reportCat: '',
     otherCardMenu: null,
@@ -1409,6 +1431,9 @@ class Component extends DCLogic {
     input: '',
     sending: false,
     imgBusy: false,
+    sessionId: null,
+    pendingFragmentId: null,
+    awaitingMiss: false,
     convIdx: 0,
     suggestions: [],
     pendingStrike: null,
@@ -1546,7 +1571,7 @@ class Component extends DCLogic {
     this._initRoute();
     requestAnimationFrame(() => this.drawAll());
   }
-  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null });
+  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null });
   installApp = () => { const p = this._deferredPrompt; if (!p) { this.showToast(this.tt('インストールはブラウザのメニューから行えます','You can install from your browser menu','브라우저 메뉴에서 설치할 수 있어요')); return; } p.prompt(); p.userChoice.finally(() => { this._deferredPrompt = null; this.setState({ canInstall:false }); }); };
   // ---- routing helpers ----
   _pathFor(screen){
@@ -1754,18 +1779,33 @@ class Component extends DCLogic {
   pillIn = (e) => { e.currentTarget.style.background = '#e4e2dc'; };
   pillOut = (e) => { e.currentTarget.style.background = '#fff'; };
   enterNew = () => {
+    if (this._be()) { this._startBackend('home'); return; }
     this.setState({ screen:'home', mode:'home', messages:[], convIdx:1, resolution:0.2 });
     this.pushBubbles(this.homeScript[0].bubbles, this.homeScript[0].chips);
     this.setResolution(0.2, 600);
   };
   onStart = () => {
+    if (this._be()) { this._startBackend('onboarding'); return; }
     this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, pendingStrike:null, obStrikes:0 });
     this.setResolution(0.12, 400);
   };
   onDemo = () => { this.setState({ screen:'profile', resolution:0.66 }); this.setResolution(0.66); };  onEnterHome = () => this.goProfile();
-  goProfile = () => { this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66); };
+  goProfile = () => {
+    this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66);
+    const be = this._be();
+    if (be) be.getMe().then(me => { if (!me) return;
+      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
+      if (typeof me.resolution==='number') this.setResolution(me.resolution, 600);
+    }).catch(this._beError);
+  };
   goTalk = () => {
     const empty = this.state.messages.length === 0;
+    if (this._be()) {
+      this.setState({ screen:'home', mode:'home' });
+      if (empty || !this.state.sessionId) this._startBackend('home');
+      this.setResolution(this.state.resolution||0.66);
+      return;
+    }
     this.setState({ screen:'home', mode:'home' });
     if (empty) {
       this.setState({ messages:[], convIdx:1 });
@@ -1773,11 +1813,65 @@ class Component extends DCLogic {
     }
     this.setResolution(this.state.resolution||0.66);
   };
-  goGenerate = () => this.setState({ screen:'generate', genStep:'swipe', selected:null });
+  goGenerate = () => {
+    this.setState({ screen:'generate', genStep:'swipe', selected:null });
+    const be = this._be();
+    if (be) be.buildCandidates()
+      .then(r => { const cs = (r && r.candidates) || []; if (cs.length) this.setState({ candidates: cs.map(c => ({ id:c.id, title:c.title, summary:c.summary })) }); })
+      .catch(this._beError);
+  };
   goShare = () => this.setState({ screen:'share', shareCreated:false, copied:false });
   goSettings = () => this.setState({ screen:'settings', settingsSub:null });
   openSettingsSub = (v) => this.setState({ settingsSub:v });
   backSettings = () => this.setState({ settingsSub:null });
+
+  // ---- backend bridge (Convex接続。未設定ならnull→デモにフォールバック) ----
+  _be(){ return (typeof window!=='undefined' && window.LoreBackend && window.LoreBackend.ready) ? window.LoreBackend : null; }
+  _beError = (e) => { console.error('[LORE backend]', e); this.showToast(this.tt('通信に失敗しました。','Connection failed.','연결에 실패했어요.')); if (this.state.genStep==='generating') this.setState({ genStep:'error' }); };
+  _renderTurn = (r) => {
+    if (!r) return;
+    if (typeof r.resolution==='number') this.setResolution(r.resolution, 700);
+    if (r.done) { this.finishOnboarding(); return; }
+    if (r.move==='strike' && r.strike) {
+      this.setState({ pendingStrike:{ text:r.message }, pendingFragmentId:r.strike.fragmentId, suggestions:[], awaitingMiss:false });
+    } else {
+      this.setState(s => ({ messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
+    }
+  };
+  _startBackend = async (mode) => {
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], pendingStrike:null, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1 });
+    this.setResolution(mode==='home'?0.2:0.12, 400);
+    try {
+      const r = await this._be().startSession(mode);
+      this.setState({ sessionId:r.sessionId, messages:[{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
+      if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
+    } catch(e){ this._beError(e); }
+  };
+  _sendBackend = async (text) => {
+    const be=this._be(), sid=this.state.sessionId;
+    try {
+      let r;
+      if (this.state.awaitingMiss && this.state.pendingFragmentId) {
+        const mr = await be.miss(sid, this.state.pendingFragmentId, 'custom', text);
+        r = mr.next || mr;
+      } else {
+        r = await be.sendTurn(sid, text, 'choice_free');
+      }
+      this.setState({ sending:false });
+      this._renderTurn(r);
+    } catch(e){ this.setState({ sending:false }); this._beError(e); }
+  };
+  _reactBackend = async (kind) => {
+    const be=this._be(), sid=this.state.sessionId, fid=this.state.pendingFragmentId;
+    this.setState({ pendingStrike:null });
+    try {
+      const r = await be.react(sid, fid, kind);
+      if (typeof r.resolution==='number') this.setResolution(r.resolution, 800);
+      if (r.needMiss) { this.setState(s => ({ awaitingMiss:true, suggestions:[], messages:[...s.messages,{ role:'ai', text:this._recoverMsg() }] })); return; }
+      if (r.done) { this.finishOnboarding(); return; }
+      if (r.next) this._renderTurn(r.next);
+    } catch(e){ this._beError(e); }
+  };
 
   // ---- chat ----
   onChatInput = (e) => this.setState({ input: e.target.value });
@@ -1788,6 +1882,7 @@ class Component extends DCLogic {
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
+    if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
   };
   advance() {
@@ -1807,6 +1902,7 @@ class Component extends DCLogic {
     }
   }
   react(kind) {
+    if (this._be() && this.state.sessionId && this.state.pendingFragmentId) { this._reactBackend(kind); return; }
     if (this.state.mode==='home') {
       const next = Math.min(1, (this.state.resolution||0.66) + 0.05);
       this.setState({ pendingStrike:null, resolution:next });
@@ -1908,12 +2004,25 @@ class Component extends DCLogic {
     const id = (this.state.editId||'').trim();
     if (!name) { this.showToast(this.tt('名前を入力してください','Please enter a name','이름을 입력해주세요')); return; }
     if (!id) { this.showToast(this.tt('lore IDを入力してください','Please enter a lore ID','lore ID를 입력해주세요')); return; }
-    this.setState({
-      profileName: name, profileId: id, profileBio: (this.state.editBio||'').trim(),
-      profileAvatar: name.slice(0,1) || '丸', profileAvatarImg: this.state.editAvatarImg,
-      profileEditOpen: false,
-    });
+    // lore ID を変えると、既存の共有リンクが無効になる → 確認
+    if (id !== this.state.profileId) { this.setState({ idChangeConfirm:true }); return; }
+    this._applyProfileEdit();
+  };
+  _applyProfileEdit = () => {
+    const name = (this.state.editName||'').trim();
+    this.setState(s => ({
+      profileName: name, profileId: (s.editId||'').trim(), profileBio: (s.editBio||'').trim(),
+      profileAvatar: name.slice(0,1) || '丸', profileAvatarImg: s.editAvatarImg,
+      profileEditOpen: false, idChangeConfirm: false,
+    }));
     this.showToast(this.tt('プロフィールを更新しました','Profile updated','프로필을 업데이트했어요'));
+  };
+  cancelIdChange = () => this.setState({ idChangeConfirm:false });
+  confirmIdChange = () => {
+    // ID変更を確定＝既存の共有リンクを無効化（トークン再発行）
+    this.setState({ shareToken: Math.random().toString(36).slice(2,8) });
+    this._applyProfileEdit();
+    this.showToast(this.tt('共有リンクを再発行しました','Share links were reissued','공유 링크를 재발급했어요'));
   };
   // ---- delete confirm ----
   askDeleteCard = (id) => this.setState({ openCardMenu:null, deleteConfirmId:id });
@@ -2113,6 +2222,13 @@ class Component extends DCLogic {
     this._runGenerate(cand, this.state.defaultGran);
   }
   _runGenerate(cand, gran){
+    const be = this._be();
+    if (be) {
+      be.generate(cand.id, gran)
+        .then(r => this.setState({ genStep:'review', draftBody:(r && r.body) || cand.summary, _genFormat:(r&&r.format)||'roughtext', _genPayload:(r&&r.payload)||null, pubCloseOnly:false, pubImage:null }))
+        .catch(e => { this.setState({ genStep:'error' }); this._beError(e); });
+      return;
+    }
     clearTimeout(this._genT);
     this._genT = setTimeout(() => {
       // 失敗をたまに再現（生成失敗/通信エラーのデモ）
@@ -2170,6 +2286,8 @@ class Component extends DCLogic {
     const sel = this.state.selected; if (!sel) return;
     if (this._publishing) return; this._publishing = true;   // 二重公開ガード
     setTimeout(() => { this._publishing = false; }, 600);
+    const be = this._be();
+    if (be) be.publish({ seedId: sel.id, format: this.state._genFormat || 'roughtext', title: sel.title, body: this.state.draftBody, payload: this.state._genPayload || null, granularity: this.state.granularity || 'normal', closeOnly: !!this.state.pubCloseOnly }).catch(this._beError);
     const card = { id:'g'+Date.now(), title:sel.title, body:this.state.draftBody, closeOnly:!!this.state.pubCloseOnly, image:this.state.pubImage||null, pinned:false };
     this.setState(s => ({
       cards:[card, ...s.cards],
@@ -2222,7 +2340,13 @@ class Component extends DCLogic {
   };
 
   // ---- share ----
-  onCreateLink = () => this.setState({ shareCreated:true, copied:false });
+  onCreateLink = () => {
+    this.setState({ shareCreated:true, copied:false });
+    const be = this._be();
+    if (be) be.createShare('profile', this.state.pubCloseOnly ? 'close' : 'general')
+      .then(r => { if (r && r.token) this.setState({ shareToken: r.token }); })
+      .catch(this._beError);
+  };
   onCopy = () => { this.setState({ copied:true }); };
   openShareRefresh = () => this.setState({ shareRefreshOpen:true });
   closeShareRefresh = () => this.setState({ shareRefreshOpen:false });
@@ -2541,6 +2665,10 @@ class Component extends DCLogic {
       openProfileEdit:this.openProfileEdit, profileEditOpen:s.profileEditOpen, closeProfileEdit:this.closeProfileEdit,
       editName:s.editName, editId:s.editId, editBio:s.editBio,
       onEditName:this.onEditName, onEditId:this.onEditId, onEditBio:this.onEditBio, saveProfileEdit:this.saveProfileEdit,
+      idChangeConfirm: s.idChangeConfirm, cancelIdChange:this.cancelIdChange, confirmIdChange:this.confirmIdChange,
+      idChangeTitle: pick('lore ID を変更しますか？','Change your lore ID?','lore ID를 변경할까요?'),
+      idChangeBody: pick('lore ID を変更すると、これまでに発行した共有リンクはすべて無効になります。共有し直すには、新しいリンクを発行する必要があります。','Changing your lore ID invalidates every share link you have issued so far. To share again, you will need to issue new links.','lore ID를 변경하면 지금까지 발행한 공유 링크가 모두 무효화돼요. 다시 공유하려면 새 링크를 발행해야 해요.'),
+      idChangeOk: pick('変更する','Change anyway','변경하기'), idChangeCancel: pick('キャンセル','Cancel','취소'),
       setEditAvatarEl:this.setEditAvatarEl, triggerEditAvatar:this.triggerEditAvatar, onPickEditAvatar:this.onPickEditAvatar, removeEditAvatar:this.removeEditAvatar,
       editAvatarImg:s.editAvatarImg||'', hasEditAvatar:!!s.editAvatarImg, editAvatarChar:(s.editName||s.profileName||'丸').slice(0,1),
       deleteConfirmOpen: s.deleteConfirmId!==null, cancelDeleteCard:this.cancelDeleteCard, confirmDeleteCard:this.confirmDeleteCard,
