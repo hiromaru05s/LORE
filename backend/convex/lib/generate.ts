@@ -1,5 +1,5 @@
 import { llm } from './llm';
-import { SYS_BASE, SYS_STRIKE, MOVE_INSTRUCTION, buildContext } from './prompts';
+import { SYS_BASE, SYS_STRIKE, MOVE_INSTRUCTION, INTRO_INSTRUCTION, buildContext } from './prompts';
 import { TurnSchema, StrikeSchema, type TurnOut, type StrikeOut } from './schemas';
 import type { Move, InputMode } from './types';
 
@@ -19,6 +19,7 @@ export interface GenInput {
   tone?: string;            // 口調（friendly|polite）
   depth?: string;           // 返しの深さ（light|deep）
   boundaryTopic?: string;   // ask_boundary で許可を取りに行くテーマ
+  firstMeeting?: boolean;   // 履歴ゼロの初対面（open時に自己紹介する）
 }
 
 /** 境界質問の固定二択（LLMに作らせず routing を保証）。FEはlabelをそのまま送る→BEがpendingBoundaryで解釈。 */
@@ -46,7 +47,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
+    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }

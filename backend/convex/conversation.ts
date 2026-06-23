@@ -45,8 +45,9 @@ export const openSession = internalMutation({
   handler: async (ctx, { uid, mode }) => {
     const sessionId = await ctx.db.insert('sessions', { userId: uid, mode, lastMove: 'open', lastDomain: '', domainRepeat: 0, turnsSinceStrike: 99, turnCount: 0 });
     const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q) => q.eq('userId', uid)).unique();
+    const firstMeeting = (rel?.totalSessions ?? 0) === 0;   // これ以前にセッションが無い＝初対面
     if (rel) await ctx.db.patch(rel._id, { totalSessions: rel.totalSessions + 1 });
-    return sessionId;
+    return { sessionId, firstMeeting };
   },
 });
 
@@ -144,9 +145,9 @@ export const startSession = action({
   handler: async (ctx, { mode }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m = mode === 'home' ? 'home' : 'onboarding';
-    const sessionId = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
+    const { sessionId, firstMeeting } = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
     const relation = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId, domain: '日常' });
-    const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常' });
+    const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常', firstMeeting });
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId, move: 'open', inputMode: 'choice_free', text: turn.message });
     return { sessionId, move: 'open', inputMode: 'choice_free', message: turn.message, choices: turn.choices, resolution };
   },
