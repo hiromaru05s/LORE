@@ -19,7 +19,7 @@ const SHAPES: Record<Purpose, string> = {
   score: `{"scores":{"specificity":0,"emotionalDepth":0,"selfInsight":0},"domain":"対人","type":"trait"}
   ※ specificity/emotionalDepth/selfInsight は各0〜3の整数。type は trait|event|preference|value|relation|pattern のいずれか。`,
   turn: `{"message":"AIの発話一文","choices":[{"label":"短い返答例1","value":"短い返答例1"},{"label":"短い返答例2","value":"短い返答例2"}]}
-  ※ choices には、相手がワンタップで答えられる短い返答例を必ず2個入れる（label と value は同じ文字列でよい）。空配列にしない。`,
+  ※ choices には、相手が自然に会話を続けられる短い返答例を必ず2個（label と value は同じ文字列でよい）。空配列にしない。機械的な確認の二択でなく、話の方向を本人が選べるものにする。`,
   strike: `{"message":"言い当ての一文","components":{"subject":"あなた","claim":"主張","qualifier":"限定（無ければ空文字）","valence":"pos"},"confidence":0.75,"type":"trait","domain":"対人","missCandidates":[{"label":"むしろ逆かも","value":"opposite"},{"label":"そこまでじゃない","value":"degree"},{"label":"相手や場面が違う","value":"object"},{"label":"当たってるけど理由が違う","value":"reason"}]}
   ※ valence は pos|neg|neu。confidence は0〜1。type は trait|event|preference|value|relation|pattern。missCandidates の value は opposite|degree|object|reason|partial|whole のいずれか。`,
   restrike: `{"message":"当て直しの一文","components":{"subject":"あなた","claim":"主張","qualifier":"","valence":"neu"},"confidence":0.7,"type":"trait","domain":"対人","missCandidates":[{"label":"むしろ逆かも","value":"opposite"}]}`,
