@@ -16,9 +16,8 @@ export function decideMove(ctx: ControllerCtx): { move: Move; inputMode: InputMo
   else if (strongEmotion && ctx.lastMove !== 'reflect') move = 'reflect';
   else if (ctx.turnCount >= TUNING.MIN_TURNS_BEFORE_STRIKE && ctx.contourMaterial >= TUNING.STRIKE_THRESHOLD && ctx.turnsSinceStrike >= TUNING.STRIKE_PACE_TURNS) move = 'strike';
   else if (ctx.turnCount >= TUNING.SESSION_CLOSE_TURNS && ctx.lastMove === 'strike') move = 'close';
-  else if (ctx.domainRepeat >= TUNING.DOMAIN_REPEAT_MAX) move = 'pivot';
-  else if (thin && ctx.lastMove !== 'dig') move = 'dig';
-  else move = 'pivot';
+  else if (ctx.domainRepeat >= TUNING.DOMAIN_REPEAT_MAX) move = 'pivot';   // 同じ話題が続きすぎた時だけ転換
+  else move = 'dig';   // 基本は相手の話を深掘り（具体的な話に乗る。話題を勝手に変えない）
 
   return { move, inputMode: pickInputMode(move, { highInsight, strongEmotion }) };
 }
