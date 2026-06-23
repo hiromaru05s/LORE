@@ -21,7 +21,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}\n入力モード=${g.inputMode}（free のときは choices を空配列に）`,
+    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}\n相手がワンタップで答えられる短い返答例を choices に必ず2個入れる。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }

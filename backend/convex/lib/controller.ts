@@ -19,16 +19,10 @@ export function decideMove(ctx: ControllerCtx): { move: Move; inputMode: InputMo
   else if (ctx.domainRepeat >= TUNING.DOMAIN_REPEAT_MAX) move = 'pivot';   // 同じ話題が続きすぎた時だけ転換
   else move = 'dig';   // 基本は相手の話を深掘り（具体的な話に乗る。話題を勝手に変えない）
 
-  return { move, inputMode: pickInputMode(move, { highInsight, strongEmotion }) };
+  return { move, inputMode: pickInputMode(move) };
 }
 
-/** ① 浅い収集・反応は tap、核心は free（あえて選択肢を出さない）。 */
-function pickInputMode(move: Move, f: { highInsight: boolean; strongEmotion: boolean }): InputMode {
-  switch (move) {
-    case 'strike': return 'tap';
-    case 'reflect': return 'free';
-    case 'reask': return 'free';
-    case 'dig': return (f.highInsight || f.strongEmotion) ? 'free' : 'choice_free';
-    default: return 'choice_free';
-  }
+/** 反応は tap、それ以外の質問は常にチップ付き(choice_free)。自由入力も併用できる。 */
+function pickInputMode(move: Move): InputMode {
+  return move === 'strike' ? 'tap' : 'choice_free';
 }

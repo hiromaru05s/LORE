@@ -30,7 +30,7 @@ body{background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webk
 ::selection{background:var(--ink);color:#fff}
 
 /* ===== theme tokens ===== */
-:root{--bg:#F2F2F2;--surface:#fff;--surface2:#F7F7F5;--surface3:#f0efec;--accentBg:#EEF1FF;--dangerBg:#FDECEC;--text:#0A0A0A;--text2:#222;--muted:#888;--faint:#aaa;--border:#e4e2dd;--ink:#0A0A0A;--track:#cfcfca;--dot:#8e8e93;--scrollthumb:#d9d9d4;--warnBg:#FFF7ED;--warnBorder:#FBD9A8;--warnIcon:#C2410C;--warnText:#9A3412}
+:root{--bg:#F2F2F2;--surface:#fff;--surface2:#F7F7F5;--surface3:#f0efec;--accentBg:#EEF1FF;--dangerBg:#FDECEC;--text:#0A0A0A;--text2:#222;--muted:#888;--faint:#aaa;--border:#e4e2dd;--ink:#0A0A0A;--track:#cfcfca;--dot:#8e8e93;--scrollthumb:#d9d9d4;--warnBg:#FFF7ED;--warnBorder:#FBD9A8;--warnIcon:#C2410C;--warnText:#9A3412;--accentBorder:#C2CCFF}
 html.lore-dark{--bg:#0d0d0f;--surface:#1a1a1d;--surface2:#232327;--surface3:#26262b;--accentBg:#1b2444;--dangerBg:#3a1f22;--text:#f0f0f2;--text2:#d6d6d9;--muted:#9a9aa0;--faint:#70707a;--border:#2d2d33;--ink:#2a2a30;--track:#3a3a40;--dot:#6a6a72;--scrollthumb:#3a3a40;--warnBg:#2a1d0f;--warnBorder:#5a4220;--warnIcon:#b8541f;--warnText:#f0a35a}
 html.lore-dark,html.lore-dark body{background:#0d0d0f}
 input,textarea,button{font-family:inherit}
@@ -459,7 +459,7 @@ textarea{resize:none}
         <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
             <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-            <div style="background:var(--surface);border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+            <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:{{ m.weight }};max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
@@ -468,19 +468,6 @@ textarea{resize:none}
           </div>
         </sc-if>
       </sc-for>
-
-      <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
-        <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:var(--ink);display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
-          <div style="background:var(--ink);color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
-          <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:10px 2px 12px">{{ t.s93 }}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--ink);color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">{{ t.s31 }}</button>
-            <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s52 }}</button>
-            <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s67 }}</button>
-          </div>
-        </div>
-      </sc-if>
     </div>
   </div>
 
@@ -574,7 +561,7 @@ textarea{resize:none}
           <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
               <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-              <div style="background:var(--surface);border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+              <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:{{ m.weight }};max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
             </div>
           </sc-if>
           <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
@@ -595,18 +582,6 @@ textarea{resize:none}
           </div>
         </sc-if>
 
-        <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
-          <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:var(--ink);display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
-            <div style="background:var(--ink);color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
-            <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:10px 2px 12px">{{ t.s93 }}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--ink);color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">{{ t.s31 }}</button>
-              <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s52 }}</button>
-              <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s67 }}</button>
-            </div>
-          </div>
-        </sc-if>
       </div>
     </div>
 
@@ -1611,7 +1586,7 @@ class Component extends DCLogic {
     awaitingMiss: false,
     convIdx: 0,
     suggestions: [],
-    pendingStrike: null,
+    reactionMode: false,
     obStrikes: 0,
     cards: [],
     candidates: [],
@@ -2009,7 +1984,7 @@ class Component extends DCLogic {
   };
   onStart = () => {
     if (this._be()) { this._startBackend('onboarding'); return; }
-    this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, pendingStrike:null, obStrikes:0 });
+    this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, reactionMode:false, obStrikes:0 });
     this.setResolution(0.12, 400);
   };
   onDemo = () => { this.setState({ screen:'profile', resolution:0.66 }); this.setResolution(0.66); };  onEnterHome = () => this.goProfile();
@@ -2056,13 +2031,13 @@ class Component extends DCLogic {
     if (typeof r.resolution==='number') this.setResolution(r.resolution, 700);
     if (r.done) { this.setState({ typing:false }); this.finishOnboarding(); return; }
     if (r.move==='strike' && r.strike) {
-      this.setState({ typing:false, pendingStrike:{ text:r.message }, pendingFragmentId:r.strike.fragmentId, suggestions:[], awaitingMiss:false });
+      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message, isRead:true }], pendingFragmentId:r.strike.fragmentId, suggestions:[], reactionMode:true, awaitingMiss:false }));
     } else {
       this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
     }
   };
   _startBackend = async (mode) => {
-    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], pendingStrike:null, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true });
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true });
     this.setResolution(mode==='home'?0.2:0.12, 400);
     try {
       const r = await this._be().startSession(mode);
@@ -2087,7 +2062,7 @@ class Component extends DCLogic {
   };
   _reactBackend = async (kind) => {
     const be=this._be(), sid=this.state.sessionId, fid=this.state.pendingFragmentId;
-    this.setState({ pendingStrike:null, typing:true });
+    this.setState({ reactionMode:false, typing:true });
     try {
       const r = await be.react(sid, fid, kind);
       if (typeof r.resolution==='number') this.setResolution(r.resolution, 800);
@@ -2111,12 +2086,7 @@ class Component extends DCLogic {
     if (this.state.sending || this.state.typing) return;   // 二重送信・AI応答中ガード
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
-    // 無料プランのレートリミット（ちょっと話すと上限 → プラン説明へ）
-    if (this.state.plan !== 'premium' && this.state.mode === 'home') {
-      const n = (this.state.talkCount || 0) + 1;
-      if (n > this.FREE_TALK_LIMIT) { this.goPlan(true); return; }
-      this.setState({ talkCount: n });
-    }
+    // （会話中のダミーレート制限は撤去。プラン画面は別導線から開く。本番の制限は別途設計）
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
     if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
@@ -2132,7 +2102,7 @@ class Component extends DCLogic {
       if (ev.bubbles) { this.pushBubbles(ev.bubbles, ev.chips); }
       else { this.setState(s => ({ messages:[...s.messages,{role:'ai',text:ev.text}], suggestions:ev.chips||[] })); }
     } else if (ev.type==='strike') {
-      this.setState(s => ({ pendingStrike:{text:ev.text}, convIdx:s.convIdx+1, suggestions:[] }));
+      this.setState(s => ({ messages:[...s.messages,{role:'ai',text:ev.text,isRead:true}], convIdx:s.convIdx+1, suggestions:[], reactionMode:true }));
     } else if (ev.type==='done') {
       this.finishOnboarding();
     }
@@ -2141,7 +2111,7 @@ class Component extends DCLogic {
     if (this._be() && this.state.sessionId && this.state.pendingFragmentId) { this._reactBackend(kind); return; }
     if (this.state.mode==='home') {
       const next = Math.min(1, (this.state.resolution||0.66) + 0.05);
-      this.setState({ pendingStrike:null, resolution:next });
+      this.setState({ reactionMode:false, resolution:next });
       this.setResolution(next, 800);
       if (kind==='disagree') {
         setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:this._recoverMsg()}], suggestions:[] })), 420);
@@ -2152,7 +2122,7 @@ class Component extends DCLogic {
     }
     const st = this.state.obStrikes + 1;
     const res = Math.min(0.62, 0.12 + st*0.17);
-    this.setState({ pendingStrike:null, obStrikes:st });
+    this.setState({ reactionMode:false, obStrikes:st });
     this.setResolution(res, 900);
     if (kind==='disagree') {
       setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:'そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。'}], suggestions:[] })), 420);
@@ -2764,7 +2734,14 @@ class Component extends DCLogic {
     const navShare = mkNav('share', this.goShare);
     const navSettings = mkNav('settings', this.goSettings);
 
-    const suggestions = (s.suggestions||[]).map(t => ({ text:t, onClick:() => this.send(t) }));
+    // 言い当て(strike)の反応中は、そうかも/わからない/違う を普通のチップとして出す。それ以外は通常のサジェスト。
+    const suggestions = s.reactionMode
+      ? [
+          { text: t.s31, onClick: () => this.reactAgree() },
+          { text: t.s52, onClick: () => this.reactUnsure() },
+          { text: t.s67, onClick: () => this.reactDisagree() },
+        ]
+      : (s.suggestions||[]).map(txt => ({ text:txt, onClick:() => this.send(txt) }));
 
     const sortedCards = [...s.cards].sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
     const cards = sortedCards.map(c => {
@@ -3054,14 +3031,16 @@ class Component extends DCLogic {
       vcCloseOnly: !!vc.closeOnly,
       vcHasImage: !!vc.image, vcImage: vc.image || '',
 
-      messages: s.messages.map(m => ({ ...m, isAI:m.role==='ai', isUser:m.role==='user' })),
+      messages: s.messages.map(m => ({ ...m, isAI:m.role==='ai', isUser:m.role==='user',
+        bg: m.isRead ? 'var(--accentBg)' : 'var(--surface)',
+        border: m.isRead ? '1px solid var(--accentBorder)' : 'none',
+        weight: m.isRead ? '700' : '500' })),
       input:s.input, onChatInput:this.onChatInput, onChatKey:this.onChatKey, onSend:this.onSend,
       typing:s.typing,
       sendBtnOpacity: (s.sending || s.typing || !(s.input||'').trim()) ? '.4' : '1',
       sendBtnCursor: (s.sending || s.typing || !(s.input||'').trim()) ? 'default' : 'pointer',
       imgBusy: s.imgBusy, imgBtnOpacity: s.imgBusy ? '.5' : '1',
       suggestions, hasSuggestions: suggestions.length>0,
-      pendingStrike:s.pendingStrike,
       reactAgree:this.reactAgree, reactUnsure:this.reactUnsure, reactDisagree:this.reactDisagree,
       obProgressPct: Math.round(Math.min(1, s.convIdx/this.script.length)*100)+'%',
 
