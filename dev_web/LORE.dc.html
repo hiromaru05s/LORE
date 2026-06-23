@@ -2176,13 +2176,13 @@ class Component extends DCLogic {
     this.setState({ reactionMode:false, obStrikes:st });
     this.setResolution(res, 900);
     if (kind==='disagree') {
-      setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:'そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。'}], suggestions:[] })), 420);
+      setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:this._recoverMsg()}], suggestions:[] })), 420);
     } else {
       setTimeout(() => this.advance(), 520);
     }
   }
   tt(ja,en,ko){ const l=this.state.lang; return l==='en'?en:(l==='ko'?ko:ja); }
-  _recoverMsg(){ return this.tt('そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。',"I see. So what was off? That's exactly where your contour lives.",'그렇구나. 그럼 뭐가 달랐어? 바로 거기에 너의 윤곽이 있어.'); }
+  _recoverMsg(){ return this.tt('あ、外したかも。ごめんごめん。じゃあ、ほんとのところはどんな感じ？',"Ah, I might've gotten that wrong — sorry. So how is it, really?",'아, 빗나갔나 보다. 미안. 그럼 진짜는 어떤 느낌이야?'); }
   reactAgree = () => this.react('agree');
   reactUnsure = () => this.react('unsure');
   reactDisagree = () => this.react('disagree');

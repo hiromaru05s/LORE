@@ -33,13 +33,20 @@ const styleLine = (tone?: string, depth?: string) => {
   const d = depth === 'deep' ? '一歩踏み込んで、じっくり掘る。' : depth === 'light' ? 'あっさり軽め・短めに。深掘りしすぎない。' : '';
   return (t || d) ? `\n${t}${d}` : '';
 };
+/** 相手の発話量に応答量を合わせる（自分だけ喋ってる感を防ぐ）。 */
+const lengthLine = (lastAnswer?: string) => {
+  const n = (lastAnswer || '').trim().length;
+  if (n >= 60) return '\n相手はいま長めに・しっかり話している。短い受け流し一言で終えず、その分量と熱量に見合うだけちゃんと受けて応える（2〜3文で、まず中身を受け止めてから）。';
+  if (n > 0 && n <= 12) return '\n相手は短く打っている。こちらも短く、テンポよく一言で。';
+  return '';
+};
 
 /** 非strikeの手を Flash で生成。 */
 export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
+    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
