@@ -2099,7 +2099,13 @@ class Component extends DCLogic {
 
   // ---- chat ----
   onChatInput = (e) => this.setState({ input: e.target.value });
-  onChatKey = (e) => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } };
+  onChatKey = (e) => {
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    // 日本語のみ：IME変換確定のEnterでは送信しない（en/ko は即送信）
+    if (this.state.lang === 'ja' && (e.isComposing || e.keyCode === 229 || (e.nativeEvent && e.nativeEvent.isComposing))) return;
+    e.preventDefault();
+    this.send();
+  };
   onSend = () => this.send();
   send = (text) => {
     if (this.state.sending || this.state.typing) return;   // 二重送信・AI応答中ガード
