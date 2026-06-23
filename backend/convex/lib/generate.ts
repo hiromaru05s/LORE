@@ -47,7 +47,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
+    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は「タップするとそのまま“ユーザーの発言”として送信される文」。必ず本人の一人称・話し言葉で、そのまま送れる返答にする（例：「実はいいことあったんだ」「ちょっと愚痴ってもいい？」「うーん、特にないかな」「逆に君はどう？」）。★「詳細を語る」「素直に話す」「話題を変える」のような行動の説明・ト書き・方向ラベルは絶対にダメ（送信文として意味をなさない）。機械的な確認二択（「いい感じ／微妙」）にもしない。文脈に沿って自然な分岐を2個。自由入力もできるので全部はカバーしなくていい。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
