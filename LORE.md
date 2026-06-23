@@ -34,7 +34,7 @@
 | **LLM接続** | ✅ DeepSeek(OpenAI互換)。キー未設定なら mock 自動。Pro/Flash ルーティング（**当面は全部Flash運用**） |
 | **Web FE（`LORE.dc.html`）** | ✅ バックエンド接続済み（`lore-convex.js`経由・デモfallback付き）。会話/反応/外し回復/つくる/公開/プロフィール/共有/受け手View/nudge を配線 |
 | **FE仕上げ** | ✅ ブラウザ履歴・モーダルスクロールロック・二重送信防止・ダークモード変数化・maxlength・規約3言語化・デッドコード除去 |
-| **認証（Clerk）** | ⬜ コードは対応済み（`auth.config`＋ensureUser）。**キー投入は未**（dev は `ALLOW_DEV_USER=1` で代替） |
+| **認証（Clerk）** | ✅ FE実装済み：**Googleログイン**(OAuthリダイレクト)＋**Emailログイン**(パスワードレス=確認コード)。Appleは「近日」表示でダミー。**キー投入＋Clerkダッシュボード設定は未**（dev は `ALLOW_DEV_USER=1` で代替） |
 | **Web決済（Stripe）** | ✅ コード済み（checkout＋webhook→entitlements）。**キー投入・商品作成は未**。ペイウォールUIは別途 |
 | **モバイル決済（RevenueCat）** | ✅ コード済み（webhook→entitlements）。**Web先行のため当面不要**。モバイル時に有効化 |
 | **分析（PostHog）** | ✅ サーバーcapture配線済み。**キー投入は未** |
@@ -184,6 +184,16 @@ cd backend && npm run test:engine
 | 分析 | `POSTHOG_API_KEY` | no-op |
 
 webhook URL: `https://<deployment>.convex.site/stripe/webhook` ／ `/revenuecat/webhook`
+
+### 認証を有効化する手順（Google＋Emailログイン）
+1. Convex env: `npx convex env set CLERK_FRONTEND_API_URL https://<your>.clerk.accounts.dev`（＝Clerk Issuer）。
+2. FE: `dev_web/LORE.dc.html` の `<head>` に `window.LORE_CLERK_PUBLISHABLE_KEY = "pk_..."`。
+3. Clerkダッシュボード:
+   - **Email**: 認証方法を「Email verification code」(パスワードレス)にする。FEはパスワード欄を持たないのでコード方式が前提。
+   - **Google**: SSO Connections で Google を有効化。
+   - JWT Templates に `convex` を作成（`auth.config.ts` の applicationID と一致）。
+   - 許可リダイレクトに本番/ローカルのオリジンを追加（OAuth戻り先）。
+- 未設定なら FE は自動でデモ導線（`ALLOW_DEV_USER=1` の共有ユーザー）にフォールバック。Apple は当面「近日」トースト表示のダミー。
 
 ---
 

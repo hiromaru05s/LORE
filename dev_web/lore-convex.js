@@ -35,6 +35,10 @@ const Backend = {
         const { Clerk } = await import('https://esm.sh/@clerk/clerk-js@5');
         this._clerk = new Clerk(CLERK_PK);
         await this._clerk.load();
+        // OAuth(Google)リダイレクトからの復帰を処理（authenticateWithRedirect の戻り）
+        if (/__clerk|handshake|sign-in|sso/i.test(location.search + location.hash)) {
+          try { await this._clerk.handleRedirectCallback({}); } catch (e) { console.warn('[LORE] redirect callback', e); }
+        }
         this._client.setAuth(async () => {
           try { return (await this._clerk.session?.getToken({ template: 'convex' })) ?? null; }
           catch { return null; }
@@ -45,10 +49,53 @@ const Backend = {
     this.ready = true;
     try { await this.ensureUser(); } catch (e) { console.warn('[LORE] ensureUser', e); }
     window.dispatchEvent(new CustomEvent('lore-backend-ready'));
-    console.info('[LORE] バックエンド接続 ready');
+    if (this.authed) window.dispatchEvent(new CustomEvent('lore-authed'));
+    console.info('[LORE] バックエンド接続 ready' + (this.authed ? '（ログイン済み）' : ''));
   },
-  // Clerk UI
-  signIn() { this._clerk?.openSignIn?.(); },
+  // ── 認証フロー（独自UIから呼ぶ）──
+  isConfigured() { return !!this._clerk; },
+  // Google: OAuthリダイレクト。戻ってきたら init() の handleRedirectCallback がセッション確立。
+  async startGoogle() {
+    if (!this._clerk) throw new Error('clerk not configured');
+    return this._clerk.client.signIn.authenticateWithRedirect({
+      strategy: 'oauth_google',
+      redirectUrl: location.origin + '/',
+      redirectUrlComplete: location.origin + '/',
+    });
+  },
+  // Email: パスワードレス。コードを送る（既存ユーザーはサインイン、無ければサインアップ）。
+  async startEmail(email) {
+    const c = this._clerk; if (!c) throw new Error('clerk not configured');
+    this._mode = null; this._si = null; this._su = null;
+    try {
+      let si = await c.client.signIn.create({ identifier: email });
+      const f = (si.supportedFirstFactors || []).find((x) => x.strategy === 'email_code');
+      if (!f) throw new Error('email_code disabled');
+      si = await si.prepareFirstFactor({ strategy: 'email_code', emailAddressId: f.emailAddressId });
+      this._si = si; this._mode = 'signin';
+    } catch (e) {
+      // サインイン不可（未登録など）→ 新規サインアップに切り替え
+      let su = await c.client.signUp.create({ emailAddress: email });
+      su = await su.prepareEmailAddressVerification({ strategy: 'email_code' });
+      this._su = su; this._mode = 'signup';
+    }
+    return true;
+  },
+  // 受け取った6桁コードで確定。成功でセッション確立。
+  async verifyEmailCode(code) {
+    const c = this._clerk; if (!c) throw new Error('clerk not configured');
+    const res = this._mode === 'signup'
+      ? await this._su.attemptEmailAddressVerification({ code })
+      : await this._si.attemptFirstFactor({ strategy: 'email_code', code });
+    if (res && res.status === 'complete') {
+      await c.setActive({ session: res.createdSessionId });
+      this.authed = true;
+      try { await this.ensureUser(); } catch (e) { console.warn('[LORE] ensureUser', e); }
+      window.dispatchEvent(new CustomEvent('lore-authed'));
+      return true;
+    }
+    return false;
+  },
   signOut() { return this._clerk?.signOut?.(); },
 
   // ── 薄いラッパ ──
