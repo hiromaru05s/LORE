@@ -17,7 +17,7 @@ export interface GenInput {
 }
 
 /** 非strikeの手を Flash で生成。 */
-export async function generateTurn(g: GenInput): Promise<TurnOut> {
+export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
@@ -27,7 +27,7 @@ export async function generateTurn(g: GenInput): Promise<TurnOut> {
 }
 
 /** 言い当て(strike)を Pro で生成。 */
-export async function generateStrike(g: GenInput): Promise<StrikeOut> {
+export async function generateStrike(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, fragments: g.fragments, memory: g.memory, lastAnswer: g.lastAnswer,
     extra: `対象領域: ${g.domain}。まだ本人に言っていない読みを一文で刺せ。`,
@@ -36,7 +36,7 @@ export async function generateStrike(g: GenInput): Promise<StrikeOut> {
 }
 
 /** ハズレ回復の再strike を Pro で生成。 */
-export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[] }): Promise<StrikeOut> {
+export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[] }): Promise<any> {
   const user = buildContext({
     recentTurns: args.recentTurns,
     extra: `直前の読み「${args.fragmentText}」は外した。ハズレ型=${args.missType}${args.detail ? `／本人の言葉「${args.detail}」` : ''}。この差分を燃料に、もう一度当て直す一文を出せ。`,

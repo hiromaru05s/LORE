@@ -62,7 +62,7 @@ export const getMe = query({
   handler: async (ctx) => {
     const uid = await resolveUserId(ctx);
     if (!uid) return null;
-    const u = await ctx.db.get(uid);
+    const u: any = await ctx.db.get(uid);
     const cards = await ctx.db.query('contentCards').withIndex('by_user', (q) => q.eq('userId', uid)).collect();
     const agreed = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', uid).eq('status', 'agreed')).collect();
     const corrected = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', uid).eq('status', 'corrected')).collect();

@@ -197,9 +197,9 @@ export const applyMissMut = internalMutation({
 
 export const miss = action({
   args: { sessionId: v.id('sessions'), fragmentId: v.id('fragments'), type: v.string(), detail: v.optional(v.string()) },
-  handler: async (ctx, a) => {
+  handler: async (ctx, a): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
-    const m = await ctx.runMutation(internal.conversation.applyMissMut, { uid, sessionId: a.sessionId, fragmentId: a.fragmentId, type: a.type, detail: a.detail });
+    const m: any = await ctx.runMutation(internal.conversation.applyMissMut, { uid, sessionId: a.sessionId, fragmentId: a.fragmentId, type: a.type, detail: a.detail });
 
     if (m.followup === 'reason' || m.followup === 'whole') {
       const move = m.followup === 'reason' ? 'dig' : 'pivot';

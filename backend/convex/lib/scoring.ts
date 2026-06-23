@@ -11,7 +11,7 @@ export async function scoreAnswer(text: string): Promise<ScoreResult> {
     purpose: 'score', model: 'flash', system: SYS_SCORE,
     user: `次の回答を採点せよ。\n回答: ${text}`, schema: ScoreSchema, hints: { text },
   });
-  return { scores: out.scores as Scores, domain: out.domain, type: out.type };
+  return { scores: out.scores as Scores, domain: out.domain ?? '日常', type: out.type ?? 'trait' };
 }
 
 export function materialWeight(s: Scores): number {
