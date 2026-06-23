@@ -83,7 +83,7 @@ export const getMe = query({
 
 /** 受信ダイヤル(preferences)の更新。設定の軽トグルから呼ぶ。 */
 export const setPreferences = mutation({
-  args: { strikeIntensity: v.optional(v.string()), boundariesNg: v.optional(v.array(v.string())), tone: v.optional(v.string()) },
+  args: { strikeIntensity: v.optional(v.string()), boundariesNg: v.optional(v.array(v.string())), tone: v.optional(v.string()), depth: v.optional(v.string()) },
   handler: async (ctx, a) => {
     const uid = await resolveUserId(ctx);
     if (!uid) throw new Error('not authenticated');
@@ -94,6 +94,7 @@ export const setPreferences = mutation({
     if (a.strikeIntensity !== undefined) next.strikeIntensity = a.strikeIntensity;
     if (a.boundariesNg !== undefined) next.boundariesNg = a.boundariesNg;
     if (a.tone !== undefined) next.tone = a.tone;
+    if (a.depth !== undefined) next.depth = a.depth;
     await ctx.db.patch(rel._id, { preferences: next });
     return { ok: true, preferences: next };
   },

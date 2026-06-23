@@ -128,7 +128,7 @@ export const sendTurn = action({
       reaskDueCount: cx.reaskCount, turnsSinceStrike: cx.turnsSinceStrike, domainRepeat: cx.domainRepeat, turnCount: cx.turnCount,
     });
 
-    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg };
+    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth };
 
     if (move === 'strike') {
       const s = await generateStrike(gin);
@@ -191,7 +191,7 @@ export const react = action({
     // 継続：新しい問い（pace により strike は出ない）。常にチップ付き。
     const cx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: r.domain });
     const move = cx.reaskCount > 0 ? 'reask' : (cx.turnCount >= 10 ? 'close' : 'pivot');
-    const turn = await generateTurn({ move: move as any, inputMode: 'choice_free', recentTurns: cx.recentTurns, lastAnswer: '', fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: r.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg });
+    const turn = await generateTurn({ move: move as any, inputMode: 'choice_free', recentTurns: cx.recentTurns, lastAnswer: '', fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: r.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth });
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move, inputMode: 'choice_free', text: turn.message });
     return { recorded: true, next: { move, inputMode: 'choice_free', message: turn.message, choices: turn.choices, resolution } };
   },

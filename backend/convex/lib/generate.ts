@@ -16,16 +16,23 @@ export interface GenInput {
   domain: string;
   intensity?: string;       // 言い当ての攻め強度（gentle|bold）
   avoidTopics?: string[];   // 境界でNG設定されたテーマ（踏み込まない）
+  tone?: string;            // 口調（friendly|polite）
+  depth?: string;           // 返しの深さ（light|deep）
 }
 
 const avoidLine = (topics?: string[]) => (topics && topics.length) ? `\n次のテーマには踏み込まない（相手がNGと設定）: ${topics.join(' / ')}。` : '';
+const styleLine = (tone?: string, depth?: string) => {
+  const t = tone === 'polite' ? '口調はていねい目で。' : tone === 'friendly' ? '口調はフランク・タメ口寄りで。' : '';
+  const d = depth === 'deep' ? '一歩踏み込んで、じっくり掘る。' : depth === 'light' ? 'あっさり軽め・短めに。深掘りしすぎない。' : '';
+  return (t || d) ? `\n${t}${d}` : '';
+};
 
 /** 非strikeの手を Flash で生成。 */
 export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
+    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nchoices は、相手が自然に会話を続けられる返答例を必ず2個。機械的な確認の二択（「いい感じ／微妙」みたいな）にしない。話の方向を本人が選べるものを文脈に合わせて（例：実はいいことあった／実は嫌なことあった／別の話したい／君が話題ふってよ／いつものことだよ／特にない、等）。自由入力もできるので、選択肢で全部カバーしようとしない。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
@@ -34,7 +41,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
 export async function generateStrike(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, fragments: g.fragments, memory: g.memory, lastAnswer: g.lastAnswer,
-    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}\nまだ本人に言っていない読みを一文で刺せ。`,
+    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nまだ本人に言っていない読みを一文で刺せ。`,
   });
   return llm({ purpose: 'strike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { struck: g.struck, domain: g.domain, lastText: g.lastAnswer } });
 }

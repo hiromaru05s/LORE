@@ -40,6 +40,7 @@ export async function prefsFor(ctx: any, uid: any) {
     strikeIntensity: p.strikeIntensity || 'gentle',
     boundariesNg: Array.isArray(p.boundariesNg) ? p.boundariesNg : [],
     tone: p.tone || null,
+    depth: p.depth || null,
     intro: p.intro || {},
   };
 }

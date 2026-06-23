@@ -34,6 +34,8 @@ body{background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webk
 html.lore-dark{--bg:#0d0d0f;--surface:#1a1a1d;--surface2:#232327;--surface3:#26262b;--accentBg:#1b2444;--dangerBg:#3a1f22;--text:#f0f0f2;--text2:#d6d6d9;--muted:#9a9aa0;--faint:#70707a;--border:#2d2d33;--ink:#2a2a30;--track:#3a3a40;--dot:#6a6a72;--scrollthumb:#3a3a40;--warnBg:#2a1d0f;--warnBorder:#5a4220;--warnIcon:#b8541f;--warnText:#f0a35a}
 html.lore-dark,html.lore-dark body{background:#0d0d0f}
 input,textarea,button{font-family:inherit}
+input,textarea{color:var(--text)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
 textarea{resize:none}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--scrollthumb);border:2px solid transparent;background-clip:content-box;border-radius:10px}
@@ -550,6 +552,50 @@ textarea{resize:none}
                 <span style="position:absolute;top:3px;left:{{ muteKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span>
               </span>
             </button>
+            <button onClick="{{ openPrefs }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-radius:8px;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid var(--border)">
+              <span style="flex:1;font-weight:700;font-size:14px;color:var(--text)">{{ prefSectionLabel }}</span>
+              <span style="color:var(--faint);font-size:18px;line-height:1">›</span>
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ prefsOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closePrefs }}" style="position:fixed;inset:0;z-index:60;background:rgba(10,10,10,.42);display:flex;align-items:flex-end;justify-content:center">
+            <div onClick="{{ stop }}" style="width:100%;max-width:460px;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 30px;max-height:88vh;overflow-y:auto;color:var(--text);animation:loreSlideUp .3s cubic-bezier(.2,.8,.2,1) both">
+              <div style="display:flex;align-items:center;margin-bottom:6px">
+                <div style="flex:1;font-weight:900;font-size:18px;letter-spacing:-.01em">{{ prefSectionLabel }}</div>
+                <button onClick="{{ closePrefs }}" style="appearance:none;cursor:pointer;background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:4px">{{ t.s28 }}</button>
+              </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px">{{ prefIntro }}</div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ intensityTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ intensityHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ intensityLabel }}</span>
+                <button onClick="{{ toggleIntensity }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ intensityTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ intensityKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ toneTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ toneHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ toneLabel }}</span>
+                <button onClick="{{ toggleTone }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ toneTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ toneKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ depthTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ depthHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ depthLabel }}</span>
+                <button onClick="{{ toggleDepth }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ depthTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ depthKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="padding:14px 0 0;border-top:1px solid var(--border)">
+                <div style="font-weight:700;font-size:15px">{{ boundaryTitle }}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;margin-bottom:12px">{{ boundaryHint }}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ boundaryChips }}" as="b" hint-placeholder-count="5">
+                    <button onClick="{{ b.onClick }}" style="appearance:none;cursor:pointer;background:{{ b.bg }};color:{{ b.fg }};border:1px solid {{ b.border }};border-radius:18px;padding:8px 14px;font-size:13px;font-weight:600">{{ b.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
           </div>
         </sc-if>
       </div>
@@ -810,19 +856,6 @@ textarea{resize:none}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
         <button onClick="{{ openContact }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s69 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
         <button onClick="{{ openFeedback }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s97 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
-      </div>
-
-      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);margin-bottom:10px;padding-left:2px">{{ prefSectionLabel }}</div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
-        <div style="display:flex;align-items:center;gap:12px;padding:15px 16px">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m13 2-3 7h4l-3 7"/><circle cx="12" cy="12" r="9"/></svg>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:15px;color:var(--text)">{{ intensityTitle }}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ intensityHint }}</div>
-          </div>
-          <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ intensityLabel }}</span>
-          <button onClick="{{ toggleIntensity }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ intensityTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ intensityKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></button>
-        </div>
       </div>
 
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);margin-bottom:10px;padding-left:2px">{{ t.s13 }}</div>
@@ -1564,6 +1597,10 @@ class Component extends DCLogic {
     toast: '',
     dark: false,
     prefIntensity: 'gentle',
+    prefTone: 'friendly',
+    prefDepth: 'balanced',
+    prefBoundaries: [],
+    prefsOpen: false,
     scrolled: false,
     canInstall: false,
     searchNotFound: false,
@@ -1762,7 +1799,7 @@ class Component extends DCLogic {
     this._initRoute();
     requestAnimationFrame(() => this.drawAll());
   }
-  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null });
+  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null, prefsOpen:false });
   installApp = () => { const p = this._deferredPrompt; if (!p) { this.showToast(this.tt('インストールはブラウザのメニューから行えます','You can install from your browser menu','브라우저 메뉴에서 설치할 수 있어요')); return; } p.prompt(); p.userChoice.finally(() => { this._deferredPrompt = null; this.setState({ canInstall:false }); }); };
   // ---- routing helpers ----
   _pathFor(screen){
@@ -1808,7 +1845,7 @@ class Component extends DCLogic {
     const s = this.state;
     return !!(s.loginOpen || s.legalDoc || s.profileEditOpen || s.deleteConfirmId!==null || s.reportOpen ||
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
-      s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen);
+      s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
   componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
@@ -2006,7 +2043,7 @@ class Component extends DCLogic {
     this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66);
     const be = this._be();
     if (be) be.getMe().then(me => { if (!me) return;
-      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, prefIntensity:(me.preferences && me.preferences.strikeIntensity) || 'gentle', cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
+      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, prefIntensity:(me.preferences && me.preferences.strikeIntensity) || 'gentle', prefTone:(me.preferences && me.preferences.tone) || 'friendly', prefDepth:(me.preferences && me.preferences.depth) || 'balanced', prefBoundaries:(me.preferences && me.preferences.boundariesNg) || [], cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
       if (typeof me.resolution==='number') this.setResolution(me.resolution, 600);
     }).catch(this._beError);
   };
@@ -2187,12 +2224,30 @@ class Component extends DCLogic {
   openCookie = () => this.setState({ legalDoc:'cookie' });
   acceptCookies = () => this.setState({ cookieAccepted:true });
   // ---- theme (dark mode) ----
-  // ---- 受信ダイヤル: 言い当ての攻め強度 ----
+  // ---- 受信ダイヤル: 会話の好み ----
+  openPrefs = () => this.setState({ prefsOpen:true, homeMenuOpen:false });
+  closePrefs = () => this.setState({ prefsOpen:false });
   toggleIntensity = () => {
     const v = this.state.prefIntensity === 'bold' ? 'gentle' : 'bold';
     this.setState({ prefIntensity: v });
     const be = this._be();
     if (be) be.setPreferences({ strikeIntensity: v }).catch(this._beError);
+  };
+  toggleTone = () => {
+    const v = this.state.prefTone === 'polite' ? 'friendly' : 'polite';
+    this.setState({ prefTone: v });
+    const be = this._be(); if (be) be.setPreferences({ tone: v }).catch(this._beError);
+  };
+  toggleDepth = () => {
+    const v = this.state.prefDepth === 'deep' ? 'light' : 'deep';
+    this.setState({ prefDepth: v });
+    const be = this._be(); if (be) be.setPreferences({ depth: v }).catch(this._beError);
+  };
+  toggleBoundary = (topic) => {
+    const cur = this.state.prefBoundaries || [];
+    const next = cur.includes(topic) ? cur.filter(t => t !== topic) : [...cur, topic];
+    this.setState({ prefBoundaries: next });
+    const be = this._be(); if (be) be.setPreferences({ boundariesNg: next }).catch(this._beError);
   };
   toggleTheme = () => {
     const dark = !this.state.dark;
@@ -2979,6 +3034,26 @@ class Component extends DCLogic {
       intensityLabel: (s.prefIntensity==='bold') ? pick('ズバッと','Bold','직설') : pick('やんわり','Gentle','부드럽게'),
       intensityTrack: (s.prefIntensity==='bold') ? '#1E40FF' : 'var(--track)',
       intensityKnob: (s.prefIntensity==='bold') ? '21px' : '3px',
+      prefsOpen:s.prefsOpen, openPrefs:this.openPrefs, closePrefs:this.closePrefs,
+      prefIntro: pick('LOREの返し方を、君好みに。いつでも変えられる。','Tune how LORE talks to you. Change anytime.','LORE의 말투를 취향대로. 언제든 바꿀 수 있어요.'),
+      toggleTone:this.toggleTone, toggleDepth:this.toggleDepth,
+      toneTitle: pick('口調','Tone','말투'),
+      toneHint: pick('オンで、ていねいな口調に','On = more polite','켜면 정중하게'),
+      toneLabel: (s.prefTone==='polite') ? pick('ていねい','Polite','정중') : pick('フランク','Casual','편하게'),
+      toneTrack: (s.prefTone==='polite') ? '#1E40FF' : 'var(--track)',
+      toneKnob: (s.prefTone==='polite') ? '21px' : '3px',
+      depthTitle: pick('掘り下げの深さ','How deep it digs','파고드는 깊이'),
+      depthHint: pick('オンで、じっくり踏み込む。オフはあっさり','On = digs deeper · off = lighter','켜면 깊게 · 끄면 가볍게'),
+      depthLabel: (s.prefDepth==='deep') ? pick('じっくり','Deep','깊게') : pick('あっさり','Light','가볍게'),
+      depthTrack: (s.prefDepth==='deep') ? '#1E40FF' : 'var(--track)',
+      depthKnob: (s.prefDepth==='deep') ? '21px' : '3px',
+      boundaryTitle: pick('触れてほしくないテーマ','Topics to avoid','피하고 싶은 주제'),
+      boundaryHint: pick('選んだテーマには、LOREから踏み込まない','LORE won’t dig into these','선택한 주제는 파고들지 않아요'),
+      boundaryChips: ['恋愛','家族','仕事','お金','過去','コンプレックス'].map(topic => {
+        const sel = (s.prefBoundaries||[]).includes(topic);
+        const lm = { '恋愛':pick('恋愛','Love','연애'), '家族':pick('家族','Family','가족'), '仕事':pick('仕事','Work','일'), 'お金':pick('お金','Money','돈'), '過去':pick('過去','The past','과거'), 'コンプレックス':pick('コンプレックス','Insecurities','콤플렉스') };
+        return { label: lm[topic], onClick: () => this.toggleBoundary(topic), bg: sel?'#FDECEC':'var(--surface)', fg: sel?'#E5484D':'var(--text)', border: sel?'#F3B5B5':'var(--border)' };
+      }),
       logoMark: s.dark ? 'mark-white.png' : 'mark-blue.png',
       searchNotFound:s.searchNotFound, clearSearchNotFound:this.clearSearchNotFound,
       canInstall: s.canInstall && isMobile, installApp:this.installApp,
