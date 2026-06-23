@@ -31,3 +31,15 @@ export async function contourFor(ctx: any, uid: any, domain: string) {
   let c = await ctx.db.query('contours').withIndex('by_user_domain', (q: any) => q.eq('userId', uid).eq('domain', domain)).unique();
   return c;
 }
+
+/** 受信ダイヤル(preferences)を既定値付きで読む。 */
+export async function prefsFor(ctx: any, uid: any) {
+  const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q: any) => q.eq('userId', uid)).unique();
+  const p = (rel && rel.preferences) || {};
+  return {
+    strikeIntensity: p.strikeIntensity || 'gentle',
+    boundariesNg: Array.isArray(p.boundariesNg) ? p.boundariesNg : [],
+    tone: p.tone || null,
+    intro: p.intro || {},
+  };
+}

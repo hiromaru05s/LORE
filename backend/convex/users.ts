@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, internalQuery } from './_generated/server';
 import { computeResolution } from './lib/resolution';
+import { prefsFor } from './helpers';
 
 const DEV = () => (process.env.ALLOW_DEV_USER || '').trim() === '1';
 const DEMO_HANDLE = 'maruyama';
@@ -75,7 +76,26 @@ export const getMe = query({
       profilePrivate: u!.profilePrivate, resolution, isPremium: !!ent?.isPremium,
       cards: cards.map((c) => ({ id: c._id, title: c.title, body: c.body, format: c.format, payload: c.payload, conf: c.conf, layers: c.layers, isPremium: c.isPremium, pinned: c.pinned })),
       incomingRequests: reqs.map((r) => ({ id: r._id, name: r.fromName, fromUser: r.fromUser })),
+      preferences: await prefsFor(ctx, uid),
     };
+  },
+});
+
+/** 受信ダイヤル(preferences)の更新。設定の軽トグルから呼ぶ。 */
+export const setPreferences = mutation({
+  args: { strikeIntensity: v.optional(v.string()), boundariesNg: v.optional(v.array(v.string())), tone: v.optional(v.string()) },
+  handler: async (ctx, a) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid) throw new Error('not authenticated');
+    const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q) => q.eq('userId', uid)).unique();
+    if (!rel) return { ok: false };
+    const cur: any = rel.preferences || {};
+    const next: any = { ...cur };
+    if (a.strikeIntensity !== undefined) next.strikeIntensity = a.strikeIntensity;
+    if (a.boundariesNg !== undefined) next.boundariesNg = a.boundariesNg;
+    if (a.tone !== undefined) next.tone = a.tone;
+    await ctx.db.patch(rel._id, { preferences: next });
+    return { ok: true, preferences: next };
   },
 });
 

@@ -812,6 +812,19 @@ textarea{resize:none}
         <button onClick="{{ openFeedback }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s97 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
       </div>
 
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);margin-bottom:10px;padding-left:2px">{{ prefSectionLabel }}</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:12px;padding:15px 16px">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m13 2-3 7h4l-3 7"/><circle cx="12" cy="12" r="9"/></svg>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:15px;color:var(--text)">{{ intensityTitle }}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ intensityHint }}</div>
+          </div>
+          <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ intensityLabel }}</span>
+          <button onClick="{{ toggleIntensity }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ intensityTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ intensityKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></button>
+        </div>
+      </div>
+
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);margin-bottom:10px;padding-left:2px">{{ t.s13 }}</div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
         <div style="display:flex;align-items:center;gap:12px;padding:15px 16px">
@@ -1550,6 +1563,7 @@ class Component extends DCLogic {
     cookieAccepted: false,
     toast: '',
     dark: false,
+    prefIntensity: 'gentle',
     scrolled: false,
     canInstall: false,
     searchNotFound: false,
@@ -1992,7 +2006,7 @@ class Component extends DCLogic {
     this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66);
     const be = this._be();
     if (be) be.getMe().then(me => { if (!me) return;
-      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
+      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, prefIntensity:(me.preferences && me.preferences.strikeIntensity) || 'gentle', cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
       if (typeof me.resolution==='number') this.setResolution(me.resolution, 600);
     }).catch(this._beError);
   };
@@ -2173,6 +2187,13 @@ class Component extends DCLogic {
   openCookie = () => this.setState({ legalDoc:'cookie' });
   acceptCookies = () => this.setState({ cookieAccepted:true });
   // ---- theme (dark mode) ----
+  // ---- 受信ダイヤル: 言い当ての攻め強度 ----
+  toggleIntensity = () => {
+    const v = this.state.prefIntensity === 'bold' ? 'gentle' : 'bold';
+    this.setState({ prefIntensity: v });
+    const be = this._be();
+    if (be) be.setPreferences({ strikeIntensity: v }).catch(this._beError);
+  };
   toggleTheme = () => {
     const dark = !this.state.dark;
     this.setState({ dark });
@@ -2951,6 +2972,13 @@ class Component extends DCLogic {
       setGlowCanvas:this.setGlowCanvas,
       dark:s.dark, toggleTheme:this.toggleTheme, themeLabel: s.dark ? pick('ダーク','Dark','다크') : pick('ライト','Light','라이트'),
       themeTrack: s.dark ? '#1E40FF' : 'var(--track)', themeKnob: s.dark ? '21px' : '3px',
+      toggleIntensity:this.toggleIntensity,
+      prefSectionLabel: pick('会話の好み','Conversation','대화 취향'),
+      intensityTitle: pick('言い当ての強さ','How bold the reads are','읽기 강도'),
+      intensityHint: pick('オンにすると、もっとズバッと言い当てに行く','On = LORE reads you more bluntly','켜면 더 직설적으로 읽어요'),
+      intensityLabel: (s.prefIntensity==='bold') ? pick('ズバッと','Bold','직설') : pick('やんわり','Gentle','부드럽게'),
+      intensityTrack: (s.prefIntensity==='bold') ? '#1E40FF' : 'var(--track)',
+      intensityKnob: (s.prefIntensity==='bold') ? '21px' : '3px',
       logoMark: s.dark ? 'mark-white.png' : 'mark-blue.png',
       searchNotFound:s.searchNotFound, clearSearchNotFound:this.clearSearchNotFound,
       canInstall: s.canInstall && isMobile, installApp:this.installApp,

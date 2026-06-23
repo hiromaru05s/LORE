@@ -60,6 +60,7 @@ const Backend = {
   ensureUser(args = {}) { return this._m('users:ensureUser', args); },
   getMe() { return this._q('users:getMe', {}); },
   setPrivate(isPrivate) { return this._m('users:setPrivate', { isPrivate }); },
+  setPreferences(prefs) { return this._m('users:setPreferences', prefs); },   // {strikeIntensity,boundariesNg,tone}
   isPremium() { return this._q('entitlements:isPremium', {}); },
 
   // ── 会話 ──

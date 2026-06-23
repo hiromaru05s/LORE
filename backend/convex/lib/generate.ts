@@ -14,14 +14,18 @@ export interface GenInput {
   reaskText?: string;
   struck: number;
   domain: string;
+  intensity?: string;       // 言い当ての攻め強度（gentle|bold）
+  avoidTopics?: string[];   // 境界でNG設定されたテーマ（踏み込まない）
 }
+
+const avoidLine = (topics?: string[]) => (topics && topics.length) ? `\n次のテーマには踏み込まない（相手がNGと設定）: ${topics.join(' / ')}。` : '';
 
 /** 非strikeの手を Flash で生成。 */
 export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}\n相手がワンタップで答えられる短い返答例を choices に必ず2個入れる。`,
+    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}${avoidLine(g.avoidTopics)}\n相手がワンタップで答えられる短い返答例を choices に必ず2個入れる。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
@@ -30,7 +34,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
 export async function generateStrike(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, fragments: g.fragments, memory: g.memory, lastAnswer: g.lastAnswer,
-    extra: `対象領域: ${g.domain}。まだ本人に言っていない読みを一文で刺せ。`,
+    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}\nまだ本人に言っていない読みを一文で刺せ。`,
   });
   return llm({ purpose: 'strike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { struck: g.struck, domain: g.domain, lastText: g.lastAnswer } });
 }

@@ -108,6 +108,7 @@ export default defineSchema({
     premiumQuota: v.any(),
     memoryHighlights: v.array(v.string()),
     reaskDue: v.array(v.string()),
+    preferences: v.optional(v.any()),   // 受信ダイヤル: {strikeIntensity, boundariesNg[], tone, intro:{missWelcomeShown}}
   }).index('by_user', ['userId']),
 
   sessions: defineTable({

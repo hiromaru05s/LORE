@@ -6,7 +6,7 @@ import { scoreAnswer, materialWeight } from './lib/scoring';
 import { generateTurn, generateStrike, generateRestrike } from './lib/generate';
 import { reactionPatch, missPatch, halfLifeFor } from './lib/belief';
 import { capture, EV } from './lib/analytics';
-import { relationFor, memoryFor, reaskDueFor, resolutionForUser, contourFor } from './helpers';
+import { relationFor, memoryFor, reaskDueFor, resolutionForUser, contourFor, prefsFor } from './helpers';
 import { resolveUserId } from './users';
 
 const nowIso = () => new Date().toISOString();
@@ -27,6 +27,7 @@ export const loadCtx = internalQuery({
       fragments: fragsDom.slice(0, 5).map((f) => ({ text: f.text, confidence: f.confidence, status: f.status })),
       recentTurns: recentRows.reverse().map((t) => ({ role: t.role, text: t.text })),
       relation: await relationFor(ctx, uid), memory: await memoryFor(ctx, uid),
+      prefs: await prefsFor(ctx, uid),
     };
   },
 });
@@ -127,7 +128,7 @@ export const sendTurn = action({
       reaskDueCount: cx.reaskCount, turnsSinceStrike: cx.turnsSinceStrike, domainRepeat: cx.domainRepeat, turnCount: cx.turnCount,
     });
 
-    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain };
+    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: score.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg };
 
     if (move === 'strike') {
       const s = await generateStrike(gin);
@@ -155,7 +156,17 @@ export const applyReactionMut = internalMutation({
     const s = await ctx.db.get(a.sessionId);
     const agreed = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', a.uid).eq('status', 'agreed')).collect();
     const corrected = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', a.uid).eq('status', 'corrected')).collect();
-    return { status: (patch as any).status || frag.status, agreedCount: agreed.length + corrected.length, mode: s!.mode, domain: frag.domain, resolution: await resolutionForUser(ctx, a.uid) };
+    // 初めての agree で「miss歓迎」を一度だけ宣言する（ゾワッ先・宣言後）
+    let showMissWelcome = false;
+    if (a.kind === 'agree') {
+      const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q) => q.eq('userId', a.uid)).unique();
+      const prefs = (rel?.preferences as any) || {};
+      if (rel && !(prefs.intro && prefs.intro.missWelcomeShown)) {
+        showMissWelcome = true;
+        await ctx.db.patch(rel._id, { preferences: { ...prefs, intro: { ...(prefs.intro || {}), missWelcomeShown: true } } });
+      }
+    }
+    return { status: (patch as any).status || frag.status, agreedCount: agreed.length + corrected.length, mode: s!.mode, domain: frag.domain, showMissWelcome, resolution: await resolutionForUser(ctx, a.uid) };
   },
 });
 
@@ -168,15 +179,21 @@ export const react = action({
     if (a.kind === 'agree') await capture(EV.FRAGMENT_AGREED, uid, {});
 
     if (a.kind === 'disagree') return { recorded: true, needMiss: true, fragmentId: a.fragmentId, resolution: r.resolution };
+
+    // 初agree後に一度だけ「miss歓迎」を宣言（外し回復を機能させ、寄り添い感を出す）
+    if (r.showMissWelcome) {
+      const msg = '君のことを知りたいから、僕からも色々聞くし「こうじゃない？」って言うこともある。違ったら、その都度教えてね。僕は君に、すごく興味があるんだ。';
+      const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move: 'reflect', inputMode: 'choice_free', text: msg });
+      return { recorded: true, next: { move: 'reflect', inputMode: 'choice_free', message: msg, choices: [{ label: 'うん', value: 'うん' }, { label: 'りょうかい', value: 'りょうかい' }], resolution } };
+    }
     if (r.mode === 'onboarding' && r.agreedCount >= 2) { await capture(EV.ONBOARDING_DONE, uid, {}); return { recorded: true, done: true, resolution: r.resolution }; }
 
-    // 継続：新しい問い（pace により strike は出ない）
+    // 継続：新しい問い（pace により strike は出ない）。常にチップ付き。
     const cx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: r.domain });
     const move = cx.reaskCount > 0 ? 'reask' : (cx.turnCount >= 10 ? 'close' : 'pivot');
-    const inputMode = move === 'reask' ? 'free' : 'choice_free';
-    const turn = await generateTurn({ move: move as any, inputMode: inputMode as any, recentTurns: cx.recentTurns, lastAnswer: '', fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: r.domain });
-    const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move, inputMode, text: turn.message });
-    return { recorded: true, next: { move, inputMode, message: turn.message, choices: inputMode === 'free' ? [] : turn.choices, resolution } };
+    const turn = await generateTurn({ move: move as any, inputMode: 'choice_free', recentTurns: cx.recentTurns, lastAnswer: '', fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: r.domain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg });
+    const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move, inputMode: 'choice_free', text: turn.message });
+    return { recorded: true, next: { move, inputMode: 'choice_free', message: turn.message, choices: turn.choices, resolution } };
   },
 });
 
