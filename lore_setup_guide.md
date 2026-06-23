@@ -177,6 +177,11 @@
 | 候補確定→生成 | `content.generate` |
 | 公開 | `content.publish` |
 | プロフィール表示 | `users.getMe` |
-| 共有リンク作成 | `share.createShare` |
+| 共有リンク作成 / 更新 | `share.createShare` / `revokeShare`+`createShare` |
+| 受け手View（`/s/:token`・`/c/:token` ディープリンク） | `share.receiverView` |
+| コンテンツ単体共有 | `share.createShare('content')` |
+| TAP TO RESOLVE（nudge） | `conversation.nudge` |
+| 非公開⇄公開トグル | `users.setPrivate` |
+| ともだち承認 | `friends.accept`（incoming を backend由来にすると有効） |
 
-未接続（次の配線候補）: コンテンツ単体共有 / 受け手View(`/s/:token`描画) / ともだち承認 / 設定の権利反映。`lore-convex.js` にメソッドは用意済みなので、各ハンドラに1行差すだけ。
+ほぼ一通り接続済み。残りは **プレミアム購入導線（Stripe checkout）** と **ともだち incoming の backend ソース化**（FEのフレンドUIが現状ローカルmockのため）。`lore-convex.js` にメソッドは用意済み（`checkout` / `incoming`）。

@@ -1568,6 +1568,8 @@ class Component extends DCLogic {
     this._lastScreen = this.state.screen;
     this._onPop = (e) => { const sc = (e.state && e.state.screen) || 'welcome'; this._fromPop = true; this.setState({ screen: sc }); };
     window.addEventListener('popstate', this._onPop);
+    this._onBeReady = () => this._loadDeepLink();   // バックエンド初期化後に共有トークンを再取得
+    window.addEventListener('lore-backend-ready', this._onBeReady);
     this._initRoute();
     requestAnimationFrame(() => this.drawAll());
   }
@@ -1583,14 +1585,35 @@ class Component extends DCLogic {
     const path = location.pathname || '/';
     let m;
     if ((m = path.match(/^\/s\/(.+)$/))) {
-      // 共有リンク → 受け手(public)ビューへディープリンク
+      // 共有リンク → 受け手(public)ビューへディープリンク。バックエンドがあれば receiverView を取得
+      this._pendingShareToken = m[1];
       this.setState({ screen:'public', viewUser:null, pubViewUsed:false });
+      this._loadDeepLink();
+    } else if ((m = path.match(/^\/c\/(.+)$/))) {
+      this._pendingContentToken = m[1];
+      this.setState({ screen:'public', viewUser:null });
+      this._loadDeepLink();
     } else if ((m = path.match(/^\/u\/([^/]+)$/))) {
       const u = this.otherUsers.find(x => x.userId.toLowerCase() === m[1].toLowerCase());
       if (u) this.setState({ screen:'public', viewUser:u });
     }
     try { history.replaceState({ screen: this.state.screen }, '', path); } catch(_) {}
   }
+  // 共有トークンから受け手Viewを取得（バックエンドready後にも再試行）
+  _loadDeepLink = () => {
+    const be = this._be(); if (!be) return;
+    const tok = this._pendingShareToken || this._pendingContentToken; if (!tok) return;
+    be.receiverView(tok).then(v => {
+      if (!v || v.error) return;
+      if (v.kind==='profile') {
+        this._pendingShareToken = null;
+        this.setState({ screen:'public', viewUser:{ name:v.author.displayName, userId:(v.author.userId||'').replace(/^@/,''), avatar:v.author.avatar, bio:v.author.bio, private:false, cards:(v.cards||[]).map(c => ({ title:c.title, body:c.body, image:c.cover||null, closeOnly:false })) } });
+      } else if (v.kind==='content' && v.card) {
+        this._pendingContentToken = null;
+        this.setState({ screen:'content', viewCard:{ title:v.card.title, body:v.card.body }, contentBackTo:'public' });
+      }
+    }).catch(this._beError);
+  };
   // ---- modal: 背景スクロールロック ----
   _anyModalOpen(){
     const s = this.state;
@@ -1598,7 +1621,7 @@ class Component extends DCLogic {
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
       s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -2075,7 +2098,7 @@ class Component extends DCLogic {
   changePassword = () => { this.setState({ settingsSub:null }); this.showToast(this.tt('パスワードを変更しました','Password changed','비밀번호를 변경했어요')); };
   togglePrivate = () => {
     if (this.state.profilePrivate) { this.setState({ pubConfirmOpen:true }); }
-    else { this.setState({ profilePrivate:true }); }
+    else { this.setState({ profilePrivate:true }); const be=this._be(); if(be) be.setPrivate(true).catch(this._beError); }
   };
   closePubConfirm = () => this.setState({ pubConfirmOpen:false });
   dismissPrivBanner = () => this.setState({ privBannerDismissed:true });
@@ -2095,10 +2118,14 @@ class Component extends DCLogic {
   };
   openFriendsList = () => this.setState({ friendsListOpen:true });
   closeFriendsList = () => this.setState({ friendsListOpen:false });
-  acceptRequest = (u) => this.setState(s => ({
-    friends: { ...s.friends, [u.id]:'friends' },
-    incomingRequests: s.incomingRequests.filter(id => id !== u.id),
-  }));
+  acceptRequest = (u) => {
+    const be = this._be();
+    if (be && u && u.reqId) be.acceptFriend(u.reqId).catch(this._beError);   // incoming を backend由来にした際に有効
+    this.setState(s => ({
+      friends: { ...s.friends, [u.id]:'friends' },
+      incomingRequests: s.incomingRequests.filter(id => id !== u.id),
+    }));
+  };
   declineRequest = (u) => this.setState(s => ({ incomingRequests: s.incomingRequests.filter(id => id !== u.id) }));
   cancelRequest = (u) => this.setState(s => { const f = { ...s.friends }; delete f[u.id]; return { friends: f }; });
   openUserFromList = (u) => this.setState({ friendsListOpen:false, screen:'userprofile', viewUser:u, userMenuOpen:false });
@@ -2119,7 +2146,7 @@ class Component extends DCLogic {
     });
   };
   unblockUser = (id) => this.setState(s => ({ blockedUsers: s.blockedUsers.filter(b => b !== id) }));
-  confirmPublic = () => this.setState({ profilePrivate:false, pubConfirmOpen:false });
+  confirmPublic = () => { this.setState({ profilePrivate:false, pubConfirmOpen:false }); const be=this._be(); if(be) be.setPrivate(false).catch(this._beError); };
   onLoginId = (e) => this.setState({ loginId:e.target.value });
   onLoginPw = (e) => this.setState({ loginPw:e.target.value });
   setLoginIdEl = (el) => { if (el) this._loginIdEl = el; };
@@ -2157,6 +2184,15 @@ class Component extends DCLogic {
 
   // ---- portrait nudge ----
   onNudge = () => {
+    const be = this._be();
+    if (be) {
+      be.nudge().then(r => {
+        const next = (r && typeof r.resolution==='number') ? r.resolution : Math.min(1, (this.state.resolution||0.66) + 0.08);
+        this.setState({ resolution: next, latestRead: (r && r.read) || this.state.latestRead });
+        this.setResolution(next, 700);
+      }).catch(this._beError);
+      return;
+    }
     const next = Math.min(1, (this.state.resolution||0.66) + 0.08);
     const read = this.readPool[this._readIdx % this.readPool.length];
     this._readIdx++;
@@ -2350,8 +2386,16 @@ class Component extends DCLogic {
   onCopy = () => { this.setState({ copied:true }); };
   openShareRefresh = () => this.setState({ shareRefreshOpen:true });
   closeShareRefresh = () => this.setState({ shareRefreshOpen:false });
-  confirmShareRefresh = () => this.setState({ shareToken: Math.random().toString(36).slice(2,8), shareRefreshOpen:false, copied:false });
-  openContentShare = () => this.setState({ contentShareOpen:true, contentShareToken: Math.random().toString(36).slice(2,8), contentCopied:false });
+  confirmShareRefresh = () => {
+    const be = this._be(); const old = this.state.shareToken;
+    this.setState({ shareToken: Math.random().toString(36).slice(2,8), shareRefreshOpen:false, copied:false });
+    if (be) { be.revokeShare(old).catch(()=>{}); be.createShare('profile', this.state.pubCloseOnly ? 'close' : 'general').then(r => { if (r && r.token) this.setState({ shareToken:r.token }); }).catch(this._beError); }
+  };
+  openContentShare = () => {
+    this.setState({ contentShareOpen:true, contentShareToken: Math.random().toString(36).slice(2,8), contentCopied:false });
+    const be = this._be(); const vc = this.state.viewCard;
+    if (be && vc && vc.id) be.createShare('content','general', vc.id).then(r => { if (r && r.token) this.setState({ contentShareToken:r.token }); }).catch(this._beError);
+  };
   closeContentShare = () => this.setState({ contentShareOpen:false });
   onContentCopy = () => this.setState({ contentCopied:true });
   onPreviewPublic = () => this.setState({ screen:'public', viewUser:null, pubViewUsed:false });
