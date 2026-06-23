@@ -2115,10 +2115,11 @@ class Component extends DCLogic {
     this.setResolution(this.state.resolution||0.66);
   };
   goGenerate = () => {
-    this.setState({ screen:'generate', genStep:'swipe', selected:null });
     const be = this._be();
+    // バックエンド接続時はデモ候補(id:"c1"等)を残さない＝実IDのみで生成させる
+    this.setState({ screen:'generate', genStep:'swipe', selected:null, candidates: be ? [] : this.state.candidates });
     if (be) be.buildCandidates()
-      .then(r => { const cs = (r && r.candidates) || []; if (cs.length) this.setState({ candidates: cs.map(c => ({ id:c.id, title:c.title, summary:c.summary })) }); })
+      .then(r => { const cs = (r && r.candidates) || []; this.setState({ candidates: cs.map(c => ({ id:c.id, title:c.title, summary:c.summary })) }); })
       .catch(this._beError);
   };
   goShare = () => this.setState({ screen:'share', shareCreated:false, copied:false });

@@ -145,7 +145,8 @@ export const startSession = action({
   handler: async (ctx, { mode }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m = mode === 'home' ? 'home' : 'onboarding';
-    const { sessionId, firstMeeting } = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
+    const open: any = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
+    const sessionId = open.sessionId; const firstMeeting = open.firstMeeting;
     const relation = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId, domain: '日常' });
     const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常', firstMeeting });
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId, move: 'open', inputMode: 'choice_free', text: turn.message });
