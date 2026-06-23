@@ -14,7 +14,7 @@ export function decideMove(ctx: ControllerCtx): { move: Move; inputMode: InputMo
   let move: Move;
   if (ctx.reaskDueCount > 0 && ctx.lastMove !== 'reask' && ctx.turnsSinceStrike >= 1) move = 'reask';
   else if (strongEmotion && ctx.lastMove !== 'reflect') move = 'reflect';
-  else if (ctx.contourMaterial >= TUNING.STRIKE_THRESHOLD && ctx.turnsSinceStrike >= TUNING.STRIKE_PACE_TURNS) move = 'strike';
+  else if (ctx.turnCount >= TUNING.MIN_TURNS_BEFORE_STRIKE && ctx.contourMaterial >= TUNING.STRIKE_THRESHOLD && ctx.turnsSinceStrike >= TUNING.STRIKE_PACE_TURNS) move = 'strike';
   else if (ctx.turnCount >= TUNING.SESSION_CLOSE_TURNS && ctx.lastMove === 'strike') move = 'close';
   else if (ctx.domainRepeat >= TUNING.DOMAIN_REPEAT_MAX) move = 'pivot';
   else if (thin && ctx.lastMove !== 'dig') move = 'dig';

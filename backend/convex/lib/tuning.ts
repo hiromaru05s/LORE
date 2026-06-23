@@ -2,8 +2,9 @@
 // 実会話でチューニングする値。Convex非依存（純粋）。
 
 export const TUNING = {
-  STRIKE_THRESHOLD: 2.2,      // contour.material がこれを超えたら strike 候補
+  STRIKE_THRESHOLD: 3.2,      // contour.material がこれを超えたら strike 候補（薄い1発言で超えないよう高め）
   STRIKE_PACE_TURNS: 2,       // 直近 strike からの最小ターン間隔
+  MIN_TURNS_BEFORE_STRIKE: 4, // セッション開始からこのターン数までは strike しない（=数回会話してから）
   DOMAIN_REPEAT_MAX: 3,       // 同 domain 連続でこれを超えたら pivot
   SESSION_CLOSE_TURNS: 10,    // セッションがこの長さを超え strike 直後なら close
   HALFLIFE_DAYS: { value: 180, preference: 90, trait: 120, pattern: 120 } as Record<string, number>,
