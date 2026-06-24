@@ -1,5 +1,5 @@
 import { llm } from './llm';
-import { SYS_BASE, SYS_STRIKE, MOVE_INSTRUCTION, buildContext } from './prompts';
+import { SYS_BASE, SYS_STRIKE, MOVE_INSTRUCTION, INTRO_INSTRUCTION, buildContext } from './prompts';
 import { TurnSchema, StrikeSchema, type TurnOut, type StrikeOut } from './schemas';
 import type { Move, InputMode } from './types';
 
@@ -14,32 +14,82 @@ export interface GenInput {
   reaskText?: string;
   struck: number;
   domain: string;
+  intensity?: string;       // 言い当ての攻め強度（gentle|bold）
+  avoidTopics?: string[];   // 境界でNG設定されたテーマ（踏み込まない）
+  tone?: string;            // 口調（friendly|polite）
+  depth?: string;           // 返しの深さ（light|deep）
+  boundaryTopic?: string;   // ask_boundary で許可を取りに行くテーマ
+  firstMeeting?: boolean;   // 履歴ゼロの初対面（open時に自己紹介する）
+  lang?: string;            // 出力言語（ja|en|ko）。ja以外は出力をその言語に強制する
 }
 
+const LANG_NAME: Record<string, string> = { ja: '日本語', en: 'English', ko: '한국어' };
+/** 出力言語の強制。ja のときは無指定（プロンプトが日本語ネイティブ）。 */
+const langLine = (lang?: string) => {
+  const n = lang && LANG_NAME[lang];
+  return n && lang !== 'ja'
+    ? `\n\n[OUTPUT LANGUAGE] message と choices（label/value以外の表示文）は必ず ${n} で書くこと。日本語にしない。`
+    : '';
+};
+
+/** 境界質問の固定二択（LLMに作らせず routing を保証）。FEはlabelをそのまま送る→BEがpendingBoundaryで解釈。 */
+export const BOUNDARY_CHOICES = [
+  { label: 'うん、大丈夫', value: 'ok' },
+  { label: 'そこは避けたい', value: 'ng' },
+];
+
+const avoidLine = (topics?: string[]) => (topics && topics.length) ? `\n次のテーマには踏み込まない（相手がNGと設定）: ${topics.join(' / ')}。` : '';
+const styleLine = (tone?: string, depth?: string) => {
+  const t = tone === 'polite' ? '口調はていねい目で。' : tone === 'friendly' ? '口調はフランク・タメ口寄りで。' : '';
+  const d = depth === 'deep' ? '一歩踏み込んで、じっくり掘る。' : depth === 'light' ? 'あっさり軽め・短めに。深掘りしすぎない。' : '';
+  return (t || d) ? `\n${t}${d}` : '';
+};
+/** 相手の発話量に応答量を合わせる（自分だけ喋ってる感を防ぐ）。 */
+const lengthLine = (lastAnswer?: string) => {
+  const n = (lastAnswer || '').trim().length;
+  if (n >= 60) return '\n相手はいま長めに・しっかり話している。短い受け流し一言で終えず、その分量と熱量に見合うだけちゃんと受けて応える（2〜3文で、まず中身を受け止めてから）。';
+  if (n > 0 && n <= 12) return '\n相手は短く打っている。こちらも短く、テンポよく一言で。';
+  return '';
+};
+
 /** 非strikeの手を Flash で生成。 */
-export async function generateTurn(g: GenInput): Promise<TurnOut> {
+export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${MOVE_INSTRUCTION[g.move] || ''}\n入力モード=${g.inputMode}（free のときは choices を空配列に）`,
+    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}
+choices は「タップするとそのまま“ユーザーの発言”として送信される文」。
+★選択肢を出すのは「数個の具体的な答えで自然に片づくクローズドな問い」のときだけ（例：「どっちかというと朝型？夜型？」→「朝型かな」「夜は強い」）。
+★相手が自分の言葉で語る必要がある“オープンな問い”（例：「そのこと、もっと聞かせて」「最近どう？」「なんでそう思ったの？」）では、必ず choices を空配列 [] にして自由入力に委ねる。逃げ道が要る場面でも添えるのは「違う話題にしよう」1個まで。
+出すときは本人の一人称・話し言葉でそのまま送れる返答にし、最大2〜3個。行動説明・ト書き・方向ラベル（「詳細を語る」「素直に話す」等）や機械的二択（「いい感じ／微妙」）は禁止。迷ったら空配列。${langLine(g.lang)}`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
 
+/** 境界の許可取り(ask_boundary)を Flash で生成。message のみLLM、choices は固定二択で routing 保証。 */
+export async function generateBoundaryAsk(g: GenInput): Promise<any> {
+  const user = buildContext({
+    relation: g.relation, recentTurns: g.recentTurns, lastAnswer: g.lastAnswer,
+    extra: `【今回の手: ask_boundary】今回確認したいテーマ＝「${g.boundaryTopic || ''}」。${MOVE_INSTRUCTION.ask_boundary}${styleLine(g.tone, g.depth)}${langLine(g.lang)}`,
+  });
+  const out = await llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: 'ask_boundary', topic: g.boundaryTopic } });
+  return { message: out.message, choices: BOUNDARY_CHOICES };
+}
+
 /** 言い当て(strike)を Pro で生成。 */
-export async function generateStrike(g: GenInput): Promise<StrikeOut> {
+export async function generateStrike(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, fragments: g.fragments, memory: g.memory, lastAnswer: g.lastAnswer,
-    extra: `対象領域: ${g.domain}。まだ本人に言っていない読みを一文で刺せ。`,
+    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nまだ本人に言っていない読みを一文で刺せ。${langLine(g.lang)}`,
   });
   return llm({ purpose: 'strike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { struck: g.struck, domain: g.domain, lastText: g.lastAnswer } });
 }
 
 /** ハズレ回復の再strike を Pro で生成。 */
-export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[] }): Promise<StrikeOut> {
+export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[]; lang?: string }): Promise<any> {
   const user = buildContext({
     recentTurns: args.recentTurns,
-    extra: `直前の読み「${args.fragmentText}」は外した。ハズレ型=${args.missType}${args.detail ? `／本人の言葉「${args.detail}」` : ''}。この差分を燃料に、もう一度当て直す一文を出せ。`,
+    extra: `直前の読み「${args.fragmentText}」は外した。ハズレ型=${args.missType}${args.detail ? `／本人の言葉「${args.detail}」` : ''}。この差分を燃料に、もう一度当て直す一文を出せ。${langLine(args.lang)}`,
   });
   return llm({ purpose: 'restrike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { missType: args.missType, detail: args.detail, fragmentText: args.fragmentText, domain: args.domain } });
 }

@@ -14,6 +14,24 @@ export interface LLMRequest<T> {
   temperature?: number;
 }
 
+// DeepSeek等に「どんなキーのJSONを返すか」を明示する形のスペック（mockは正しい形を直接返すので不要だが実LLMには必須）。
+const SHAPES: Record<Purpose, string> = {
+  score: `{"scores":{"specificity":0,"emotionalDepth":0,"selfInsight":0},"domain":"対人","type":"trait"}
+  ※ specificity/emotionalDepth/selfInsight は各0〜3の整数。type は trait|event|preference|value|relation|pattern のいずれか。`,
+  turn: `{"message":"AIの発話一文","choices":[{"label":"ユーザーがそのまま送れる一人称の返答1","value":"同じ文字列"},{"label":"ユーザーがそのまま送れる一人称の返答2","value":"同じ文字列"}]}
+  ※ choices は「タップしたらそのまま本人の発言として送信されるテキスト」。必ずユーザーの一人称・話し言葉で書く（例:「実はいいことあったんだ」「ちょっと愚痴ってもいい？」「うーん、特にないかな」「逆に君はどう？」）。
+  ※「詳細を語る」「素直に話す」「話題を変える」のような“行動の説明・ト書き・方向ラベル”には絶対にしない（送信文として成立しない）。label と value は同じ文字列。空配列にしない。機械的な確認二択にもしない。`,
+  strike: `{"message":"言い当ての一文","components":{"subject":"あなた","claim":"主張","qualifier":"限定（無ければ空文字）","valence":"pos"},"confidence":0.75,"type":"trait","domain":"対人","missCandidates":[{"label":"むしろ逆かも","value":"opposite"},{"label":"そこまでじゃない","value":"degree"},{"label":"相手や場面が違う","value":"object"},{"label":"当たってるけど理由が違う","value":"reason"}]}
+  ※ valence は pos|neg|neu。confidence は0〜1。type は trait|event|preference|value|relation|pattern。missCandidates の value は opposite|degree|object|reason|partial|whole のいずれか。`,
+  restrike: `{"message":"当て直しの一文","components":{"subject":"あなた","claim":"主張","qualifier":"","valence":"neu"},"confidence":0.7,"type":"trait","domain":"対人","missCandidates":[{"label":"むしろ逆かも","value":"opposite"}]}`,
+  seeds: `{"seeds":[{"title":"コンテンツのタイトル","summary":"一文の概要","domain":"対人","suggestedFormat":"roughtext","sourceFragmentIds":[]}]}
+  ※ suggestedFormat は timeline|contrast|constellation|roughtext。seeds は最大3つ。`,
+  format: `{"format":"roughtext","reason":"選んだ理由"}
+  ※ format は timeline|contrast|constellation|roughtext のいずれか。`,
+  content: `{"title":"タイトル","format":"roughtext","payload":null,"bodies":{"detailed":"詳しい本文","normal":"普通の本文","vague":"ぼかした本文"}}
+  ※ format は timeline|contrast|constellation|roughtext。bodies は3粒度すべて必須。`,
+};
+
 export async function llm<T>(req: LLMRequest<T>): Promise<T> {
   if (isMockLLM()) return req.schema.parse(mockGenerate(req.purpose, req.hints || {}));
 
@@ -23,7 +41,7 @@ export async function llm<T>(req: LLMRequest<T>): Promise<T> {
     model,
     messages: [
       { role: 'system', content: req.system },
-      { role: 'user', content: req.user + '\n\n必ず指定スキーマに沿った JSON オブジェクトのみを返してください。' },
+      { role: 'user', content: req.user + '\n\n出力は次の形のJSONオブジェクトだけを返す（キー名は完全一致、余計なキーや説明文は不要）:\n' + SHAPES[req.purpose] },
     ],
     temperature: req.temperature ?? (req.model === 'pro' ? 0.8 : 0.5),
     response_format: { type: 'json_object' },

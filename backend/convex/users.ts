@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, internalQuery } from './_generated/server';
 import { computeResolution } from './lib/resolution';
+import { prefsFor } from './helpers';
 
 const DEV = () => (process.env.ALLOW_DEV_USER || '').trim() === '1';
 const DEMO_HANDLE = 'maruyama';
@@ -62,7 +63,7 @@ export const getMe = query({
   handler: async (ctx) => {
     const uid = await resolveUserId(ctx);
     if (!uid) return null;
-    const u = await ctx.db.get(uid);
+    const u: any = await ctx.db.get(uid);
     const cards = await ctx.db.query('contentCards').withIndex('by_user', (q) => q.eq('userId', uid)).collect();
     const agreed = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', uid).eq('status', 'agreed')).collect();
     const corrected = await ctx.db.query('fragments').withIndex('by_user_status', (q) => q.eq('userId', uid).eq('status', 'corrected')).collect();
@@ -73,9 +74,41 @@ export const getMe = query({
     return {
       displayName: u!.displayName, userId: `@${u!.userId}`, bio: u!.bio, avatar: u!.avatar,
       profilePrivate: u!.profilePrivate, resolution, isPremium: !!ent?.isPremium,
+      intakeDone: !!u!.intake, intake: u!.intake || null,
       cards: cards.map((c) => ({ id: c._id, title: c.title, body: c.body, format: c.format, payload: c.payload, conf: c.conf, layers: c.layers, isPremium: c.isPremium, pinned: c.pinned })),
       incomingRequests: reqs.map((r) => ({ id: r._id, name: r.fromName, fromUser: r.fromUser })),
+      preferences: await prefsFor(ctx, uid),
     };
+  },
+});
+
+/** 初回オンボーディングの基本情報を保存（完了フラグ兼用）。 */
+export const saveIntake = mutation({
+  args: { answers: v.any() },
+  handler: async (ctx, a) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid) throw new Error('not authenticated');
+    await ctx.db.patch(uid, { intake: { ...(a.answers || {}), doneAt: new Date().toISOString() } });
+    return { ok: true };
+  },
+});
+
+/** 受信ダイヤル(preferences)の更新。設定の軽トグルから呼ぶ。 */
+export const setPreferences = mutation({
+  args: { strikeIntensity: v.optional(v.string()), boundariesNg: v.optional(v.array(v.string())), tone: v.optional(v.string()), depth: v.optional(v.string()) },
+  handler: async (ctx, a) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid) throw new Error('not authenticated');
+    const rel = await ctx.db.query('relationshipState').withIndex('by_user', (q) => q.eq('userId', uid)).unique();
+    if (!rel) return { ok: false };
+    const cur: any = rel.preferences || {};
+    const next: any = { ...cur };
+    if (a.strikeIntensity !== undefined) next.strikeIntensity = a.strikeIntensity;
+    if (a.boundariesNg !== undefined) next.boundariesNg = a.boundariesNg;
+    if (a.tone !== undefined) next.tone = a.tone;
+    if (a.depth !== undefined) next.depth = a.depth;
+    await ctx.db.patch(rel._id, { preferences: next });
+    return { ok: true, preferences: next };
   },
 });
 

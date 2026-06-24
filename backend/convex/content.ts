@@ -11,7 +11,7 @@ const GRAN_CONF = TUNING.GRAN_CONF;
 // 候補生成（Flash, action）。spec §5-1
 export const buildCandidates = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const agreed = await ctx.runQuery(internal.content.loadAgreed, { uid });
     const out = await buildSeeds(agreed);
@@ -49,13 +49,13 @@ export const getCandidates = query({
 // 生成（フォーマット選定 Flash ＋ 本文 Pro, action）。spec §5-2。永続化はせず draft を返す（reviewステップ）。
 export const generate = action({
   args: { seedId: v.id('contentSeeds'), granularity: v.optional(v.string()) },
-  handler: async (ctx, { seedId, granularity }) => {
+  handler: async (ctx, { seedId, granularity }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const data = await ctx.runQuery(internal.content.seedWithFrags, { seedId });
     if (!data) throw new Error('seed not found');
     const fmt = data.seed.suggestedFormat && data.seed.suggestedFormat !== 'roughtext' ? data.seed.suggestedFormat : await selectFormat(data.frags);
     const content = await generateContentBody({ title: data.seed.title, summary: data.seed.summary, format: fmt as any, frags: data.frags });
-    const gran = (granularity as any) || 'normal';
+    const gran = ((granularity as string) || 'normal') as 'detailed' | 'normal' | 'vague';
     return { seedId, format: content.format, title: content.title, payload: content.payload, body: content.bodies[gran], bodies: content.bodies, conf: GRAN_CONF[gran] };
   },
 });

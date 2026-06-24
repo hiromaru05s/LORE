@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<!-- LORE バックエンド接続。URL/キーを入れると実バックエンド、未設定ならデモのまま動く。 -->
+<script>
+  window.LORE_CONVEX_URL = "https://elated-ptarmigan-991.convex.cloud";
+  window.LORE_CLERK_PUBLISHABLE_KEY = "pk_test_ZXhjaXRlZC1qYWd1YXItMi5jbGVyay5hY2NvdW50cy5kZXYk";  // Clerk Publishable Key（公開してOKな鍵）
+</script>
+<script type="module" src="./lore-convex.js"></script>
 </head>
 <body>
 <x-dc>
@@ -19,15 +25,20 @@
 <link rel="apple-touch-icon" href="mark-blue.png">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
+/* ページ自体のスクロール/バウンスを止める（モバイルで画面全体が持ち上がるのを防ぐ） */
+body{position:fixed;inset:0;width:100%;height:100%;background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+/* 内側のスクロール領域だけが動く。スクロール連鎖（チェーン）も止める */
+[style*="overflow-y:auto"],[style*="overflow:auto"]{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 ::selection{background:var(--ink);color:#fff}
 
 /* ===== theme tokens ===== */
-:root{--bg:#F2F2F2;--surface:#fff;--surface2:#F7F7F5;--surface3:#f0efec;--accentBg:#EEF1FF;--dangerBg:#FDECEC;--text:#0A0A0A;--text2:#222;--muted:#888;--faint:#aaa;--border:#e4e2dd;--ink:#0A0A0A;--track:#cfcfca;--dot:#8e8e93;--scrollthumb:#d9d9d4;--warnBg:#FFF7ED;--warnBorder:#FBD9A8;--warnIcon:#C2410C;--warnText:#9A3412}
+:root{--bg:#F2F2F2;--surface:#fff;--surface2:#F7F7F5;--surface3:#f0efec;--accentBg:#EEF1FF;--dangerBg:#FDECEC;--text:#0A0A0A;--text2:#222;--muted:#888;--faint:#aaa;--border:#e4e2dd;--ink:#0A0A0A;--track:#cfcfca;--dot:#8e8e93;--scrollthumb:#d9d9d4;--warnBg:#FFF7ED;--warnBorder:#FBD9A8;--warnIcon:#C2410C;--warnText:#9A3412;--accentBorder:#C2CCFF}
 html.lore-dark{--bg:#0d0d0f;--surface:#1a1a1d;--surface2:#232327;--surface3:#26262b;--accentBg:#1b2444;--dangerBg:#3a1f22;--text:#f0f0f2;--text2:#d6d6d9;--muted:#9a9aa0;--faint:#70707a;--border:#2d2d33;--ink:#2a2a30;--track:#3a3a40;--dot:#6a6a72;--scrollthumb:#3a3a40;--warnBg:#2a1d0f;--warnBorder:#5a4220;--warnIcon:#b8541f;--warnText:#f0a35a}
 html.lore-dark,html.lore-dark body{background:#0d0d0f}
 input,textarea,button{font-family:inherit}
+input,textarea{color:var(--text)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
 textarea{resize:none}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--scrollthumb);border:2px solid transparent;background-clip:content-box;border-radius:10px}
@@ -43,10 +54,17 @@ textarea{resize:none}
 @keyframes loreBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
 @keyframes loreMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes loreSheen{0%{transform:translateX(-120%)}60%,100%{transform:translateX(220%)}}
+@keyframes obTalk{0%,100%{transform:translateY(0) scale(1)}28%{transform:translateY(-4px) scale(1.08)}58%{transform:translateY(1px) scale(.98)}}
+@keyframes obSway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-3px)}}
+@keyframes obCheckPop{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.14) rotate(-3deg)}70%{transform:scale(.98)}}
+@keyframes obSharePulse{0%,100%{transform:scale(1) rotate(0)}45%{transform:scale(1.1) rotate(6deg)}}
+@keyframes swHintL{0%,100%{transform:translateX(0);opacity:.8}50%{transform:translateX(-8px);opacity:1}}
+@keyframes swHintR{0%,100%{transform:translateX(0);opacity:.8}50%{transform:translateX(8px);opacity:1}}
+@keyframes swCardHint{0%,72%,100%{transform:translateX(0) rotate(0)}80%{transform:translateX(13px) rotate(2.4deg)}88%{transform:translateX(-13px) rotate(-2.4deg)}}
 </style>
 </helmet>
 
-<div style="height:100vh;width:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Archivo','Noto Sans JP',sans-serif">
+<div style="height:100vh;height:100dvh;width:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Archivo','Noto Sans JP',sans-serif">
 
 <!-- ============ WELCOME ============ -->
 <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
@@ -75,18 +93,32 @@ textarea{resize:none}
     <div style="font-weight:900;letter-spacing:-.04em;line-height:1;font-size:clamp(50px,11vw,104px);animation:loreWordIn 1.05s cubic-bezier(.2,.8,.2,1) both">LORE</div>
     <div style="font-weight:700;font-size:clamp(14px,2.2vw,19px);opacity:.92;margin:12px 0 26px;text-align:center;animation:loreUp .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:.4s">{{ landing.tagline }}</div>
     <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:11px;animation:loreUp .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:.55s">
-      <button onClick="{{ onOAuth }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:background .15s ease"><span style="font-weight:900;font-size:17px;letter-spacing:.02em">G</span>{{ tGoogle }}</button>
-      <button onClick="{{ onOAuth }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:background .15s ease"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-top:-2px"><path d="M16.1 12.8c0-2.2 1.7-3.2 1.8-3.3-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.4 2.5-.4 6.2 1 8.2.7 1 1.4 2.1 2.5 2 1-.0 1.3-.6 2.5-.6 1.2 0 1.5.6 2.5.6 1 0 1.7-1 2.3-2 .7-1.1 1-2.2 1-2.3 0 0-2-.8-2-3.0zM14.4 6.4c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-1 1.5-.8 2.4.9.1 1.7-.4 2.3-1.1z"></path></svg>{{ tApple }}</button>
+      <button onClick="{{ onGoogle }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;transition:background .15s ease"><span style="font-weight:900;font-size:17px;letter-spacing:.02em">G</span>{{ tGoogle }}</button>
+      <button onClick="{{ onApple }}" onMouseEnter="{{ pillIn }}" onMouseLeave="{{ pillOut }}" style="appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:none;border-radius:30px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;opacity:.6;transition:background .15s ease"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-top:-2px"><path d="M16.1 12.8c0-2.2 1.7-3.2 1.8-3.3-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.4 2.5-.4 6.2 1 8.2.7 1 1.4 2.1 2.5 2 1-.0 1.3-.6 2.5-.6 1.2 0 1.5.6 2.5.6 1 0 1.7-1 2.3-2 .7-1.1 1-2.2 1-2.3 0 0-2-.8-2-3.0zM14.4 6.4c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-1 1.5-.8 2.4.9.1 1.7-.4 2.3-1.1z"></path></svg>{{ tApple }}</button>
       <div style="display:flex;align-items:center;gap:12px;margin:5px 0">
         <span style="flex:1;height:1px;background:rgba(255,255,255,.4)"></span>
         <span style="font-size:12px;font-weight:700;opacity:.85">{{ tOr }}</span>
         <span style="flex:1;height:1px;background:rgba(255,255,255,.4)"></span>
       </div>
-      <div style="position:relative;width:100%;background:var(--surface);border-radius:14px;border:2px solid {{ authBorder }};transition:border-color .15s ease">
-        <span style="position:absolute;left:18px;top:{{ authLabelTop }};transform:{{ authLabelTransform }};font-size:{{ authLabelSize }};color:{{ authLabelColor }};font-weight:600;pointer-events:none;transition:all .16s cubic-bezier(.2,.8,.2,1)">{{ tEmailPh }}</span>
-        <input ref="{{ setAuthEl }}" onFocus="{{ onAuthFocus }}" onBlur="{{ onAuthBlur }}" onChange="{{ onAuthInput }}" onKeyDown="{{ onAuthKey }}" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-weight:600;padding:20px 18px 7px;box-sizing:border-box">
+      <sc-if value="{{ authIdle }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div style="position:relative;width:100%;background:var(--surface);border-radius:14px;border:2px solid {{ authBorder }};transition:border-color .15s ease">
+          <span style="position:absolute;left:18px;top:{{ authLabelTop }};transform:{{ authLabelTransform }};font-size:{{ authLabelSize }};color:{{ authLabelColor }};font-weight:600;pointer-events:none;transition:all .16s cubic-bezier(.2,.8,.2,1)">{{ tEmailPh }}</span>
+          <input ref="{{ setAuthEl }}" onFocus="{{ onAuthFocus }}" onBlur="{{ onAuthBlur }}" onChange="{{ onAuthInput }}" onKeyDown="{{ onAuthKey }}" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-weight:600;padding:20px 18px 7px;box-sizing:border-box">
+        </div>
+        <button onClick="{{ onAuthContinue }}" style-hover="background:rgba(255,255,255,.12)" style="width:100%;appearance:none;cursor:{{ authBtnCursor }};background:{{ authBtnBg }};color:#fff;border:1.5px solid {{ authBtnBorder }};border-radius:30px;padding:13px;font-weight:800;font-size:15px;opacity:{{ authBtnOpacity }};transition:opacity .15s ease, background .15s ease">{{ tContinue }}</button>
       </div>
-      <button onClick="{{ onAuthContinue }}" style-hover="background:rgba(255,255,255,.12)" style="width:100%;appearance:none;cursor:{{ authBtnCursor }};background:{{ authBtnBg }};color:#fff;border:1.5px solid {{ authBtnBorder }};border-radius:30px;padding:13px;font-weight:800;font-size:15px;opacity:{{ authBtnOpacity }};transition:opacity .15s ease, background .15s ease">{{ tContinue }}</button>
+      </sc-if>
+      <sc-if value="{{ authCodeStage }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <p style="font-size:12.5px;line-height:1.6;color:rgba(255,255,255,.85);text-align:center;margin:0;font-weight:600">{{ tCodeSent }}<br><span style="font-weight:800;color:#fff">{{ authEmail }}</span></p>
+        <div style="position:relative;width:100%;background:var(--surface);border-radius:14px;border:2px solid rgba(255,255,255,.55)">
+          <input ref="{{ setCodeEl }}" onChange="{{ onCodeInput }}" onKeyDown="{{ onCodeKey }}" inputmode="numeric" autocomplete="one-time-code" placeholder="______" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:20px;font-weight:800;letter-spacing:.5em;text-align:center;padding:15px 18px;box-sizing:border-box">
+        </div>
+        <button onClick="{{ onVerifyCode }}" style-hover="background:rgba(255,255,255,.12)" style="width:100%;appearance:none;cursor:pointer;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.85);border-radius:30px;padding:13px;font-weight:800;font-size:15px;transition:background .15s ease">{{ tVerify }}</button>
+        <button onClick="{{ authBack }}" style="width:100%;appearance:none;cursor:pointer;background:none;border:none;color:rgba(255,255,255,.7);font-size:12.5px;font-weight:700;padding:2px">{{ tAuthBack }}</button>
+      </div>
+      </sc-if>
       <p style="font-size:11px;line-height:1.7;color:rgba(255,255,255,.6);text-align:center;margin:8px 0 0;font-weight:500">{{ tTosPre }}<span onClick="{{ openTerms }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer;text-decoration:underline">{{ tTosTerms }}</span>{{ tTosSep1 }}<span onClick="{{ openPrivacy }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer;text-decoration:underline">{{ tTosPrivacy }}</span>{{ tTosSep2 }}<span onClick="{{ openCookie }}" style-hover="text-decoration:underline" style="color:#fff;font-weight:700;cursor:pointer;text-decoration:underline">{{ tTosCookie }}</span>{{ tTosPost }}</p>
       <sc-if value="{{ canInstall }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ installApp }}" style="margin-top:6px;width:100%;appearance:none;cursor:pointer;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:30px;padding:12px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></svg>{{ t.s105 }}</button>
@@ -112,7 +144,7 @@ textarea{resize:none}
       <div style="color:#E5484D;font-size:12px;font-weight:700;margin-top:10px">{{ loginErr }}</div>
     </sc-if>
     <button onClick="{{ onLogin }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:15px;font-weight:900;font-size:15px;margin-top:18px">{{ tLogin }}</button>
-    <div style="margin-top:14px;background:var(--bg);border-radius:8px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.7;font-weight:500">{{ t.s87 }}<br>ID: <b style="color:var(--text)">maruyama</b> ／ PW: <b style="color:var(--text)">lore</b></div>
+    <div style="margin-top:14px;background:var(--bg);border-radius:8px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.7;font-weight:500">{{ t.s87 }}<br>ID: <b style="color:var(--text)">maruyama</b> ／ PW: <b style="color:var(--text)">lore</b><br>Premium: <b style="color:var(--text)">premium</b> ／ PW: <b style="color:var(--text)">lore</b></div>
   </div>
 </div>
 </sc-if>
@@ -186,6 +218,21 @@ textarea{resize:none}
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onClick="{{ closeProfileEdit }}" style="flex:1;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:14px;font-weight:800;font-size:15px">{{ t.s54 }}</button>
       <button onClick="{{ saveProfileEdit }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">{{ t.s1 }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LORE ID CHANGE CONFIRM ============ -->
+<sc-if value="{{ idChangeConfirm }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ cancelIdChange }}" style="position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stop }}" style="background:var(--surface);color:var(--text);width:100%;max-width:400px;border-radius:16px;padding:26px 24px 22px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+    <div style="width:50px;height:50px;border-radius:14px;background:var(--accentBg);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+    <div style="font-weight:900;font-size:19px;letter-spacing:-.01em;margin-bottom:10px">{{ idChangeTitle }}</div>
+    <p style="font-size:14px;line-height:1.8;color:var(--muted);font-weight:500;margin:0 0 22px">{{ idChangeBody }}</p>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ cancelIdChange }}" style="flex:1;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:14px;font-weight:800;font-size:15px">{{ idChangeCancel }}</button>
+      <button onClick="{{ confirmIdChange }}" style="flex:1;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:8px;padding:14px;font-weight:900;font-size:15px">{{ idChangeOk }}</button>
     </div>
   </div>
 </div>
@@ -323,11 +370,56 @@ textarea{resize:none}
 </sc-if>
 
 <!-- ============ IMAGE CROP ============ -->
+<sc-if value="{{ onboardOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:95;background:rgba(8,8,10,.74);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px;animation:loreFade .28s ease both">
+  <div style="background:var(--surface);color:var(--text);width:100%;max-width:430px;max-height:92vh;overflow:auto;border-radius:26px;box-shadow:0 34px 90px rgba(0,0,0,.55);padding:26px 20px 20px;animation:loreUp .4s ease both">
+    <div style="text-align:center">
+      <span style="display:inline-flex;align-items:center;gap:7px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:20px;padding:5px 13px"><span style="width:6px;height:6px;border-radius:50%;background:#1E40FF;animation:lorePulse 1.4s infinite"></span><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:#1E40FF;font-weight:700">{{ obKicker }}</span></span>
+    </div>
+    <div style="text-align:center;font-weight:900;font-size:22px;letter-spacing:-.01em;margin:10px 0 3px">{{ obTitle }}</div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:18px">{{ obSubtitle }}</div>
+
+    <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px">
+      <span style="width:{{ obDot1W }};height:7px;border-radius:4px;background:{{ obDot1 }};transition:all .4s"></span>
+      <span style="width:{{ obDot2W }};height:7px;border-radius:4px;background:{{ obDot2 }};transition:all .4s"></span>
+      <span style="width:{{ obDot3W }};height:7px;border-radius:4px;background:{{ obDot3 }};transition:all .4s"></span>
+      <span style="width:{{ obDot4W }};height:7px;border-radius:4px;background:{{ obDot4 }};transition:all .4s"></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow1.bd }};background:{{ obRow1.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow1.op }};transform:scale({{ obRow1.sc }});box-shadow:{{ obRow1.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">1</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow1.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="2" y="7" width="40" height="17" rx="8.5" style="fill:currentColor;opacity:.16"></rect><circle cx="13" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="21" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="29" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><rect x="22" y="28" width="40" height="16" rx="8" fill="#1E40FF"></rect></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS1 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS1d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow2.bd }};background:{{ obRow2.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow2.op }};transform:scale({{ obRow2.sc }});box-shadow:{{ obRow2.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">2</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow2.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="13" y="11" width="26" height="32" rx="5" transform="rotate(-10 26 27)" style="fill:none;stroke:currentColor;opacity:.4" stroke-width="2"></rect><rect x="25" y="9" width="26" height="32" rx="5" transform="rotate(8 38 25)" style="fill:none;stroke:currentColor;opacity:.55" stroke-width="2"></rect><rect x="19" y="10" width="26" height="32" rx="5" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><path d="M50 5 l1.2 3 l3 1.2 l-3 1.2 L50 14.6 l-1.2-3.2 l-3-1.2 l3-1.2 z" fill="#1E40FF"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS2 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS2d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow3.bd }};background:{{ obRow3.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow3.op }};transform:scale({{ obRow3.sc }});box-shadow:{{ obRow3.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">3</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow3.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="9" y="7" width="34" height="34" rx="6" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><rect x="15" y="14" width="22" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><rect x="15" y="21" width="15" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><circle cx="46" cy="34" r="11" fill="#1E40FF"></circle><path d="M41 34 l3.2 3.2 l6.2-6.6" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS3 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS3d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow4.bd }};background:{{ obRow4.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow4.op }};transform:scale({{ obRow4.sc }});box-shadow:{{ obRow4.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">4</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow4.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="3" y="8" width="34" height="34" rx="7" style="fill:currentColor;opacity:.13"></rect><circle cx="13" cy="19" r="5" style="fill:currentColor;opacity:.5"></circle><rect x="20" y="15" width="13" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="20" y="21" width="9" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="8" y="29" width="25" height="8" rx="3" style="fill:currentColor;opacity:.22"></rect><circle cx="53" cy="11" r="5" fill="#1E40FF"></circle><circle cx="44" cy="26" r="5" fill="#1E40FF"></circle><circle cx="56" cy="37" r="5" fill="#1E40FF"></circle><path d="M48.5 23.5 L50 14.5 M48.5 28.5 L52.5 34" stroke="#1E40FF" stroke-width="2" stroke-linecap="round"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS4 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS4d }}</div></div>
+      </div>
+    </div>
+
+    <button onClick="{{ closeOnboard }}" style="margin-top:18px;width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:14px;padding:15px;font-weight:900;font-size:15px;box-shadow:0 8px 20px rgba(30,64,255,.32)">{{ obCta }}</button>
+    <div style="text-align:center;margin-top:9px;font-size:11px;color:var(--faint)">{{ obHint }}</div>
+  </div>
+</div>
+</sc-if>
+
 <sc-if value="{{ cropOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;background:rgba(10,10,10,.78);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--surface);color:var(--text);width:100%;max-width:440px;border-radius:16px;padding:20px;box-shadow:0 22px 54px rgba(0,0,0,.42)">
     <div style="font-weight:900;font-size:18px;margin-bottom:14px">{{ t.s91 }}</div>
-    <div ref="{{ setCropFrame }}" onPointerDown="{{ onCropDown }}" onPointerMove="{{ onCropMove }}" onPointerUp="{{ onCropUp }}" onPointerLeave="{{ onCropUp }}" style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;background:#000;touch-action:none;cursor:grab;user-select:none">
+    <div ref="{{ setCropFrame }}" onPointerDown="{{ onCropDown }}" onPointerMove="{{ onCropMove }}" onPointerUp="{{ onCropUp }}" onPointerLeave="{{ onCropUp }}" style="position:relative;width:100%;aspect-ratio:{{ cropAspect }};overflow:hidden;border-radius:{{ cropRadius }};background:#000;touch-action:none;cursor:grab;user-select:none">
       <img src="{{ cropSrc }}" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:translate({{ cropX }}px,{{ cropY }}px) scale({{ cropScale }});transform-origin:center;will-change:transform;pointer-events:none">
       <div style="position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)"></div>
     </div>
@@ -432,49 +524,36 @@ textarea{resize:none}
     <button onClick="{{ onDemo }}" style="appearance:none;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:11px;flex:none">skip →</button>
   </div>
 
-  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px">
-    <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 20px">
+    <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
       <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
         <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
             <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-            <div style="background:var(--surface);border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+            <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:18px 18px 18px 5px;padding:8px 13px;font-size:14px;line-height:1.5;font-weight:{{ m.weight }};max-width:80%;box-shadow:0 1px 2px rgba(10,10,10,.06)">{{ m.text }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
-            <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+            <div style="background:#1E40FF;color:#fff;border-radius:18px 18px 5px 18px;padding:8px 13px;font-size:14px;line-height:1.45;font-weight:500;max-width:80%">{{ m.text }}</div>
           </div>
         </sc-if>
       </sc-for>
-
-      <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
-        <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:var(--ink);display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
-          <div style="background:var(--ink);color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
-          <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:10px 2px 12px">{{ t.s93 }}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--ink);color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">{{ t.s31 }}</button>
-            <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s52 }}</button>
-            <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s67 }}</button>
-          </div>
-        </div>
-      </sc-if>
     </div>
   </div>
 
-  <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px 16px">
+  <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px 11px">
     <div style="max-width:620px;margin:0 auto">
       <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
-            <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--text)">{{ s.text }}</button>
+            <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--text)">{{ s.text }}</button>
           </sc-for>
         </div>
       </sc-if>
       <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s102 }}" style="flex:1;border:1px solid var(--border);border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:var(--surface2)"></textarea>
-        <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+        <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s102 }}" style="flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 15px;font-size:14px;line-height:1.4;min-height:38px;max-height:110px;outline:none;background:var(--surface2)"></textarea>
+        <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff" style="transform:translateX(1px)"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .65.65 1.1 1.39.91z"></path></svg></button>
       </div>
     </div>
   </div>
@@ -505,7 +584,7 @@ textarea{resize:none}
         <img src="{{ logoMark }}" alt="LORE" style="width:26px;height:26px;display:block;flex:none">
         <span style="font-weight:900;letter-spacing:-.02em;font-size:18px;opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap;color:var(--text)">LORE</span>
       </button>
-      <button onClick="{{ navHome.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navHome.bg }};color:{{ navHome.color }};font-weight:{{ navHome.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s17 }}</span></button>
+      <button onClick="{{ navHome.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navHome.bg }};color:{{ navHome.color }};font-weight:{{ navHome.weight }}"><span style="position:relative;flex:none;display:flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><sc-if value="{{ homeUnread }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#FF3B30;border:2px solid var(--surface)"></span></sc-if></span><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s17 }}</span></button>
       <button onClick="{{ navCreate.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navCreate.bg }};color:{{ navCreate.color }};font-weight:{{ navCreate.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 5v14M5 12h14"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s20 }}</span></button>
       <button onClick="{{ navSearch.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navSearch.bg }};color:{{ navSearch.color }};font-weight:{{ navSearch.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s19 }}</span></button>
       <button onClick="{{ navProfile.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navProfile.bg }};color:{{ navProfile.color }};font-weight:{{ navProfile.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s74 }}</span></button>
@@ -524,15 +603,16 @@ textarea{resize:none}
 
   <!-- HOME = TALK -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
-  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg)">
-    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:11px 18px">
-      <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px;position:relative">
-        <div style="width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em">丸</div>
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg);position:relative">
+    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:9px 14px">
+      <div style="max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;position:relative">
+        <div style="position:relative;width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em;overflow:hidden">{{ homeAvatar }}<sc-if value="{{ hasMyAvatarImg }}" hint-placeholder-val="{{ false }}"><img src="{{ myAvatarImg }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></sc-if></div>
         <div style="min-width:0">
           <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">{{ displayName }}</div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.04em">{{ userId }}</div>
         </div>
-        <button onClick="{{ toggleHomeMenu }}" aria-label="{{ t.s36 }}" style="margin-left:auto;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px;flex:none"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
+        <button onClick="{{ toggleChatSearch }}" aria-label="{{ t.s10 }}" style="margin-left:auto;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;flex:none;color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg></button>
+        <button onClick="{{ toggleHomeMenu }}" aria-label="{{ t.s36 }}" style="margin-left:2px;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px;flex:none"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
         <sc-if value="{{ homeMenuOpen }}" hint-placeholder-val="{{ false }}">
           <div onClick="{{ closeHomeMenu }}" style="position:fixed;inset:0;z-index:19"></div>
           <div onClick="{{ stop }}" style="position:absolute;top:46px;right:0;z-index:20;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(10,10,10,.18);padding:6px;min-width:240px">
@@ -542,23 +622,137 @@ textarea{resize:none}
                 <span style="position:absolute;top:3px;left:{{ muteKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span>
               </span>
             </button>
+            <button onClick="{{ openPrefs }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-radius:8px;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid var(--border)">
+              <span style="flex:1;font-weight:700;font-size:14px;color:var(--text)">{{ prefSectionLabel }}</span>
+              <span style="color:var(--faint);font-size:18px;line-height:1">›</span>
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ prefsOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closePrefs }}" style="position:fixed;inset:0;z-index:60;background:rgba(10,10,10,.42);display:flex;align-items:flex-end;justify-content:center">
+            <div onClick="{{ stop }}" style="width:100%;max-width:460px;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 30px;max-height:88vh;overflow-y:auto;color:var(--text);animation:loreSlideUp .3s cubic-bezier(.2,.8,.2,1) both">
+              <div style="display:flex;align-items:center;margin-bottom:6px">
+                <div style="flex:1;font-weight:900;font-size:18px;letter-spacing:-.01em">{{ prefSectionLabel }}</div>
+                <button onClick="{{ closePrefs }}" style="appearance:none;cursor:pointer;background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:4px">{{ t.s28 }}</button>
+              </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px">{{ prefIntro }}</div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ intensityTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ intensityHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ intensityLabel }}</span>
+                <button onClick="{{ toggleIntensity }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ intensityTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ intensityKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ toneTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ toneHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ toneLabel }}</span>
+                <button onClick="{{ toggleTone }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ toneTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ toneKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border)">
+                <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">{{ depthTitle }}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">{{ depthHint }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-right:4px">{{ depthLabel }}</span>
+                <button onClick="{{ toggleDepth }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;flex:none"><span style="position:relative;display:block;width:42px;height:24px;border-radius:13px;background:{{ depthTrack }};transition:background .2s"><span style="position:absolute;top:3px;left:{{ depthKnob }};width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></button>
+              </div>
+
+              <div style="padding:14px 0 0;border-top:1px solid var(--border)">
+                <div style="font-weight:700;font-size:15px">{{ boundaryTitle }}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;margin-bottom:12px">{{ boundaryHint }}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ boundaryChips }}" as="b" hint-placeholder-count="5">
+                    <button onClick="{{ b.onClick }}" style="appearance:none;cursor:pointer;background:{{ b.bg }};color:{{ b.fg }};border:1px solid {{ b.border }};border-radius:18px;padding:8px 14px;font-size:13px;font-weight:600">{{ b.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
           </div>
         </sc-if>
       </div>
     </div>
 
-    <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px;min-height:0">
-      <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ chatSearchOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px">
+      <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:12px;padding:8px 14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input value="{{ chatSearchQ }}" onChange="{{ onChatSearchInput }}" placeholder="{{ tChatSearchPh }}" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-weight:600">
+        <sc-if value="{{ chatSearchActive }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);flex:none">{{ chatSearchCount }}</span></sc-if>
+        <button onClick="{{ closeChatSearch }}" aria-label="{{ t.s28 }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:2px 4px;color:var(--muted);font-size:16px;line-height:1;flex:none">✕</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 20px;min-height:0">
+      <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
         <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
           <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
               <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-              <div style="background:var(--surface);border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:500;max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+              <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:18px 18px 18px 5px;padding:8px 13px;font-size:14px;line-height:1.5;font-weight:{{ m.weight }};max-width:80%;box-shadow:0 1px 2px rgba(10,10,10,.06)">{{ m.text }}</div>
             </div>
           </sc-if>
           <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
-              <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+              <div style="background:#1E40FF;color:#fff;border-radius:18px 18px 5px 18px;padding:8px 13px;font-size:14px;line-height:1.45;font-weight:500;max-width:80%">{{ m.text }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isFlow }}" hint-placeholder-val="{{ true }}">
+            <div style="animation:loreUp .5s ease both;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:20px 15px 17px;box-shadow:0 8px 28px rgba(10,10,10,.12);overflow:hidden">
+              <div style="text-align:center;margin-bottom:18px">
+                <div style="display:inline-flex;align-items:center;gap:7px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:20px;padding:5px 13px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#1E40FF;display:inline-block"></span>
+                  <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:#1E40FF;font-weight:700">{{ flowTitle }}</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column">
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">1</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="2" y="7" width="40" height="17" rx="8.5" style="fill:currentColor;opacity:.16"></rect><circle cx="13" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="21" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="29" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><rect x="22" y="28" width="40" height="16" rx="8" fill="#1E40FF"></rect></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS1 }}</div>
+                  </div>
+                </div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">2</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="13" y="11" width="26" height="32" rx="5" transform="rotate(-10 26 27)" style="fill:none;stroke:currentColor;opacity:.4" stroke-width="2"></rect><rect x="25" y="9" width="26" height="32" rx="5" transform="rotate(8 38 25)" style="fill:none;stroke:currentColor;opacity:.55" stroke-width="2"></rect><rect x="19" y="10" width="26" height="32" rx="5" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><path d="M50 5 l1.2 3 l3 1.2 l-3 1.2 L50 14.6 l-1.2-3.2 l-3-1.2 l3-1.2 z" fill="#1E40FF"></path></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS2 }}</div>
+                  </div>
+                </div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">3</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="9" y="7" width="34" height="34" rx="6" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><rect x="15" y="14" width="22" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><rect x="15" y="21" width="15" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><circle cx="46" cy="34" r="11" fill="#1E40FF"></circle><path d="M41 34 l3.2 3.2 l6.2-6.6" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS3 }}</div>
+                  </div>
+                </div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">4</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="3" y="8" width="34" height="34" rx="7" style="fill:currentColor;opacity:.13"></rect><circle cx="13" cy="19" r="5" style="fill:currentColor;opacity:.5"></circle><rect x="20" y="15" width="13" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="20" y="21" width="9" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="8" y="29" width="25" height="8" rx="3" style="fill:currentColor;opacity:.22"></rect><circle cx="53" cy="11" r="5" fill="#1E40FF"></circle><circle cx="44" cy="26" r="5" fill="#1E40FF"></circle><circle cx="56" cy="37" r="5" fill="#1E40FF"></circle><path d="M48.5 23.5 L50 14.5 M48.5 28.5 L52.5 34" stroke="#1E40FF" stroke-width="2" stroke-linecap="round"></path></svg></div>
+                    <div style="font-weight:800;font-size:13.5px;line-height:1.45;color:#1E40FF">{{ flowS4 }}</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isTopics }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;align-items:flex-start;animation:loreFade .4s ease both">
+              <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+              <div style="display:flex;flex-direction:column;gap:7px;max-width:82%">
+                <button onClick="{{ onTopic1 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic1 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <button onClick="{{ onTopic2 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic2 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <button onClick="{{ onTopic3 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic3 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <div style="font-size:11px;color:var(--faint);font-weight:500;padding:2px 2px 0">{{ topicHint }}</div>
+              </div>
             </div>
           </sc-if>
         </sc-for>
@@ -574,33 +768,31 @@ textarea{resize:none}
           </div>
         </sc-if>
 
-        <sc-if value="{{ pendingStrike }}" hint-placeholder-val="{{ false }}">
-          <div style="animation:loreStrike .5s cubic-bezier(.2,.8,.2,1) both;margin:6px 0">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.24em;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;background:var(--ink);display:inline-block;animation:loreBlink 1s infinite"></span>{{ tRead }}</div>
-            <div style="background:var(--ink);color:#fff;border-radius:4px;padding:20px;font-size:19px;line-height:1.55;font-weight:700">{{ pendingStrike.text }}</div>
-            <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:10px 2px 12px">{{ t.s93 }}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onClick="{{ reactAgree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--ink);color:#fff;border:none;border-radius:3px;padding:14px 10px;font-weight:800;font-size:14px">{{ t.s31 }}</button>
-              <button onClick="{{ reactUnsure }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s52 }}</button>
-              <button onClick="{{ reactDisagree }}" style="flex:1;min-width:96px;appearance:none;cursor:pointer;background:var(--surface);color:var(--text);border:1px solid var(--text);border-radius:3px;padding:14px 10px;font-weight:700;font-size:14px">{{ t.s67 }}</button>
-            </div>
-          </div>
-        </sc-if>
       </div>
     </div>
 
-    <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px 16px">
+    <sc-if value="{{ showJumpBottom }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ jumpChatBottom }}" aria-label="{{ tJumpLatest }}" style="position:absolute;right:18px;bottom:96px;z-index:15;appearance:none;cursor:pointer;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 14px rgba(10,10,10,.18);display:flex;align-items:center;justify-content:center;color:var(--ink);animation:loreFade .2s ease both"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></button>
+    </sc-if>
+    <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px 11px">
       <div style="max-width:620px;margin:0 auto">
         <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
             <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
-              <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--text)">{{ s.text }}</button>
+              <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--text)">{{ s.text }}</button>
             </sc-for>
           </div>
         </sc-if>
+        <sc-if value="{{ intakeAgeActive }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:11px;background:var(--surface2);border-radius:16px;padding:13px 18px">
+            <div style="font-weight:900;font-size:26px;min-width:78px;text-align:center;color:var(--text)">{{ ageVal }}<span style="font-size:13px;font-weight:700;opacity:.55"> 歳</span></div>
+            <input type="range" min="13" max="80" value="{{ ageVal }}" onChange="{{ onAgeInput }}" onInput="{{ onAgeInput }}" style="flex:1;accent-color:#1E40FF;cursor:pointer">
+            <button onClick="{{ intakeAgeConfirm }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:18px;padding:10px 20px;font-weight:800;font-size:14px;flex:none">決定</button>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s128 }}" style="flex:1;border:1px solid var(--border);border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:var(--surface2)"></textarea>
-          <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+          <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s128 }}" style="flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 15px;font-size:14px;line-height:1.4;min-height:38px;max-height:110px;outline:none;background:var(--surface2)"></textarea>
+          <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff" style="transform:translateX(1px)"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .65.65 1.1 1.39.91z"></path></svg></button>
         </div>
       </div>
     </div>
@@ -800,6 +992,10 @@ textarea{resize:none}
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
+        <button onClick="{{ goPlanBtn }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;text-align:left;display:flex;align-items:center;gap:10px;padding:16px 16px"><img src="mark-blue.png" alt="" style="width:18px;height:18px;display:block;flex:none"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ planRowLabel }}</span><span style="font-weight:800;font-size:13px;color:{{ planBadgeFg }};background:{{ planBadgeBg }};border-radius:999px;padding:3px 10px;margin-right:8px">{{ planBadgeLabel }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
         <button onClick="{{ openAccount }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s78 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
         <button onClick="{{ openPasswordPage }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s80 }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
         <button onClick="{{ openBlocked }}" style="appearance:none;cursor:pointer;width:100%;background:none;border:none;border-bottom:1px solid var(--border);text-align:left;display:flex;align-items:center;padding:16px 16px"><span style="flex:1;font-weight:700;font-size:15px;color:var(--text)">{{ t.s106 }}</span><span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);font-weight:700;margin-right:8px">{{ blockedCount }}</span><span style="color:var(--faint);font-size:18px;line-height:1">›</span></button>
@@ -913,7 +1109,7 @@ textarea{resize:none}
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
           <div style="display:flex;align-items:center;padding:15px 16px;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s4 }}</span><span style="font-weight:800;font-size:15px;color:var(--text)">{{ displayName }}</span></div>
           <div style="display:flex;align-items:center;padding:15px 16px;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">lore ID</span><span style="font-weight:800;font-size:15px;color:var(--text);font-family:'Space Mono',monospace">@{{ userId }}</span></div>
-          <div style="display:flex;align-items:center;padding:15px 16px"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s24 }}</span><span style="font-weight:700;font-size:14px;color:var(--text)">maruyama@lore.app</span></div>
+          <div style="display:flex;align-items:center;padding:15px 16px"><span style="flex:1;font-size:13px;color:var(--muted);font-weight:700">{{ t.s24 }}</span><span style="font-weight:700;font-size:14px;color:var(--text)">maruyama@yourlore.xyz</span></div>
         </div>
         <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#E5484D;margin-bottom:10px;padding-left:2px">{{ t.s59 }}</div>
         <button onClick="{{ askDeleteAccount }}" style="width:100%;appearance:none;cursor:pointer;background:var(--surface);color:#E5484D;border:1px solid #F3B5B5;border-radius:12px;padding:15px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>{{ t.s84 }}</button>
@@ -979,7 +1175,10 @@ textarea{resize:none}
         <div style="font-weight:800;font-size:14px">{{ vcAuthorName }}</div>
         <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted)">{{ vcAuthorId }}</div>
       </div>
-      <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 20px;white-space:pre-wrap">{{ vcBody }}</p>
+      <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 10px;white-space:pre-wrap">{{ vcBody }}</p>
+      <sc-if value="{{ showTranslate }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ onTranslateContent }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;margin:0 0 20px;display:inline-flex;align-items:center;gap:6px;color:#1E40FF;font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7M9 3v2c0 4-2 7-5 8"></path><path d="M5 9c0 2.5 2.5 4.5 5 5"></path><path d="m12 20 4-9 4 9M13.4 17h5.2"></path></svg>{{ transLabel }}</button>
+      </sc-if>
       <sc-if value="{{ vcHasImage }}" hint-placeholder-val="{{ false }}">
         <img src="{{ vcImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--border);border-radius:10px;display:block">
       </sc-if>
@@ -1037,8 +1236,17 @@ textarea{resize:none}
         <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);padding:0">← lore</button>
         <button onClick="{{ openGenSettings }}" aria-label="{{ t.s16 }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
       </div>
-      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">{{ t.s95 }}</h2>
+      <h2 style="font-weight:900;font-size:28px;letter-spacing:-.02em;margin:8px 0 6px">{{ genHeading }}</h2>
 
+      <!-- premium: コンテンツ / レポート タブ -->
+      <sc-if value="{{ isPremium }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:4px;margin:6px 0 18px">
+        <button onClick="{{ setTabContent }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:8px;padding:10px 8px;font-weight:800;font-size:14px;background:{{ tabContentBg }};color:{{ tabContentFg }}">{{ t.s55 }}</button>
+        <button onClick="{{ setTabReport }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:8px;padding:10px 8px;font-weight:800;font-size:14px;background:{{ tabReportBg }};color:{{ tabReportFg }};display:flex;align-items:center;justify-content:center;gap:6px">{{ reportTabLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;background:#1E40FF;color:#fff;border-radius:4px;padding:2px 5px">PRO</span></button>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ genTabContent }}" hint-placeholder-val="{{ true }}">
       <sc-if value="{{ isStepSwipe }}" hint-placeholder-val="{{ true }}">
         <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 18px;font-weight:500">{{ t.s147 }}</p>
 
@@ -1083,6 +1291,10 @@ textarea{resize:none}
                 </div>
               </div>
             </sc-for>
+          </div>
+          <div style="display:flex;justify-content:center;gap:9px;margin-top:2px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#E5484D;background:var(--dangerBg);border-radius:14px;padding:5px 12px;animation:swHintL 1.6s ease-in-out infinite"><span style="font-size:14px;line-height:1">←</span>{{ t.s0 }}</span>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#1E40FF;background:var(--accentBg);border-radius:14px;padding:5px 12px;animation:swHintR 1.6s ease-in-out infinite">{{ t.s20 }}<span style="font-size:14px;line-height:1">→</span></span>
           </div>
         </sc-if>
       </sc-if>
@@ -1144,6 +1356,87 @@ textarea{resize:none}
           </span>
         </button>
         <button onClick="{{ onPublishSelected }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:17px;font-weight:900;font-size:16px">{{ t.s37 }}</button>
+      </sc-if>
+      </sc-if>
+
+      <!-- premium: 月次レポート タブ -->
+      <sc-if value="{{ genTabReport }}" hint-placeholder-val="{{ false }}">
+
+        <!-- ロック：コンテンツ10件未満（予告型・空演出にしない） -->
+        <sc-if value="{{ reportLocked }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;text-align:center">
+          <div style="width:64px;height:64px;margin:0 auto 16px;background:var(--ink);border-radius:18px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="" style="width:56%;height:56%;object-fit:contain;opacity:.9"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:#1E40FF;margin-bottom:10px">MONTHLY REPORT</div>
+          <div style="font-weight:900;font-size:20px;letter-spacing:-.02em;margin-bottom:10px;line-height:1.4">{{ reportLockTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:var(--text2);font-weight:500;margin:0 auto 18px;max-width:34ch">{{ reportLockBody }}</p>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg);border-radius:999px;padding:9px 16px;font-weight:800;font-size:14px">{{ reportCountLine }}</div>
+          <div style="margin-top:18px"><button onClick="{{ goTalkBtn }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:10px;padding:13px 24px;font-weight:900;font-size:15px">{{ reportTalkCta }}</button></div>
+        </div>
+        </sc-if>
+
+        <!-- 作成可能 -->
+        <sc-if value="{{ reportReady }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--ink);color:#fff;border-radius:16px;padding:28px 22px;text-align:center">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55);margin-bottom:12px">MONTHLY REPORT · {{ reportMonth }}</div>
+          <div style="font-weight:900;font-size:23px;letter-spacing:-.02em;line-height:1.4;margin-bottom:12px">{{ reportReadyTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.78);font-weight:500;margin:0 auto 22px;max-width:32ch">{{ reportReadyBody }}</p>
+          <button onClick="{{ createReport }}" style="appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:10px;padding:15px 30px;font-weight:900;font-size:16px">{{ reportCreateCta }}</button>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);margin-top:14px">{{ reportQuotaLine }}</div>
+        </div>
+        </sc-if>
+
+        <!-- 今月分は使用済み（持ち越し説明） -->
+        <sc-if value="{{ reportNoQuota }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;text-align:center">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);margin-bottom:10px">MONTHLY REPORT</div>
+          <div style="font-weight:900;font-size:19px;letter-spacing:-.02em;margin-bottom:10px">{{ reportDoneTitle }}</div>
+          <p style="font-size:14px;line-height:1.8;color:var(--text2);font-weight:500;margin:0 auto;max-width:32ch">{{ reportDoneBody }}</p>
+        </div>
+        </sc-if>
+
+        <!-- 生成中 -->
+        <sc-if value="{{ reportGenerating }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 0;gap:18px">
+          <div style="width:90px;height:90px;background:var(--ink);border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="" style="width:100%;height:100%;object-fit:contain;animation:loreBlink 1.1s infinite"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--text);animation:lorePulse 1.1s infinite">{{ reportComposing }}</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:500">{{ reportComposingSub }}</div>
+        </div>
+        </sc-if>
+
+        <!-- レポート表示 -->
+        <sc-if value="{{ reportView }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--text);border-radius:8px;padding:26px 22px 22px;margin-top:6px;animation:loreStrike .5s ease both">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:#1E40FF;margin-bottom:8px">READ · {{ reportMonth }}</div>
+          <div style="font-weight:900;font-size:24px;letter-spacing:-.02em;line-height:1.3;margin-bottom:12px">{{ reportDataTitle }}</div>
+          <p style="font-size:15px;line-height:1.85;color:var(--text2);font-weight:500;margin:0 0 22px">{{ reportDataExcerpt }}</p>
+
+          <!-- 先月比較（予告型・封であって空欄でない） -->
+          <div style="background:var(--bg);border:1px dashed var(--border);border-radius:12px;padding:16px 16px;margin-bottom:22px;display:flex;gap:12px;align-items:flex-start">
+            <span style="flex:none;width:30px;height:30px;border-radius:9px;background:#1E40FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px">↗</span>
+            <div style="min-width:0">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.16em;color:#1E40FF;margin-bottom:5px">VS LAST MONTH</div>
+              <div style="font-size:13.5px;line-height:1.75;color:var(--text2);font-weight:600">{{ reportCompareTeaser }}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <sc-for list="{{ reportSections }}" as="r" hint-placeholder-count="6">
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px">{{ r.label }}</div>
+                <div style="font-weight:900;font-size:18px;letter-spacing:-.01em;margin-bottom:8px">{{ r.title }}</div>
+                <p style="font-size:14.5px;line-height:1.85;color:var(--text2);font-weight:500;margin:0">{{ r.body }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:7px;padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);margin:14px 0">
+          <img src="mark-blue.png" alt="LORE" style="width:16px;height:16px;display:block">
+          <span style="font-size:12px;color:var(--muted);font-weight:600;line-height:1.5">{{ reportShareNote }}</span>
+        </div>
+        <button onClick="{{ publishReport }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:12px;padding:17px;font-weight:900;font-size:16px">{{ reportPublishCta }}</button>
+        </sc-if>
+
       </sc-if>
 
       <!-- generate settings -->
@@ -1252,13 +1545,98 @@ textarea{resize:none}
     </div>
     </sc-if>
 
+    <!-- PLAN / PAYWALL -->
+    <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:560px;margin:0 auto;padding:26px 18px 60px">
+      <button onClick="{{ goProfile }}" style="appearance:none;cursor:pointer;background:none;border:none;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);padding:0">← lore</button>
+
+      <!-- レートリミット起点の文脈 -->
+      <sc-if value="{{ planFromRate }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--warnBg);border:1px solid var(--warnBorder);border-radius:12px;padding:13px 15px;margin:14px 0 8px;display:flex;gap:10px;align-items:flex-start">
+        <span style="flex:none;width:22px;height:22px;border-radius:6px;background:var(--warnIcon);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px">⏳</span>
+        <div style="font-size:13px;font-weight:700;color:var(--warnText);line-height:1.6">{{ planRateMsg }}</div>
+      </div>
+      </sc-if>
+
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0 14px">
+        <img src="mark-blue.png" alt="LORE" style="width:26px;height:26px;display:block">
+        <h2 style="font-weight:900;font-size:22px;letter-spacing:-.02em;margin:0">LORE <span style="color:#1E40FF">Premium</span></h2>
+      </div>
+
+      <!-- トライアル見出し -->
+      <div style="font-weight:900;font-size:30px;letter-spacing:-.03em;line-height:1.25;margin:0 0 20px;white-space:pre-line">{{ trialHeadline }}</div>
+
+      <!-- 月額/年額トグル + 価格ヒーロー（上部・主要サービス風） -->
+      <sc-if value="{{ planIsFree }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:4px;margin:0 0 14px">
+          <button onClick="{{ setBillingMonthly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ monBg }};color:{{ monFg }};box-shadow:{{ monShadow }};transition:all .2s">{{ monthlyLabel }}</button>
+          <button onClick="{{ setBillingYearly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ yrBg }};color:{{ yrFg }};box-shadow:{{ yrShadow }};transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px">{{ yearlyLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.04em;background:#1E40FF;color:#fff;border-radius:5px;padding:2px 6px">{{ yearlySave }}</span></button>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:18px;padding:22px 20px;margin:0 0 22px;background:var(--surface);box-shadow:0 10px 28px rgba(10,10,10,.08)">
+          <div style="display:flex;align-items:flex-end;gap:7px">
+            <span style="font-weight:900;font-size:42px;letter-spacing:-.03em;line-height:.95">{{ priceNum }}</span>
+            <span style="font-size:15px;color:var(--muted);font-weight:800;margin-bottom:7px">{{ priceUnit }}</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:8px">{{ priceNote }}</div>
+          <div style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:11px;padding:8px 12px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span style="color:#1E40FF;font-weight:900;font-size:13px">{{ trialBadge }}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- 比較（左右） -->
+      <div style="display:flex;gap:12px;margin-bottom:22px;align-items:stretch">
+        <!-- FREE -->
+        <div style="flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 15px;box-shadow:0 6px 18px rgba(10,10,10,.06)">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--muted);font-weight:700;margin-bottom:16px">FREE</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ planFreeRows }}" as="r" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.02em;margin-bottom:2px">{{ r.label }}</div>
+                <div style="font-size:14px;line-height:1.45;color:var(--text2);font-weight:800">{{ r.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <!-- PREMIUM -->
+        <div style="flex:1;min-width:0;background:var(--ink);color:#fff;border:1.5px solid #1E40FF;border-radius:18px;padding:18px 15px;position:relative;box-shadow:0 18px 44px rgba(30,64,255,.34), 0 4px 14px rgba(10,10,10,.3)">
+          <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#1E40FF;color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.14em;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(30,64,255,.5)">{{ planRecommend }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;color:#9db0ff;font-weight:700;margin-bottom:16px">PREMIUM</div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ planPremiumRows }}" as="r" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.02em;margin-bottom:2px;display:flex;align-items:center;gap:5px"><span style="color:#1E40FF">✦</span>{{ r.label }}</div>
+                <div style="font-size:14px;line-height:1.45;color:#fff;font-weight:800">{{ r.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <sc-if value="{{ planIsFree }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ upgradePlan }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:13px;padding:17px;font-weight:900;font-size:16px;box-shadow:0 12px 30px rgba(30,64,255,.40)">{{ trialCta }}</button>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin:13px 0 0;font-weight:500;line-height:1.7">{{ planFinePrint }}</p>
+      </sc-if>
+      <sc-if value="{{ planIsPremium }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--accentBg);border:1px solid #B9C2FF;border-radius:12px;padding:15px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(30,64,255,.12)">
+          <span style="flex:none;width:26px;height:26px;border-radius:8px;background:#1E40FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px">✓</span>
+          <span style="font-size:14px;font-weight:700;color:#1E40FF;line-height:1.5">{{ planActiveMsg }}</span>
+        </div>
+        <button onClick="{{ cancelPlan }}" style="width:100%;appearance:none;cursor:pointer;background:var(--surface);color:#E5484D;border:1px solid #F3B5B5;border-radius:12px;padding:15px;font-weight:800;font-size:15px">{{ planCancelCta }}</button>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin:12px 0 0;font-weight:500;line-height:1.6">{{ planCancelNote }}</p>
+      </sc-if>
+    </div>
+    </sc-if>
+
   </div>
   </sc-if>
 
   <!-- mobile bottom nav -->
   <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
   <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);display:flex;height:62px">
-    <button onClick="{{ navHome.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navHome.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navHome.dot }}"></span></button>
+    <button onClick="{{ navHome.onClick }}" style="position:relative;flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navHome.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><sc-if value="{{ homeUnread }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:6px;right:calc(50% - 14px);width:9px;height:9px;border-radius:50%;background:#FF3B30;border:2px solid var(--surface)"></span></sc-if><span style="width:5px;height:5px;border-radius:50%;background:{{ navHome.dot }}"></span></button>
     <button onClick="{{ navCreate.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navCreate.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navCreate.dot }}"></span></button>
     <button onClick="{{ navSearch.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navSearch.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navSearch.dot }}"></span></button>
     <button onClick="{{ navProfile.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navProfile.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navProfile.dot }}"></span></button>
@@ -1342,7 +1720,10 @@ textarea{resize:none}
     <sc-if value="{{ vcHasImage }}" hint-placeholder-val="{{ false }}">
       <img src="{{ vcImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--border);border-radius:10px;display:block;margin:0 0 20px">
     </sc-if>
-    <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0;white-space:pre-wrap">{{ vcBody }}</p>
+    <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 10px;white-space:pre-wrap">{{ vcBody }}</p>
+    <sc-if value="{{ showTranslate }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ onTranslateContent }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;display:inline-flex;align-items:center;gap:6px;color:#1E40FF;font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7M9 3v2c0 4-2 7-5 8"></path><path d="M5 9c0 2.5 2.5 4.5 5 5"></path><path d="m12 20 4-9 4 9M13.4 17h5.2"></path></svg>{{ transLabel }}</button>
+    </sc-if>
 
     <div style="background:var(--ink);color:#fff;border-radius:10px;padding:30px 24px;margin-top:34px;text-align:center">
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.26em;color:rgba(255,255,255,.55);margin-bottom:12px">READ YOURSELF</div>
@@ -1373,12 +1754,18 @@ class Component extends DCLogic {
     closeFriends: {},
     friendsListOpen: false,
     viewCard: null,
+    cTransOn: false, cTransText: '', cTransKey: '', cTransBusy: false,
     contentBackTo: 'profile',
     pubViewUsed: false,
     legalDoc: null,
     cookieAccepted: false,
     toast: '',
     dark: false,
+    prefIntensity: 'gentle',
+    prefTone: 'friendly',
+    prefDepth: 'balanced',
+    prefBoundaries: [],
+    prefsOpen: false,
     scrolled: false,
     canInstall: false,
     searchNotFound: false,
@@ -1389,6 +1776,7 @@ class Component extends DCLogic {
     profileAvatarImg: null,
     profileEditOpen: false,
     editName: '', editId: '', editBio: '', editAvatarImg: null,
+    idChangeConfirm: false,
     deleteConfirmId: null,
     reportOpen: false, reportTarget: '', reportCat: '',
     otherCardMenu: null,
@@ -1404,14 +1792,31 @@ class Component extends DCLogic {
     loginErr: '',
     authFocus: false,
     authVal: '',
+    authStage: 'idle',   // idle | code（メールコード入力中）
+    authEmail: '',
+    authCode: '',
+    authBusy: false,
+    intakeActive: false,   // 初回基本情報インテーク中
+    intakeIdx: -1,
+    intakeAnswers: {},
+    ageVal: 25,
     vw: 1024,
     messages: [],
+    atChatBottom: true,
+    chatSearchOpen: false,
+    chatSearchQ: '',
+    homeUnread: false,
+    onboardOpen: false,
+    obStep: 1,
     input: '',
     sending: false,
     imgBusy: false,
+    sessionId: null,
+    pendingFragmentId: null,
+    awaitingMiss: false,
     convIdx: 0,
     suggestions: [],
-    pendingStrike: null,
+    reactionMode: false,
     obStrikes: 0,
     cards: [],
     candidates: [],
@@ -1428,6 +1833,7 @@ class Component extends DCLogic {
     pubCloseOnly: false,
     pubImage: null,
     cropOpen: false,
+    cropTarget: 'content',   // 'content' | 'avatar'
     cropSrc: '',
     cropScale: 1,
     cropX: 0,
@@ -1448,7 +1854,16 @@ class Component extends DCLogic {
     openCardMenu: null,
     renameId: null,
     renameVal: '',
+    plan: 'free',
+    talkCount: 0,
+    planFromRate: false,
+    billingCycle: 'monthly',
+    genTab: 'content',
+    reportStep: 'idle',
+    reportData: null,
+    reportQuota: 0,
   };
+  FREE_TALK_LIMIT = 3;
 
   script = [
     { type:'q', text:'はじめまして。重い質問はしない。最近、気づいたら時間が溶けてたことってある？', chips:['夜中にずっと地図を見てた','古い写真を整理してた'] },
@@ -1468,6 +1883,22 @@ class Component extends DCLogic {
     { type:'strike', text:'にぎやかさが嫌いなわけじゃない。君は、余韻のほうに本体がある。' },
     { type:'q', bubbles:['うん、わかる気がする。','最後にひとつだけ。','今日、自分でも少し意外だった選択ってあった？'], chips:['あるかも','特にない'] },
     { type:'strike', text:'君の「まあいいか」は諦めじゃない。戦う相手を、静かに選んでいるだけだ。' },
+  ];
+
+  // 初回オンボーディングの基本情報インテーク（テンプレ。選択UI中心・年齢のみスライダー）
+  intakeFlow = [
+    { key:'firstTime', q:['はじめまして。僕は LORE。','まずは、かんたんな質問からいくね。','LORE を使うのは初めて？'], chips:['はじめて','前にも使ったことある'] },
+    { key:'gender',    q:['ありがとう。','性別を教えてもらえる？'], chips:['男性','女性','答えたくない'] },
+    { key:'age',       type:'age', q:['歳はいくつ？','下のバーで選んでね。'] },
+    { key:'introvert', q:['自分が内向的になりやすいのって、どんな時？'], chips:['大勢の場','初対面の人といる時','疲れてる時','いつも内向的','内向的になる場面はない'] },
+    { key:'extrovert', q:['逆に、自分が外向的になれるのは？'], chips:['気心知れた人と','好きな話題の時','テンション上がる場で','いつも外向的','外向的になる場面はない'], skipIf:(a)=> a.introvert==='いつも内向的' },
+    { key:'energy',    q:['一人の時間と、人といる時間。どっちで充電される？'], chips:['一人の時間','人といる時間','どっちも','時と場合による'] },
+    { key:'decision',  q:['何かを決めるとき、近いのはどれ？'], chips:['直感でパッと','じっくり考えて','人に相談して','流れに任せる'] },
+    { key:'weekend',   q:['休みの日は、どう過ごすのが好き？'], chips:['家でゆっくり','外に出かける','趣味に没頭','人と会う','その時の気分'] },
+    { key:'worry',     q:['悩みごとがある時は？'], chips:['誰かに話したい','一人で抱えがち','考えてから話す','あまり悩まない'] },
+    { key:'novelty',   q:['新しいことには、どう向き合う方？'], chips:['すぐ飛び込む','慎重に様子見','興味があれば','あまり乗り気じゃない'] },
+    { key:'pace',      q:['毎日の生活は、どっち寄り？'], chips:['きっちり計画的','行き当たりばったり','だいたい決まってる','その時々'] },
+    { key:'value',     q:['最後に。今いちばん大事にしたいものは？'], chips:['仕事や成長','人とのつながり','自分の時間','楽しさ','心の安定'] },
   ];
 
   seedCandidates = [
@@ -1500,6 +1931,22 @@ class Component extends DCLogic {
     { id:'k3', title:'断り方でわかる', body:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。', closeOnly:true, image:null },
   ];
 
+  // プレミアムデモ用：レポート解放（10件以上）を見せるための蓄積済みコンテンツ
+  premiumSeedCards = [
+    { id:'p1', title:'退屈に強い', body:'丸山は退屈を恐れない。何も起きない時間を無理に埋めようとせず、そのまま過ごせる。沈黙が怖くない、数少ない人だ。', closeOnly:false, image:null },
+    { id:'p2', title:'帰り道のほうが好き', body:'盛り上がっている場所より、その帰り道の静けさを丸山は選ぶ。賑わいが嫌いなんじゃない。余韻の方に本体がある。', closeOnly:false, image:null },
+    { id:'p3', title:'断り方でわかる', body:'丸山の「まあいいか」は諦めじゃない。戦う相手を選んでいるだけだ。譲れないものの前では、静かに、はっきり断る。', closeOnly:false, image:null },
+    { id:'p4', title:'人との間合い', body:'近づくより、離れ方が丁寧。距離を詰めるのが遅いのは、気持ちよく離れられる関係しか続かないと知っているから。', closeOnly:false, image:null },
+    { id:'p5', title:'計画より、降りる準備', body:'本当は、計画を立てるより、いつでも降りられる準備をしておきたい人だ。逃げ道があるから、深く入れる。', closeOnly:false, image:null },
+    { id:'p6', title:'借りの感覚', body:'頼るのが苦手なんじゃない。頼った後に残る「借り」の感覚に耐えられないだけだ。', closeOnly:false, image:null },
+    { id:'p7', title:'決めるのが遅い理由', body:'丸山は決めるのが遅いんじゃない。一度決めたら覆さないと知っているから、慎重なだけだ。', closeOnly:false, image:null },
+    { id:'p8', title:'旅の本体', body:'目的地より、移動している時間が好き。着いてしまうと、少しだけ寂しい。', closeOnly:false, image:null },
+    { id:'p9', title:'一番後ろの席', body:'だいたい一番後ろの席にいる。全体が見える場所が落ち着く。中心にいるより、端から眺めていたい。', closeOnly:false, image:null },
+    { id:'p10', title:'静けさの選び方', body:'人の少ない時間の駅、閉店間際の本屋。落ち着ける場所には、いつも共通点がある。', closeOnly:false, image:null },
+    { id:'p11', title:'強がりに見えるらしい', body:'本当は、頼られるより頼りたい日のほうが多い。でも、それをうまく言葉にできない。', closeOnly:true, image:null },
+    { id:'p12', title:'言わなかったこと', body:'言わずに飲み込んだ言葉のほうが、口に出した言葉より自分を作っている気がする。', closeOnly:false, image:null },
+  ];
+
   readPool = [
     '本当は、計画するより降りられる準備をしておきたい人だ。',
     '頼るのが苦手なんじゃない。頼った後の「借り」の感覚に耐えられないんだ。',
@@ -1528,9 +1975,13 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this.buildPixels();
+    this._stickBottom = true;   // チャットは初期状態で最下部追従
     this.dispRes = 0;
     this._readIdx = 0;
-    this.setState({ cards: this.seedCards.slice(), candidates: this.seedCandidates.slice() });
+    // デモ種データは「バックエンド未設定（デモモード）」の時だけ。本番(Convex接続)は getMe()/buildCandidates() で実データを取る。
+    if (!(typeof window !== 'undefined' && window.LORE_CONVEX_URL)) {
+      this.setState({ cards: this.seedCards.slice(), candidates: this.seedCandidates.slice() });
+    }
     const onResize = () => this.setState({ vw: window.innerWidth });
     window.addEventListener('resize', onResize);
     this._onResize = onResize;
@@ -1543,10 +1994,31 @@ class Component extends DCLogic {
     this._lastScreen = this.state.screen;
     this._onPop = (e) => { const sc = (e.state && e.state.screen) || 'welcome'; this._fromPop = true; this.setState({ screen: sc }); };
     window.addEventListener('popstate', this._onPop);
+    this._onBeReady = () => this._loadDeepLink();   // バックエンド初期化後に共有トークンを再取得
+    window.addEventListener('lore-backend-ready', this._onBeReady);
+    this._onAuthed = () => { if (['welcome','onboarding'].includes(this.state.screen)) this._enterAuthed(); };
+    window.addEventListener('lore-authed', this._onAuthed);   // Google復帰/メール確定でアプリへ
     this._initRoute();
     requestAnimationFrame(() => this.drawAll());
+    // 初回のみ：使い方ポップアップを表示し、1→4をループでハイライト（視線誘導）。閉じたら二度と出さない。
+    try {
+      if (!localStorage.getItem('lore_onboarded')) {
+        this.setState({ onboardOpen:true, obStep:1 });
+        this._scheduleOb();
+      }
+    } catch(_) {}
   }
-  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null });
+  // 1番だけ滞在を1.5倍にして、視線が乗る前に次へ行かないようにする
+  _scheduleOb = () => {
+    clearTimeout(this._obTimer);
+    const dwell = this.state.obStep===1 ? 3150 : 2100;
+    this._obTimer = setTimeout(() => {
+      this.setState(s => ({ obStep: s.obStep>=4 ? 1 : s.obStep+1 }));
+      this._scheduleOb();
+    }, dwell);
+  };
+  closeOnboard = () => { clearTimeout(this._obTimer); try { localStorage.setItem('lore_onboarded','1'); } catch(_) {} this.setState({ onboardOpen:false }); };
+  closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null, prefsOpen:false });
   installApp = () => { const p = this._deferredPrompt; if (!p) { this.showToast(this.tt('インストールはブラウザのメニューから行えます','You can install from your browser menu','브라우저 메뉴에서 설치할 수 있어요')); return; } p.prompt(); p.userChoice.finally(() => { this._deferredPrompt = null; this.setState({ canInstall:false }); }); };
   // ---- routing helpers ----
   _pathFor(screen){
@@ -1558,22 +2030,43 @@ class Component extends DCLogic {
     const path = location.pathname || '/';
     let m;
     if ((m = path.match(/^\/s\/(.+)$/))) {
-      // 共有リンク → 受け手(public)ビューへディープリンク
+      // 共有リンク → 受け手(public)ビューへディープリンク。バックエンドがあれば receiverView を取得
+      this._pendingShareToken = m[1];
       this.setState({ screen:'public', viewUser:null, pubViewUsed:false });
+      this._loadDeepLink();
+    } else if ((m = path.match(/^\/c\/(.+)$/))) {
+      this._pendingContentToken = m[1];
+      this.setState({ screen:'public', viewUser:null });
+      this._loadDeepLink();
     } else if ((m = path.match(/^\/u\/([^/]+)$/))) {
       const u = this.otherUsers.find(x => x.userId.toLowerCase() === m[1].toLowerCase());
       if (u) this.setState({ screen:'public', viewUser:u });
     }
     try { history.replaceState({ screen: this.state.screen }, '', path); } catch(_) {}
   }
+  // 共有トークンから受け手Viewを取得（バックエンドready後にも再試行）
+  _loadDeepLink = () => {
+    const be = this._be(); if (!be) return;
+    const tok = this._pendingShareToken || this._pendingContentToken; if (!tok) return;
+    be.receiverView(tok).then(v => {
+      if (!v || v.error) return;
+      if (v.kind==='profile') {
+        this._pendingShareToken = null;
+        this.setState({ screen:'public', viewUser:{ name:v.author.displayName, userId:(v.author.userId||'').replace(/^@/,''), avatar:v.author.avatar, bio:v.author.bio, private:false, cards:(v.cards||[]).map(c => ({ title:c.title, body:c.body, image:c.cover||null, closeOnly:false })) } });
+      } else if (v.kind==='content' && v.card) {
+        this._pendingContentToken = null;
+        this.setState({ screen:'content', viewCard:{ title:v.card.title, body:v.card.body }, contentBackTo:'public' });
+      }
+    }).catch(this._beError);
+  };
   // ---- modal: 背景スクロールロック ----
   _anyModalOpen(){
     const s = this.state;
     return !!(s.loginOpen || s.legalDoc || s.profileEditOpen || s.deleteConfirmId!==null || s.reportOpen ||
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
-      s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen);
+      s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); clearTimeout(this._obTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -1718,7 +2211,19 @@ class Component extends DCLogic {
   };
 
   setChatScroll = (el) => { this._chatEl = el; };
-  scrollChat(){ if(this._chatEl){ this._chatEl.scrollTop = this._chatEl.scrollHeight; } }
+  scrollChat(){ const el=this._chatEl; if(!el) return; if(this._stickBottom !== false){ el.scrollTop = el.scrollHeight; } }
+  // チャットスクロール監視: 最下部付近にいるかを追跡（過去ログを読んでる間は自動スクロールを止める）
+  onChatScroll = (e) => {
+    const el = (e && e.currentTarget) || this._chatEl; if(!el) return;
+    const atBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 80;
+    this._stickBottom = atBottom;
+    if (atBottom !== this.state.atChatBottom) this.setState({ atChatBottom: atBottom });
+  };
+  jumpChatBottom = () => { const el=this._chatEl; this._stickBottom = true; if(el){ el.scrollTo({ top: el.scrollHeight, behavior:'smooth' }); } this.setState({ atChatBottom:true }); };
+  // チャット検索
+  toggleChatSearch = () => this.setState(s => ({ chatSearchOpen: !s.chatSearchOpen, chatSearchQ: s.chatSearchOpen ? '' : s.chatSearchQ }));
+  closeChatSearch = () => this.setState({ chatSearchOpen:false, chatSearchQ:'' });
+  onChatSearchInput = (e) => this.setState({ chatSearchQ: e.target.value });
   pushBubbles(bubbles, chips){
     const list = (bubbles||[]).slice(); let i = 0;
     this.setState({ suggestions:[] });
@@ -1740,32 +2245,173 @@ class Component extends DCLogic {
   onAuthBlur = () => this.setState({ authFocus:false });
   onAuthInput = (e) => this.setState({ authVal:e.target.value });
   onAuthKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onAuthContinue(); } };
-  onAuthContinue = () => {
-    const v = ((this._authEl && this._authEl.value) || '').trim().replace(/^@/, '').toLowerCase();
-    if (!v) return;
-    if (v==='maruyama' || v==='maruyama@lore.app') {
-      this.setState({ screen:'profile', resolution:0.66 });
-      this.setResolution(0.66);
-    } else {
-      this.enterNew();
-    }
+  // 認証完了後にアプリへ入る（直接呼び＋lore-authedイベントの二重発火を一度に集約。
+  //  二重だと1回目が認証トークン未反映でデモユーザー扱いになり「やあ久しぶり」が一瞬出る）
+  _enterAuthed = () => {
+    if (this._entered) return; this._entered = true;
+    this.setState({ authStage:'idle', authBusy:false, authCode:'' });
+    const be = this._be();
+    if (!be) { this._startBackend('home'); return; }
+    // 初回（インテーク未完了）なら基本情報インテーク、完了済みなら通常会話
+    this.setState({ screen:'home', mode:'home', messages:[], suggestions:[], reactionMode:false, sessionId:null, typing:false });
+    this.setResolution(0.12, 400);
+    be.getMe().then(me => {
+      this._applyMe(me);   // ヘッダー等を実プロフィールに同期（ダミーのmaruyamaを排除）
+      if (me && me.intakeDone) this._startBackend('home', { resume:true });   // 再訪は継続再開（再挨拶しない）
+      else this._startIntake();
+    }).catch(e => { this._beError(e); this._startBackend('home', { resume:true }); });
   };
-  onOAuth = () => this.enterNew();
+  // 実プロフィールを state に反映（名前/ID/アバター/非公開）。home ヘッダー等のダミー表示を防ぐ。
+  _applyMe = (me) => {
+    if (!me) return;
+    const id = (me.userId || '').replace(/^@/, '');
+    this.setState({
+      profileName: me.displayName || id || this.state.profileName,
+      profileId: id || this.state.profileId,
+      profileBio: (me.bio != null ? me.bio : this.state.profileBio),
+      profileAvatar: me.avatar || ((me.displayName || id || '').slice(0, 1)) || this.state.profileAvatar,
+      profileAvatarImg: me.avatarImg || this.state.profileAvatarImg,
+      profilePrivate: !!me.profilePrivate,
+    });
+  };
+
+  // ---- 初回基本情報インテーク（テンプレ） ----
+  _startIntake = () => {
+    // 使い方は入室時のオンボーディングポップアップで案内する（チャット内には出さない）
+    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
+    this.setResolution(0.12, 400);
+    this._intakeNext();
+  };
+  _intakeNext = () => {
+    let i = this.state.intakeIdx + 1;
+    const a = this.state.intakeAnswers;
+    while (i < this.intakeFlow.length && this.intakeFlow[i].skipIf && this.intakeFlow[i].skipIf(a)) i++;
+    if (i >= this.intakeFlow.length) { this._finishIntake(); return; }
+    const q = this.intakeFlow[i];
+    this.setState({ intakeIdx:i, suggestions:[] });
+    this._seqBubbles(q.q, () => {
+      if (q.type==='age') this.setState({ suggestions:['答えたくない'] });
+      else this.setState({ suggestions:q.chips });
+    });
+  };
+  intakeAnswer = (text) => {
+    const i = this.state.intakeIdx; if (i<0 || i>=this.intakeFlow.length) return;
+    const q = this.intakeFlow[i];
+    const ans = { ...this.state.intakeAnswers };
+    ans[q.key] = (q.type==='age') ? (text==='答えたくない' ? '答えたくない' : Number(text)) : text;
+    const shown = (q.type==='age' && text!=='答えたくない') ? (text + '歳') : String(text);
+    this.setState(s => ({ messages:[...s.messages,{role:'user',text:shown}], intakeAnswers:ans, suggestions:[], input:'' }));
+    this._intakeNext();
+  };
+  intakeAgeConfirm = () => this.intakeAnswer(String(this.state.ageVal));
+  onAgeInput = (e) => this.setState({ ageVal: Number(e.target.value) });
+  _finishIntake = async () => {
+    const a = this.state.intakeAnswers;
+    const be = this._be();
+    if (be) { try { await be.saveIntake(a); } catch(e){ this._beError(e); } }
+    this.setState({ intakeActive:false, suggestions:[] });
+    // 締めは柔らかく。「最近どう？」と丸投げせず、話題の入口を3つチャット内に出して選べるようにする。
+    this._seqBubbles([
+      this.tt('ありがとう。なんとなく、君の輪郭が見えてきた気がする。','Thanks. I’m starting to get a sense of who you are.','고마워. 어렴풋이 너의 윤곽이 보이기 시작했어.'),
+      this.tt('さて、ここからは気楽に話そう。どんな話からいく？','Okay, let’s just chat from here. Where should we start?','이제부턴 편하게 얘기하자. 어떤 얘기부터 할까?'),
+    ], async () => {
+      if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
+      this.setState(s => {
+        // インテークの会話をDBに保存（リロードしてもログが飛ばない／再挨拶されない）
+        if (be) { const log = s.messages.filter(m => m.text && (m.role==='ai'||m.role==='user')).map(m => ({ role:m.role, text:m.text })); be.logTurns(log).catch(()=>{}); }
+        return { messages:[...s.messages, { role:'ai', topics:true }], suggestions:[] };   // 話題3択をチャット内に
+      });
+      this._armIdle();
+    }, 650);
+  };
+  // 話題チップを選んだら、その話題を“ユーザーの発話”として送る（ピッカーは消す）
+  pickTopic = (text) => { this.setState(s => ({ messages: s.messages.filter(m => !m.topics) })); this.send(text); };
+  // AIバブルを順番に出すヘルパ（typingを挟みながら）
+  _seqBubbles = (lines, done, delay) => {
+    const arr = (lines||[]).slice(); delay = delay || 520;
+    clearTimeout(this._it);
+    const step = () => {
+      if (!arr.length) { this.setState({ typing:false }); done && done(); return; }
+      const txt = arr.shift();
+      this.setState(s => ({ messages:[...s.messages,{ role:'ai', text:txt }] }));
+      if (arr.length) { this.setState({ typing:true }); this._it = setTimeout(step, delay); }
+      else { this.setState({ typing:false }); done && done(); }
+    };
+    this.setState({ typing:true });
+    this._it = setTimeout(step, 380);
+  };
+  // Google: OAuthリダイレクト（戻ってきたら lore-authed で _enterAuthed）
+  onGoogle = () => {
+    const be = this._be();
+    if (!be || !be.isConfigured()) { this.enterNew(); return; }   // Clerk未設定はデモ導線
+    this.setState({ authBusy:true });
+    be.startGoogle().catch(e => { this.setState({ authBusy:false }); this._beError(e); });
+  };
+  // Apple: 未提供
+  onApple = () => this.showToast(this.tt('Appleログインは今は利用できません。近いうちに利用可能になります。','Apple sign-in isn’t available yet — coming soon.','애플 로그인은 아직 사용할 수 없어요. 곧 제공될 예정이에요.'));
+  // Email: コードを送る（既存=サインイン／新規=サインアップ）
+  onAuthContinue = () => {
+    if (this.state.authBusy) return;
+    const v = ((this._authEl && this._authEl.value) || this.state.authVal || '').trim();
+    const be = this._be();
+    if (!be || !be.isConfigured()) {   // Clerk未設定はデモ導線（@maruyama だけプロフィールへ）
+      const id = v.replace(/^@/, '').toLowerCase();
+      if (!id) return;
+      if (id==='maruyama' || id==='maruyama@yourlore.xyz') { this.setState({ screen:'profile', resolution:0.66 }); this.setResolution(0.66); }
+      else this.enterNew();
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { this.showToast(this.tt('メールアドレスを確認してね','Check your email address','이메일 주소를 확인해줘')); return; }
+    this.setState({ authBusy:true, authEmail:v });
+    be.startEmail(v)
+      .then(() => this.setState({ authBusy:false, authStage:'code', authCode:'' }))
+      .catch(e => { this.setState({ authBusy:false }); this._beError(e); });
+  };
+  setCodeEl = (el) => { if (el) this._codeEl = el; };
+  onCodeInput = (e) => this.setState({ authCode:e.target.value });
+  onCodeKey = (e) => { if (e.key==='Enter') { e.preventDefault(); this.onVerifyCode(); } };
+  onVerifyCode = () => {
+    if (this.state.authBusy) return;
+    const be = this._be(); const code = ((this._codeEl && this._codeEl.value) || this.state.authCode || '').trim();
+    if (!be || !code) return;
+    this.setState({ authBusy:true });
+    be.verifyEmailCode(code)
+      .then(ok => { if (ok) this._enterAuthed(); else { this.setState({ authBusy:false }); this.showToast(this.tt('コードが正しくないみたい','That code looks off','코드가 맞지 않는 것 같아')); } })
+      .catch(e => { this.setState({ authBusy:false }); this.showToast(this.tt('コードが正しくないみたい','That code looks off','코드가 맞지 않는 것 같아')); console.error(e); });
+  };
+  authBack = () => this.setState({ authStage:'idle', authCode:'', authBusy:false });
+  onOAuth = () => this.onGoogle();
   pillIn = (e) => { e.currentTarget.style.background = '#e4e2dc'; };
   pillOut = (e) => { e.currentTarget.style.background = '#fff'; };
   enterNew = () => {
+    if (this._be()) { this._startBackend('home'); return; }
     this.setState({ screen:'home', mode:'home', messages:[], convIdx:1, resolution:0.2 });
     this.pushBubbles(this.homeScript[0].bubbles, this.homeScript[0].chips);
     this.setResolution(0.2, 600);
   };
   onStart = () => {
-    this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, pendingStrike:null, obStrikes:0 });
+    if (this._be()) { this._startBackend('onboarding'); return; }
+    this.setState({ screen:'onboarding', mode:'onboarding', messages:[{role:'ai', text:this.script[0].text}], convIdx:1, suggestions:this.script[0].chips, reactionMode:false, obStrikes:0 });
     this.setResolution(0.12, 400);
   };
   onDemo = () => { this.setState({ screen:'profile', resolution:0.66 }); this.setResolution(0.66); };  onEnterHome = () => this.goProfile();
-  goProfile = () => { this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66); };
+  goProfile = () => {
+    this.setState({ screen:'profile', genStep:'list' }); this.setResolution(this.state.resolution||0.66);
+    const be = this._be();
+    if (be) be.getMe().then(me => { if (!me) return;
+      this.setState({ profileName:me.displayName, profileId:(me.userId||'').replace(/^@/,''), profileBio:me.bio, profileAvatar:me.avatar, profilePrivate:me.profilePrivate, prefIntensity:(me.preferences && me.preferences.strikeIntensity) || 'gentle', prefTone:(me.preferences && me.preferences.tone) || 'friendly', prefDepth:(me.preferences && me.preferences.depth) || 'balanced', prefBoundaries:(me.preferences && me.preferences.boundariesNg) || [], cards:(me.cards||[]).map(c => ({ id:c.id, title:c.title, body:c.body, closeOnly:(c.layers||[]).includes('close'), image:null, pinned:!!c.pinned })) });
+      if (typeof me.resolution==='number') this.setResolution(me.resolution, 600);
+    }).catch(this._beError);
+  };
   goTalk = () => {
     const empty = this.state.messages.length === 0;
+    if (this._be()) {
+      this.setState({ screen:'home', mode:'home', homeUnread:false });   // 開いた＝既読。赤バッジを消す
+      if (empty || !this.state.sessionId) this._startBackend('home');
+      else { this._stickBottom = true; this._armIdle(); }
+      this.setResolution(this.state.resolution||0.66);
+      return;
+    }
     this.setState({ screen:'home', mode:'home' });
     if (empty) {
       this.setState({ messages:[], convIdx:1 });
@@ -1773,22 +2419,151 @@ class Component extends DCLogic {
     }
     this.setResolution(this.state.resolution||0.66);
   };
-  goGenerate = () => this.setState({ screen:'generate', genStep:'swipe', selected:null });
+  goGenerate = () => {
+    const be = this._be();
+    // バックエンド接続時はデモ候補(id:"c1"等)を残さない＝実IDのみで生成させる
+    this.setState({ screen:'generate', genStep:'swipe', selected:null, candidates: be ? [] : this.state.candidates });
+    if (be) be.buildCandidates()
+      .then(r => { const cs = (r && r.candidates) || []; this.setState({ candidates: cs.map(c => ({ id:c.id, title:c.title, summary:c.summary })) }); })
+      .catch(this._beError);
+  };
   goShare = () => this.setState({ screen:'share', shareCreated:false, copied:false });
   goSettings = () => this.setState({ screen:'settings', settingsSub:null });
   openSettingsSub = (v) => this.setState({ settingsSub:v });
   backSettings = () => this.setState({ settingsSub:null });
 
+  // ---- backend bridge (Convex接続。未設定ならnull→デモにフォールバック) ----
+  _be(){ return (typeof window!=='undefined' && window.LoreBackend && window.LoreBackend.ready) ? window.LoreBackend : null; }
+  _beError = (e) => { console.error('[LORE backend]', e); this.showToast(this.tt('通信に失敗しました。','Connection failed.','연결에 실패했어요.')); if (this.state.genStep==='generating') this.setState({ genStep:'error' }); };
+  // ---- アイドル・ナッジ（会話が途中で止まったら一定時間後にこちらから追い討ち）----
+  _IDLE_MS = 180000;   // 3分。タイピング（未送信）や送信で都度リセットされる
+  _armIdle = () => {
+    if (!this._be() || this.state.mode!=='home') return;   // バックエンド会話中のみ
+    clearTimeout(this._idleTimer);
+    this._idleTimer = setTimeout(this._idleNudge, this._IDLE_MS);
+  };
+  _clearIdle = () => clearTimeout(this._idleTimer);
+  _idleNudge = () => {
+    // home会話中・AIが喋ってない・特殊待ち受け中でない・未送信の下書きも無いこと（画面はhome以外でも可）
+    if (!this._be() || this.state.mode!=='home') return;
+    if (this.state.typing || this.state.intakeActive || this.state.reactionMode || this.state.awaitingMiss) return;
+    if ((this.state.input||'').trim()) { this._armIdle(); return; }   // 下書きがあるならまだ書いてる→待つ
+    if ((this._pendingTurns||[]).length) return;                     // 送信キュー処理中
+    const onHome = this.state.screen==='home';
+    this._stickBottom = true;
+    this.setState(s => ({
+      messages:[...s.messages, { role:'ai', text:this.tt('さっきの話、途中で止まっちゃったね。続きを話す？それとも新しい話にする？','Looks like we trailed off. Want to pick up where we left off, or start something new?','아까 얘기가 중간에 멈췄네. 이어서 할까, 아니면 새로운 얘기로 갈까?') }],
+      suggestions:[ this.tt('さっきの続きを話す','Continue where we left off','이어서 얘기할게'), this.tt('新しい話にしたい','Start something new','새로운 얘기로') ],
+      homeUnread: onHome ? false : true,   // はなす画面を見ていなければ赤バッジ
+    }));
+  };
+  _renderTurn = (r) => {
+    if (!r) return;
+    if (typeof r.resolution==='number') this.setResolution(r.resolution, 700);
+    if (r.done) { this.setState({ typing:false }); this.finishOnboarding(); return; }
+    if (r.move==='strike' && r.strike) {
+      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message, isRead:true }], pendingFragmentId:r.strike.fragmentId, suggestions:[], reactionMode:true, awaitingMiss:false }));
+    } else {
+      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false, homeUnread: this.state.screen==='home' ? s.homeUnread : true }));
+      this._armIdle();   // ボールはユーザー側へ。無反応が続いたら追い討ち
+    }
+  };
+  _startBackend = async (mode, opts) => {
+    const resume = !!(opts && opts.resume);   // intake済みの再訪：履歴が空でも挨拶を新生成しない
+    this._stickBottom = true;   // 新規入室は最下部に貼り付く
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:false, atChatBottom:true });
+    this.setResolution(mode==='home'?0.2:0.12, 400);
+    // 継続スレッド: home では過去ログを読み戻してから新しい発話を続ける
+    let history = [];
+    if (mode==='home') {
+      try {
+        const h = await this._be().getHistory();
+        history = ((h && h.turns) || []).map(t => ({ role: t.role==='user' ? 'user' : 'ai', text: t.text, isRead: t.type==='strike' }));
+      } catch(e){ console.warn('[LORE] getHistory', e); }
+      // ★履歴は読み込んだ“瞬間”に表示する（startSession の完了を待たない＝てんてん中も履歴が見える）
+      if (history.length) { this.setState({ messages: history }); requestAnimationFrame(() => this.scrollChat()); }
+    }
+    try {
+      // 履歴がある or intake済み再訪なら quiet で再開（挨拶を新生成しない）。本当の新規だけ挨拶。
+      const quiet = mode==='home' && (history.length > 0 || resume);
+      if (!quiet) this.setState({ typing:true });   // 新しい挨拶が来るときだけ“てんてん”を出す
+      const r = await this._be().startSession(mode, quiet, this.state.lang);
+      if (quiet) {
+        // 再訪で履歴が空（旧データ等）のときだけ、軽い「おかえり」を出す（first-meeting挨拶は出さない）
+        const msgs = (history.length===0 && resume) ? [{ role:'ai', text:this.tt('おかえり。続きから話そう。','Welcome back. Let’s pick up where we left off.','어서 와. 이어서 얘기하자.') }] : history;
+        this.setState({ typing:false, sessionId:r.sessionId, messages:msgs, suggestions:[], homeUnread:false });
+      } else {
+        this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), homeUnread:false });
+        if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
+      }
+      this._armIdle();
+    } catch(e){ this.setState({ typing:false, messages:history }); this._beError(e); }
+  };
+  _sendBackend = async (text) => {
+    const be=this._be(), sid=this.state.sessionId;
+    this.setState({ typing:true });
+    try {
+      let r;
+      if (this.state.awaitingMiss && this.state.pendingFragmentId) {
+        const mr = await be.miss(sid, this.state.pendingFragmentId, 'custom', text, this.state.lang);
+        r = mr.next || mr;
+      } else {
+        r = await be.sendTurn(sid, text, 'choice_free', this.state.lang);
+      }
+      this.setState({ sending:false });
+      this._renderTurn(r);
+    } catch(e){ this.setState({ sending:false, typing:false }); this._beError(e); }
+  };
+  _reactBackend = async (kind) => {
+    const be=this._be(), sid=this.state.sessionId, fid=this.state.pendingFragmentId;
+    this.setState({ reactionMode:false, typing:true });
+    try {
+      const r = await be.react(sid, fid, kind);
+      if (typeof r.resolution==='number') this.setResolution(r.resolution, 800);
+      if (r.needMiss) { this.setState(s => ({ typing:false, awaitingMiss:true, suggestions:[], messages:[...s.messages,{ role:'ai', text:this._recoverMsg() }] })); return; }
+      if (r.done) { this.setState({ typing:false }); this.finishOnboarding(); return; }
+      if (r.next) this._renderTurn(r.next); else this.setState({ typing:false });
+    } catch(e){ this.setState({ typing:false }); this._beError(e); }
+  };
+
   // ---- chat ----
-  onChatInput = (e) => this.setState({ input: e.target.value });
-  onChatKey = (e) => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } };
+  onChatInput = (e) => { this.setState({ input: e.target.value }); this._armIdle(); };   // 未送信のタイピングも“活動中”→アイドル計測をリセット
+  onChatKey = (e) => {
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    // 日本語のみ：IME変換確定のEnterでは送信しない（en/ko は即送信）
+    if (this.state.lang === 'ja' && (e.isComposing || e.keyCode === 229 || (e.nativeEvent && e.nativeEvent.isComposing))) return;
+    e.preventDefault();
+    this.send();
+  };
   onSend = () => this.send();
   send = (text) => {
     if (this.state.sending || this.state.typing) return;   // 二重送信・AI応答中ガード
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
+    if (this.state.intakeActive) { this.intakeAnswer(t); return; }   // インテーク中は回答として処理
+    this._stickBottom = true;   // 送信したら最下部に追従
+    if (this._be() && this.state.sessionId) {
+      // 発言は即表示。ただし返信はすぐ返さず、相手が打ち終えるまで“間”を取る（まだ話の途中かを検知）。
+      this._clearIdle();   // 送信＝活動。返信後に再アーム
+      this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[] }));
+      this._queueUserTurn(t);
+      return;
+    }
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
+  };
+  // 送信をデバウンス：連投はまとめて1ターンとして受ける（読む“間”＝自然な会話テンポ）。
+  _queueUserTurn = (t) => {
+    this._pendingTurns = this._pendingTurns || [];
+    this._pendingTurns.push(t);
+    clearTimeout(this._turnTimer);
+    const joinedLen = this._pendingTurns.join('').length;
+    const wait = Math.min(3200, 1200 + joinedLen * 22);   // 文量が多いほど“読む”時間を長く取る
+    this._turnTimer = setTimeout(() => {
+      const text = (this._pendingTurns || []).join('\n');
+      this._pendingTurns = [];
+      if (text) this._sendBackend(text);
+    }, wait);
   };
   advance() {
     const home = this.state.mode==='home';
@@ -1801,15 +2576,16 @@ class Component extends DCLogic {
       if (ev.bubbles) { this.pushBubbles(ev.bubbles, ev.chips); }
       else { this.setState(s => ({ messages:[...s.messages,{role:'ai',text:ev.text}], suggestions:ev.chips||[] })); }
     } else if (ev.type==='strike') {
-      this.setState(s => ({ pendingStrike:{text:ev.text}, convIdx:s.convIdx+1, suggestions:[] }));
+      this.setState(s => ({ messages:[...s.messages,{role:'ai',text:ev.text,isRead:true}], convIdx:s.convIdx+1, suggestions:[], reactionMode:true }));
     } else if (ev.type==='done') {
       this.finishOnboarding();
     }
   }
   react(kind) {
+    if (this._be() && this.state.sessionId && this.state.pendingFragmentId) { this._reactBackend(kind); return; }
     if (this.state.mode==='home') {
       const next = Math.min(1, (this.state.resolution||0.66) + 0.05);
-      this.setState({ pendingStrike:null, resolution:next });
+      this.setState({ reactionMode:false, resolution:next });
       this.setResolution(next, 800);
       if (kind==='disagree') {
         setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:this._recoverMsg()}], suggestions:[] })), 420);
@@ -1820,16 +2596,16 @@ class Component extends DCLogic {
     }
     const st = this.state.obStrikes + 1;
     const res = Math.min(0.62, 0.12 + st*0.17);
-    this.setState({ pendingStrike:null, obStrikes:st });
+    this.setState({ reactionMode:false, obStrikes:st });
     this.setResolution(res, 900);
     if (kind==='disagree') {
-      setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:'そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。'}], suggestions:[] })), 420);
+      setTimeout(() => this.setState(s => ({ messages:[...s.messages,{role:'ai',text:this._recoverMsg()}], suggestions:[] })), 420);
     } else {
       setTimeout(() => this.advance(), 520);
     }
   }
   tt(ja,en,ko){ const l=this.state.lang; return l==='en'?en:(l==='ko'?ko:ja); }
-  _recoverMsg(){ return this.tt('そっか。じゃあ、どこが違った？そこにこそ、君の輪郭がある。',"I see. So what was off? That's exactly where your contour lives.",'그렇구나. 그럼 뭐가 달랐어? 바로 거기에 너의 윤곽이 있어.'); }
+  _recoverMsg(){ return this.tt('あ、外したかも。ごめんごめん。じゃあ、ほんとのところはどんな感じ？',"Ah, I might've gotten that wrong — sorry. So how is it, really?",'아, 빗나갔나 보다. 미안. 그럼 진짜는 어떤 느낌이야?'); }
   reactAgree = () => this.react('agree');
   reactUnsure = () => this.react('unsure');
   reactDisagree = () => this.react('disagree');
@@ -1845,7 +2621,20 @@ class Component extends DCLogic {
   setLangEn = () => this.setLang('en');
   setLangKo = () => this.setLang('ko');
   toggleLangMenu = () => this.setState(s => ({ langOpen: !s.langOpen }));
-  openContent = (c) => this.setState({ screen:'content', viewCard:c, contentBackTo:'profile' });
+  openContent = (c) => this.setState({ screen:'content', viewCard:c, contentBackTo:'profile', cTransOn:false });
+  // X風コンテンツ翻訳：自分の設定言語に切り替え（再タップで原文）。キーはカードidで管理。
+  onTranslateContent = () => {
+    const vc = this.state.viewCard; if (!vc || !vc.body) return;
+    const key = String(vc.id || vc.title || '');
+    if (this.state.cTransOn && this.state.cTransKey===key) { this.setState({ cTransOn:false }); return; }
+    if (this.state.cTransKey===key && this.state.cTransText) { this.setState({ cTransOn:true }); return; }  // キャッシュ
+    const be = this._be();
+    if (!be) { this.showToast(this.tt('翻訳は接続後に使えます','Translation needs a connection','연결 후 번역할 수 있어요')); return; }
+    this.setState({ cTransBusy:true });
+    be.translate(vc.body, this.state.lang).then(r => {
+      this.setState({ cTransText:(r && r.text) || vc.body, cTransOn:true, cTransKey:key, cTransBusy:false });
+    }).catch(e => { this.setState({ cTransBusy:false }); this._beError(e); });
+  };
   // ---- content card menu ----
   toggleCardMenu = (id) => this.setState(s => ({ openCardMenu: s.openCardMenu===id ? null : id }));
   closeCardMenu = () => this.setState({ openCardMenu:null });
@@ -1871,6 +2660,31 @@ class Component extends DCLogic {
   openCookie = () => this.setState({ legalDoc:'cookie' });
   acceptCookies = () => this.setState({ cookieAccepted:true });
   // ---- theme (dark mode) ----
+  // ---- 受信ダイヤル: 会話の好み ----
+  openPrefs = () => this.setState({ prefsOpen:true, homeMenuOpen:false });
+  closePrefs = () => this.setState({ prefsOpen:false });
+  toggleIntensity = () => {
+    const v = this.state.prefIntensity === 'bold' ? 'gentle' : 'bold';
+    this.setState({ prefIntensity: v });
+    const be = this._be();
+    if (be) be.setPreferences({ strikeIntensity: v }).catch(this._beError);
+  };
+  toggleTone = () => {
+    const v = this.state.prefTone === 'polite' ? 'friendly' : 'polite';
+    this.setState({ prefTone: v });
+    const be = this._be(); if (be) be.setPreferences({ tone: v }).catch(this._beError);
+  };
+  toggleDepth = () => {
+    const v = this.state.prefDepth === 'deep' ? 'light' : 'deep';
+    this.setState({ prefDepth: v });
+    const be = this._be(); if (be) be.setPreferences({ depth: v }).catch(this._beError);
+  };
+  toggleBoundary = (topic) => {
+    const cur = this.state.prefBoundaries || [];
+    const next = cur.includes(topic) ? cur.filter(t => t !== topic) : [...cur, topic];
+    this.setState({ prefBoundaries: next });
+    const be = this._be(); if (be) be.setPreferences({ boundariesNg: next }).catch(this._beError);
+  };
   toggleTheme = () => {
     const dark = !this.state.dark;
     this.setState({ dark });
@@ -1897,10 +2711,8 @@ class Component extends DCLogic {
   setEditAvatarEl = (el) => { this._editAvatarEl = el; };
   triggerEditAvatar = () => { if (this._editAvatarEl) this._editAvatarEl.click(); };
   onPickEditAvatar = (e) => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => this.setState({ editAvatarImg: r.result });
-    r.readAsDataURL(f); e.target.value='';
+    const f = e.target.files && e.target.files[0]; e.target.value='';
+    this._openCrop(f, 'avatar');   // アバターもトリミングを通す（正方形）
   };
   removeEditAvatar = () => this.setState({ editAvatarImg:null });
   saveProfileEdit = () => {
@@ -1908,12 +2720,25 @@ class Component extends DCLogic {
     const id = (this.state.editId||'').trim();
     if (!name) { this.showToast(this.tt('名前を入力してください','Please enter a name','이름을 입력해주세요')); return; }
     if (!id) { this.showToast(this.tt('lore IDを入力してください','Please enter a lore ID','lore ID를 입력해주세요')); return; }
-    this.setState({
-      profileName: name, profileId: id, profileBio: (this.state.editBio||'').trim(),
-      profileAvatar: name.slice(0,1) || '丸', profileAvatarImg: this.state.editAvatarImg,
-      profileEditOpen: false,
-    });
+    // lore ID を変えると、既存の共有リンクが無効になる → 確認
+    if (id !== this.state.profileId) { this.setState({ idChangeConfirm:true }); return; }
+    this._applyProfileEdit();
+  };
+  _applyProfileEdit = () => {
+    const name = (this.state.editName||'').trim();
+    this.setState(s => ({
+      profileName: name, profileId: (s.editId||'').trim(), profileBio: (s.editBio||'').trim(),
+      profileAvatar: name.slice(0,1) || '丸', profileAvatarImg: s.editAvatarImg,
+      profileEditOpen: false, idChangeConfirm: false,
+    }));
     this.showToast(this.tt('プロフィールを更新しました','Profile updated','프로필을 업데이트했어요'));
+  };
+  cancelIdChange = () => this.setState({ idChangeConfirm:false });
+  confirmIdChange = () => {
+    // ID変更を確定＝既存の共有リンクを無効化（トークン再発行）
+    this.setState({ shareToken: Math.random().toString(36).slice(2,8) });
+    this._applyProfileEdit();
+    this.showToast(this.tt('共有リンクを再発行しました','Share links were reissued','공유 링크를 재발급했어요'));
   };
   // ---- delete confirm ----
   askDeleteCard = (id) => this.setState({ openCardMenu:null, deleteConfirmId:id });
@@ -1935,7 +2760,7 @@ class Component extends DCLogic {
     this.showToast(this.tt('報告を送信しました。ありがとうございます。','Report sent. Thank you.','신고를 보냈어요. 감사합니다.'));
   };
   // ---- settings: logout / account / contact / feedback ----
-  logout = () => { this.setState({ screen:'welcome', settingsSub:null, accountUnlocked:false }); this.setResolution(0, 300); };
+  logout = () => { this._entered = false; const be = this._be(); if (be && be.signOut) be.signOut(); this.setState({ screen:'welcome', settingsSub:null, accountUnlocked:false, sessionId:null, messages:[] }); this.setResolution(0, 300); };
   openAccount = () => this.setState({ settingsSub:'account', accountUnlocked:false, accountGate:'', accountGateErr:'' });
   openContact = () => this.setState({ settingsSub:'contact', contactCat:'', contactText:'' });
   openFeedback = () => this.setState({ settingsSub:'feedback', feedbackText:'' });
@@ -1966,7 +2791,7 @@ class Component extends DCLogic {
   changePassword = () => { this.setState({ settingsSub:null }); this.showToast(this.tt('パスワードを変更しました','Password changed','비밀번호를 변경했어요')); };
   togglePrivate = () => {
     if (this.state.profilePrivate) { this.setState({ pubConfirmOpen:true }); }
-    else { this.setState({ profilePrivate:true }); }
+    else { this.setState({ profilePrivate:true }); const be=this._be(); if(be) be.setPrivate(true).catch(this._beError); }
   };
   closePubConfirm = () => this.setState({ pubConfirmOpen:false });
   dismissPrivBanner = () => this.setState({ privBannerDismissed:true });
@@ -1986,10 +2811,14 @@ class Component extends DCLogic {
   };
   openFriendsList = () => this.setState({ friendsListOpen:true });
   closeFriendsList = () => this.setState({ friendsListOpen:false });
-  acceptRequest = (u) => this.setState(s => ({
-    friends: { ...s.friends, [u.id]:'friends' },
-    incomingRequests: s.incomingRequests.filter(id => id !== u.id),
-  }));
+  acceptRequest = (u) => {
+    const be = this._be();
+    if (be && u && u.reqId) be.acceptFriend(u.reqId).catch(this._beError);   // incoming を backend由来にした際に有効
+    this.setState(s => ({
+      friends: { ...s.friends, [u.id]:'friends' },
+      incomingRequests: s.incomingRequests.filter(id => id !== u.id),
+    }));
+  };
   declineRequest = (u) => this.setState(s => ({ incomingRequests: s.incomingRequests.filter(id => id !== u.id) }));
   cancelRequest = (u) => this.setState(s => { const f = { ...s.friends }; delete f[u.id]; return { friends: f }; });
   openUserFromList = (u) => this.setState({ friendsListOpen:false, screen:'userprofile', viewUser:u, userMenuOpen:false });
@@ -2010,7 +2839,7 @@ class Component extends DCLogic {
     });
   };
   unblockUser = (id) => this.setState(s => ({ blockedUsers: s.blockedUsers.filter(b => b !== id) }));
-  confirmPublic = () => this.setState({ profilePrivate:false, pubConfirmOpen:false });
+  confirmPublic = () => { this.setState({ profilePrivate:false, pubConfirmOpen:false }); const be=this._be(); if(be) be.setPrivate(false).catch(this._beError); };
   onLoginId = (e) => this.setState({ loginId:e.target.value });
   onLoginPw = (e) => this.setState({ loginPw:e.target.value });
   setLoginIdEl = (el) => { if (el) this._loginIdEl = el; };
@@ -2020,8 +2849,12 @@ class Component extends DCLogic {
     const id = ((this._loginIdEl && this._loginIdEl.value) || this.state.loginId || '').trim().replace(/^@/, '');
     const pw = ((this._loginPwEl && this._loginPwEl.value) || this.state.loginPw || '').trim();
     if (id==='maruyama' && pw==='lore') {
-      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.66 });
+      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.66, plan:'free', talkCount:0, reportQuota:0 });
       this.setResolution(0.66);
+    } else if (id==='premium' && pw==='lore') {
+      // 有料会員デモ：プレミアム状態＋レポート解放（蓄積済みコンテンツ）
+      this.setState({ loginOpen:false, loginErr:'', loginId:'', loginPw:'', screen:'profile', resolution:0.82, plan:'premium', reportQuota:1, talkCount:0, cards:this.premiumSeedCards.slice(), genTab:'content', reportStep:'idle' });
+      this.setResolution(0.82);
     } else {
       this.setState({ loginErr:'IDかパスワードが違います。' });
     }
@@ -2048,6 +2881,15 @@ class Component extends DCLogic {
 
   // ---- portrait nudge ----
   onNudge = () => {
+    const be = this._be();
+    if (be) {
+      be.nudge().then(r => {
+        const next = (r && typeof r.resolution==='number') ? r.resolution : Math.min(1, (this.state.resolution||0.66) + 0.08);
+        this.setState({ resolution: next, latestRead: (r && r.read) || this.state.latestRead });
+        this.setResolution(next, 700);
+      }).catch(this._beError);
+      return;
+    }
     const next = Math.min(1, (this.state.resolution||0.66) + 0.08);
     const read = this.readPool[this._readIdx % this.readPool.length];
     this._readIdx++;
@@ -2113,6 +2955,13 @@ class Component extends DCLogic {
     this._runGenerate(cand, this.state.defaultGran);
   }
   _runGenerate(cand, gran){
+    const be = this._be();
+    if (be) {
+      be.generate(cand.id, gran)
+        .then(r => this.setState({ genStep:'review', draftBody:(r && r.body) || cand.summary, _genFormat:(r&&r.format)||'roughtext', _genPayload:(r&&r.payload)||null, pubCloseOnly:false, pubImage:null }))
+        .catch(e => { this.setState({ genStep:'error' }); this._beError(e); });
+      return;
+    }
     clearTimeout(this._genT);
     this._genT = setTimeout(() => {
       // 失敗をたまに再現（生成失敗/通信エラーのデモ）
@@ -2170,6 +3019,8 @@ class Component extends DCLogic {
     const sel = this.state.selected; if (!sel) return;
     if (this._publishing) return; this._publishing = true;   // 二重公開ガード
     setTimeout(() => { this._publishing = false; }, 600);
+    const be = this._be();
+    if (be) be.publish({ seedId: sel.id, format: this.state._genFormat || 'roughtext', title: sel.title, body: this.state.draftBody, payload: this.state._genPayload || null, granularity: this.state.granularity || 'normal', closeOnly: !!this.state.pubCloseOnly }).catch(this._beError);
     const card = { id:'g'+Date.now(), title:sel.title, body:this.state.draftBody, closeOnly:!!this.state.pubCloseOnly, image:this.state.pubImage||null, pinned:false };
     this.setState(s => ({
       cards:[card, ...s.cards],
@@ -2178,25 +3029,90 @@ class Component extends DCLogic {
     }));
   };
 
+  // ---- plan / billing (demo) ----
+  goPlan = (fromRate) => this.setState({ screen:'plan', planFromRate: fromRate===true });
+  upgradePlan = () => {
+    this.setState(s => {
+      const have = s.cards.slice();
+      const extra = this.premiumSeedCards.filter(pc => !have.some(c => c.id===pc.id));
+      const merged = have.length >= 10 ? have : [...have, ...extra].slice(0, 12);
+      return { plan:'premium', reportQuota:1, talkCount:0, planFromRate:false, cards:merged, screen:'profile' };
+    });
+    this.showToast(this.tt('Premium になりました（デモ）','You are now Premium (demo)','Premium이 됐어요 (데모)'));
+  };
+  cancelPlan = () => {
+    this.setState({ plan:'free', reportQuota:0 });
+    this.showToast(this.tt('プランを解約しました（デモ）','Subscription cancelled (demo)','구독을 해지했어요 (데모)'));
+  };
+
+  // ---- monthly report (premium) ----
+  setGenTab = (tab) => this.setState({ genTab: tab });
+  buildReport(){
+    const month = this.tt('2026年6月','June 2026','2026년 6월');
+    return {
+      month,
+      title: this.tt('丸山のレポート — '+month, "Maruyama's Report — "+month, '마루야마의 리포트 — '+month),
+      excerpt: this.tt('この一ヶ月、丸山の輪郭はより静かに、より頑固になった。賑わいの外側に居場所を見つけ、「まあいいか」の奥にある一貫した線が、はっきりしてきた。',
+        'Over this month, Maruyama’s contour grew quieter and more stubborn — finding a place outside the noise, the consistent line beneath every “whatever” coming into focus.',
+        '이번 달, 마루야마의 윤곽은 더 조용하고 더 완고해졌어요. 떠들썩함의 바깥에서 자리를 찾고, “뭐 어때”의 안쪽에 있는 일관된 선이 또렷해졌어요.'),
+      compareTeaser: this.tt('まだ比較対象がない。来月、ここに「先月のあなたとの差分」が最初に現れる。',
+        'No prior month yet. Next month, the first “difference from last month” appears right here.',
+        '아직 비교 대상이 없어요. 다음 달, 여기에 “지난달의 당신과의 차이”가 처음 나타나요.'),
+      sections: [
+        { label:'CONTOUR', title:this.tt('全体像','The whole shape','전체 상'),
+          body:this.tt('丸山を一枚で言うなら「余白に強い人」だ。空白の時間、沈黙、予定のない休日——多くの人が落ち着かなくなる場面で、彼はむしろ呼吸が深くなる。これは無関心ではなく、選別だ。どうでもいいものに手数を使わない代わりに、本当に大事な一点には静かに全部を賭ける。','If Maruyama were one line: someone strong in empty space. Silence, unplanned days — where others get restless, he breathes deeper. Not indifference but selection: spending nothing on what doesn’t matter, quietly betting everything on the one thing that does.','마루야마를 한 장으로 말하면 “여백에 강한 사람”이에요. 공백, 침묵, 계획 없는 휴일에서 그는 오히려 호흡이 깊어져요. 무관심이 아니라 선별이에요.') },
+        { label:'PATTERN', title:this.tt('あなたが繰り返すこと','What you repeat','당신이 반복하는 것'),
+          body:this.tt('「一番後ろの席」「帰り道」「閉店間際の本屋」。丸山が落ち着く場所には、いつも同じ構造がある——全体が見えて、いつでも静かに抜けられる場所。中心ではなく縁、到着ではなく移動。彼は世界に参加しながら、片足だけ外に置いている。','“The back seat,” “the walk home,” “the bookstore before closing.” The places he settles share one structure: you can see the whole, and slip out quietly anytime. The edge, not the center; moving, not arriving.','“가장 뒷자리”, “돌아가는 길”, “폐점 직전의 서점”. 그가 안정되는 장소에는 늘 같은 구조가 있어요 — 전체가 보이고 언제든 조용히 빠져나갈 수 있는 곳.') },
+        { label:'CORE', title:this.tt('譲れないものの正体','The thing you won’t give up','양보할 수 없는 것의 정체'),
+          body:this.tt('丸山の「まあいいか」は弱さじゃない。むしろ逆で、戦う相手を絞るための装置だ。九割を受け流せるからこそ、残りの一割で一歩も引かない。その線引きの一貫性が、彼を信用できる人間にしている。','His “whatever” isn’t weakness — it’s a device for narrowing what he fights for. Because he can let ninety percent slide, he won’t budge an inch on the last ten. That consistency is what makes him trustworthy.','그의 “뭐 어때”는 약함이 아니에요. 오히려 싸울 상대를 좁히기 위한 장치예요. 9할을 흘려보내기에 남은 1할에서 한 걸음도 물러서지 않아요.') },
+        { label:'TENSION', title:this.tt('強さの裏にあるもの','Beneath the strength','강함 뒤에 있는 것'),
+          body:this.tt('独りに強い彼の奥には、「頼りたいのに頼れない」矛盾がある。借りの感覚に耐えられず、頼られる側を演じ続ける。強がりに見えるのは、弱さがないからではなく、弱さの置き場所をまだ見つけていないからだ。','Beneath his solitude is a contradiction: he wants to lean on someone but can’t. Unable to bear the feeling of owing, he keeps playing the one leaned on. He looks tough not because he lacks weakness, but because he hasn’t found where to put it.','홀로 강한 그의 안쪽에는 “기대고 싶은데 기댈 수 없는” 모순이 있어요. 빚진 느낌을 견디지 못해 기대어지는 쪽을 계속 연기해요.') },
+        { label:'DISTANCE', title:this.tt('人との間合い','How you keep distance','사람과의 간격'),
+          body:this.tt('丸山は近づき方より、離れ方が丁寧だ。距離を詰めるのが遅いのは臆病だからではなく、「気持ちよく離れられる関係しか続かない」と知っているから。だから一度内側に入れた相手は、そう簡単には手放さない。','He’s more careful about how he leaves than how he arrives. He’s slow to close distance not from timidity but because he knows only relationships you can leave cleanly will last. So whoever he lets inside, he doesn’t release easily.','그는 다가가는 방식보다 떠나는 방식이 정중해요. 거리를 좁히는 게 느린 건 “기분 좋게 떠날 수 있는 관계만 지속된다”는 걸 알기 때문이에요.') },
+        { label:'NEXT', title:this.tt('次に向かう場所','Where you’re headed','다음에 향하는 곳'),
+          body:this.tt('次の一ヶ月、丸山の課題は「弱さの置き場所」だ。飲み込んだ言葉を、一人だけでいいから誰かに渡せたとき、彼の輪郭はもう一段深く解像する。来月のレポートは、たぶんそこを映す。','Next month’s edge for him is where to put his weakness. The moment he can hand even one swallowed sentence to one person, his contour resolves a step deeper. Next month’s report will likely reflect exactly that.','다음 한 달, 그의 과제는 “약함의 둘 자리”예요. 삼킨 말을 단 한 사람에게라도 건넬 수 있을 때, 그의 윤곽은 한 단계 더 또렷해져요.') },
+      ],
+    };
+  }
+  createReport = () => {
+    if (this.state.reportStep==='generating') return;
+    if ((this.state.cards||[]).length < 10) return;
+    if ((this.state.reportQuota||0) <= 0) return;
+    this.setState({ reportStep:'generating' });
+    setTimeout(() => {
+      this.setState(s => ({ reportStep:'view', reportData:this.buildReport(), reportQuota: Math.max(0, (s.reportQuota||0)-1) }));
+    }, 1600);
+  };
+  resetReport = () => this.setState({ reportStep:'idle', reportData:null });
+  publishReport = () => {
+    const r = this.state.reportData; if (!r) return;
+    const card = { id:'rep'+Date.now(), title:r.title, body:r.excerpt, closeOnly:false, image:null, pinned:true, isReport:true };
+    this.setState(s => ({ cards:[card, ...s.cards], genTab:'content', reportStep:'idle', reportData:null, screen:'profile' }));
+    this.showToast(this.tt('レポートを公開しました','Report published','리포트를 공개했어요'));
+  };
+
   // ---- image upload + crop ----
   setFileEl = (el) => { if (el) this._fileEl = el; };
   triggerPick = () => { if (this._fileEl) this._fileEl.click(); };
   removeImage = () => this.setState({ pubImage:null });
   onPickImage = (e) => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    if (this.state.imgBusy) return;
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    this._openCrop(f, 'content');   // コンテンツ画像（16:9）
+  };
+  // ファイル→画像読み込み→トリミングモーダルを開く（avatar/content 共通）
+  _openCrop = (f, target) => {
+    if (!f || this.state.imgBusy) return;
     this.setState({ imgBusy:true });
     const reader = new FileReader();
     reader.onload = () => {
       const url = reader.result;
       const img = new Image();
-      img.onload = () => { this._imgEl = img; this._imgNat = { w:img.naturalWidth, h:img.naturalHeight }; this.setState({ cropOpen:true, cropSrc:url, cropScale:1, cropX:0, cropY:0, imgBusy:false }); };
+      img.onload = () => { this._imgEl = img; this._imgNat = { w:img.naturalWidth, h:img.naturalHeight }; this.setState({ cropOpen:true, cropTarget:target||'content', cropSrc:url, cropScale:1, cropX:0, cropY:0, imgBusy:false }); };
       img.onerror = () => this.setState({ imgBusy:false });
       img.src = url;
     };
     reader.onerror = () => this.setState({ imgBusy:false });
     reader.readAsDataURL(f);
-    e.target.value = '';
   };
   setCropFrame = (el) => { if (el) this._cropFrame = el; };
   onCropDown = (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_) {} this._cropDrag = { sx:e.clientX, sy:e.clientY, ox:this.state.cropX, oy:this.state.cropY }; };
@@ -2218,16 +3134,32 @@ class Component extends DCLogic {
     const cx = OUT_W/2 + (this.state.cropX||0)*r, cy = OUT_H/2 + (this.state.cropY||0)*r;
     ctx.drawImage(img, cx-dw/2, cy-dh/2, dw, dh);
     let url=''; try { url = cnv.toDataURL('image/jpeg', 0.85); } catch(_) { url=''; }
-    this.setState({ pubImage:url||this.state.cropSrc, cropOpen:false, cropSrc:'' });
+    const out = url || this.state.cropSrc;
+    if (this.state.cropTarget==='avatar') this.setState({ editAvatarImg:out, cropOpen:false, cropSrc:'' });
+    else this.setState({ pubImage:out, cropOpen:false, cropSrc:'' });
   };
 
   // ---- share ----
-  onCreateLink = () => this.setState({ shareCreated:true, copied:false });
+  onCreateLink = () => {
+    this.setState({ shareCreated:true, copied:false });
+    const be = this._be();
+    if (be) be.createShare('profile', this.state.pubCloseOnly ? 'close' : 'general')
+      .then(r => { if (r && r.token) this.setState({ shareToken: r.token }); })
+      .catch(this._beError);
+  };
   onCopy = () => { this.setState({ copied:true }); };
   openShareRefresh = () => this.setState({ shareRefreshOpen:true });
   closeShareRefresh = () => this.setState({ shareRefreshOpen:false });
-  confirmShareRefresh = () => this.setState({ shareToken: Math.random().toString(36).slice(2,8), shareRefreshOpen:false, copied:false });
-  openContentShare = () => this.setState({ contentShareOpen:true, contentShareToken: Math.random().toString(36).slice(2,8), contentCopied:false });
+  confirmShareRefresh = () => {
+    const be = this._be(); const old = this.state.shareToken;
+    this.setState({ shareToken: Math.random().toString(36).slice(2,8), shareRefreshOpen:false, copied:false });
+    if (be) { be.revokeShare(old).catch(()=>{}); be.createShare('profile', this.state.pubCloseOnly ? 'close' : 'general').then(r => { if (r && r.token) this.setState({ shareToken:r.token }); }).catch(this._beError); }
+  };
+  openContentShare = () => {
+    this.setState({ contentShareOpen:true, contentShareToken: Math.random().toString(36).slice(2,8), contentCopied:false });
+    const be = this._be(); const vc = this.state.viewCard;
+    if (be && vc && vc.id) be.createShare('content','general', vc.id).then(r => { if (r && r.token) this.setState({ contentShareToken:r.token }); }).catch(this._beError);
+  };
   closeContentShare = () => this.setState({ contentShareOpen:false });
   onContentCopy = () => this.setState({ contentCopied:true });
   onPreviewPublic = () => this.setState({ screen:'public', viewUser:null, pubViewUsed:false });
@@ -2258,6 +3190,9 @@ class Component extends DCLogic {
     const tOr = pick('または','or','또는');
     const tEmailPh = pick('メールアドレス','Email','이메일 주소');
     const tContinue = pick('メールで続ける','Continue with email','이메일로 계속하기');
+    const tCodeSent = pick('確認コードを送ったよ','We sent a verification code to','인증 코드를 보냈어요');
+    const tVerify = pick('コードで続ける','Verify code','코드로 계속하기');
+    const tAuthBack = pick('← メールアドレスを変える','← Use a different email','← 다른 이메일 사용');
     const tTosPre = pick('続けると、','By continuing, you agree to our ','계속하면 ');
     const tTosTerms = pick('利用規約','Terms of Service','이용약관');
     const tTosSep1 = pick('・',', ',', ');
@@ -2310,6 +3245,13 @@ class Component extends DCLogic {
     const navActive = s.dark ? '#f0f0f2' : '#0A0A0A';
     const navActiveBg = s.dark ? '#2a2a30' : '#f0efec';
     const mkNav = (key, onClick) => { const a = activeKey===key; return { onClick, color: a?navActive:'#8c8c88', weight: a?'800':'600', bg: a?navActiveBg:'transparent', dot: a?navActive:'transparent' }; };
+    // オンボーディング: アクティブな手順を強調（ループでハイライトが1→4へ移動）
+    const obAnim = { 1:'obTalk 1s ease-in-out infinite', 2:'obSway 1.7s ease-in-out infinite', 3:'obCheckPop 1.5s ease-in-out infinite', 4:'obSharePulse 1.4s ease-in-out infinite' };
+    const obDef = (n) => s.obStep===n
+      ? { op:'1', sc:'1', bd:'#1E40FF', bg:'var(--surface)', sh:'0 10px 26px rgba(30,64,255,.16)', anim:obAnim[n] }
+      : { op:'.42', sc:'.985', bd:'var(--border)', bg:'var(--surface2)', sh:'none', anim:'none' };
+    const obDotC = (n) => s.obStep===n ? '#1E40FF' : 'var(--border)';
+    const obDotW = (n) => s.obStep===n ? '22px' : '7px';
     const navHome = mkNav('home', this.goTalk);
     const navCreate = mkNav('generate', this.goGenerate);
     const navSearch = mkNav('search', this.goSearch);
@@ -2317,7 +3259,16 @@ class Component extends DCLogic {
     const navShare = mkNav('share', this.goShare);
     const navSettings = mkNav('settings', this.goSettings);
 
-    const suggestions = (s.suggestions||[]).map(t => ({ text:t, onClick:() => this.send(t) }));
+    // 言い当て(strike)の反応中は、そうかも/わからない/違う を普通のチップとして出す。それ以外は通常のサジェスト。
+    const suggestions = s.reactionMode
+      ? [
+          { text: t.s31, onClick: () => this.reactAgree() },
+          { text: t.s52, onClick: () => this.reactUnsure() },
+          { text: t.s67, onClick: () => this.reactDisagree() },
+        ]
+      : (s.suggestions||[]).map(txt => ({ text:txt, onClick:() => this.send(txt) }));
+    const _curIntakeQ = (s.intakeActive && s.intakeIdx>=0 && s.intakeIdx<this.intakeFlow.length) ? this.intakeFlow[s.intakeIdx] : null;
+    const intakeAgeActive = !!(_curIntakeQ && _curIntakeQ.type==='age');
 
     const sortedCards = [...s.cards].sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0));
     const cards = sortedCards.map(c => {
@@ -2446,7 +3397,7 @@ class Component extends DCLogic {
       .map(c => ({ ...c, hasImage: !!c.image, image: c.image || '', onOpen: () => this.openPublicContent(c) }));
 
     const publicContent = screen==='content' && s.contentBackTo==='public';
-    const isScrollScreen = ['profile','userprofile','generate','share','content','search','settings'].includes(screen) && !publicContent;
+    const isScrollScreen = ['profile','userprofile','generate','share','content','search','settings','plan'].includes(screen) && !publicContent;
 
     const _dispName = vu ? vu.name : s.profileName;
     const _puName = (s.privUser||{}).name || '';
@@ -2466,7 +3417,7 @@ class Component extends DCLogic {
       isWelcome: screen==='welcome',
       isOnboarding: screen==='onboarding',
       isFirstLore: screen==='firstlore',
-      isApp: ['home','profile','userprofile','generate','share','content','search','settings'].includes(screen) && !publicContent,
+      isApp: ['home','profile','userprofile','generate','share','content','search','settings','plan'].includes(screen) && !publicContent,
       isPublicContent: publicContent,
       isSettings: screen==='settings', goSettings:this.goSettings,
       isScrollScreen,
@@ -2516,7 +3467,8 @@ class Component extends DCLogic {
       tReady: ja ? 'リード完了' : 'READY',
       tRead: ja ? 'リード' : 'READ',
       landing:L, revealRef:this.revealRef, portraitRef:this.portraitRef,
-      tGoogle, tApple, tOr, tEmailPh, tContinue,
+      tGoogle, tApple, tOr, tEmailPh, tContinue, tCodeSent, tVerify, tAuthBack,
+      authIdle: s.authStage!=='code', authCodeStage: s.authStage==='code', authEmail: s.authEmail,
       tTosPre, tTosTerms, tTosSep1, tTosPrivacy, tTosSep2, tTosCookie, tTosPost,
       openTerms:this.openTerms, openPrivacy:this.openPrivacy, openCookie:this.openCookie,
       legalOpen: s.legalDoc!==null, closeLegal:this.closeLegal,
@@ -2527,9 +3479,36 @@ class Component extends DCLogic {
       setGlowCanvas:this.setGlowCanvas,
       dark:s.dark, toggleTheme:this.toggleTheme, themeLabel: s.dark ? pick('ダーク','Dark','다크') : pick('ライト','Light','라이트'),
       themeTrack: s.dark ? '#1E40FF' : 'var(--track)', themeKnob: s.dark ? '21px' : '3px',
+      toggleIntensity:this.toggleIntensity,
+      prefSectionLabel: pick('会話の好み','Conversation','대화 취향'),
+      intensityTitle: pick('言い当ての強さ','How bold the reads are','읽기 강도'),
+      intensityHint: pick('オンにすると、もっとズバッと言い当てに行く','On = LORE reads you more bluntly','켜면 더 직설적으로 읽어요'),
+      intensityLabel: (s.prefIntensity==='bold') ? pick('ズバッと','Bold','직설') : pick('やんわり','Gentle','부드럽게'),
+      intensityTrack: (s.prefIntensity==='bold') ? '#1E40FF' : 'var(--track)',
+      intensityKnob: (s.prefIntensity==='bold') ? '21px' : '3px',
+      prefsOpen:s.prefsOpen, openPrefs:this.openPrefs, closePrefs:this.closePrefs,
+      prefIntro: pick('LOREの返し方を、君好みに。いつでも変えられる。','Tune how LORE talks to you. Change anytime.','LORE의 말투를 취향대로. 언제든 바꿀 수 있어요.'),
+      toggleTone:this.toggleTone, toggleDepth:this.toggleDepth,
+      toneTitle: pick('口調','Tone','말투'),
+      toneHint: pick('オンで、ていねいな口調に','On = more polite','켜면 정중하게'),
+      toneLabel: (s.prefTone==='polite') ? pick('ていねい','Polite','정중') : pick('フランク','Casual','편하게'),
+      toneTrack: (s.prefTone==='polite') ? '#1E40FF' : 'var(--track)',
+      toneKnob: (s.prefTone==='polite') ? '21px' : '3px',
+      depthTitle: pick('掘り下げの深さ','How deep it digs','파고드는 깊이'),
+      depthHint: pick('オンで、じっくり踏み込む。オフはあっさり','On = digs deeper · off = lighter','켜면 깊게 · 끄면 가볍게'),
+      depthLabel: (s.prefDepth==='deep') ? pick('じっくり','Deep','깊게') : pick('あっさり','Light','가볍게'),
+      depthTrack: (s.prefDepth==='deep') ? '#1E40FF' : 'var(--track)',
+      depthKnob: (s.prefDepth==='deep') ? '21px' : '3px',
+      boundaryTitle: pick('触れてほしくないテーマ','Topics to avoid','피하고 싶은 주제'),
+      boundaryHint: pick('選んだテーマには、LOREから踏み込まない','LORE won’t dig into these','선택한 주제는 파고들지 않아요'),
+      boundaryChips: ['恋愛','家族','仕事','お金','過去','コンプレックス'].map(topic => {
+        const sel = (s.prefBoundaries||[]).includes(topic);
+        const lm = { '恋愛':pick('恋愛','Love','연애'), '家族':pick('家族','Family','가족'), '仕事':pick('仕事','Work','일'), 'お金':pick('お金','Money','돈'), '過去':pick('過去','The past','과거'), 'コンプレックス':pick('コンプレックス','Insecurities','콤플렉스') };
+        return { label: lm[topic], onClick: () => this.toggleBoundary(topic), bg: sel?'#FDECEC':'var(--surface)', fg: sel?'#E5484D':'var(--text)', border: sel?'#F3B5B5':'var(--border)' };
+      }),
       logoMark: s.dark ? 'mark-white.png' : 'mark-blue.png',
       searchNotFound:s.searchNotFound, clearSearchNotFound:this.clearSearchNotFound,
-      canInstall:s.canInstall, installApp:this.installApp,
+      canInstall: s.canInstall && isMobile, installApp:this.installApp,
       ownCardsEmpty: s.cards.length===0,
       vuCardEmpty: (vuser.cards||[]).filter(c => !c.closeOnly || vuIsClose).length===0,
       showSticky: s.scrolled && (screen==='profile' || screen==='userprofile'),
@@ -2541,6 +3520,10 @@ class Component extends DCLogic {
       openProfileEdit:this.openProfileEdit, profileEditOpen:s.profileEditOpen, closeProfileEdit:this.closeProfileEdit,
       editName:s.editName, editId:s.editId, editBio:s.editBio,
       onEditName:this.onEditName, onEditId:this.onEditId, onEditBio:this.onEditBio, saveProfileEdit:this.saveProfileEdit,
+      idChangeConfirm: s.idChangeConfirm, cancelIdChange:this.cancelIdChange, confirmIdChange:this.confirmIdChange,
+      idChangeTitle: pick('lore ID を変更しますか？','Change your lore ID?','lore ID를 변경할까요?'),
+      idChangeBody: pick('lore ID を変更すると、これまでに発行した共有リンクはすべて無効になります。共有し直すには、新しいリンクを発行する必要があります。','Changing your lore ID invalidates every share link you have issued so far. To share again, you will need to issue new links.','lore ID를 변경하면 지금까지 발행한 공유 링크가 모두 무효화돼요. 다시 공유하려면 새 링크를 발행해야 해요.'),
+      idChangeOk: pick('変更する','Change anyway','변경하기'), idChangeCancel: pick('キャンセル','Cancel','취소'),
       setEditAvatarEl:this.setEditAvatarEl, triggerEditAvatar:this.triggerEditAvatar, onPickEditAvatar:this.onPickEditAvatar, removeEditAvatar:this.removeEditAvatar,
       editAvatarImg:s.editAvatarImg||'', hasEditAvatar:!!s.editAvatarImg, editAvatarChar:(s.editName||s.profileName||'丸').slice(0,1),
       deleteConfirmOpen: s.deleteConfirmId!==null, cancelDeleteCard:this.cancelDeleteCard, confirmDeleteCard:this.confirmDeleteCard,
@@ -2561,7 +3544,8 @@ class Component extends DCLogic {
       ].map(c => ({ ...c, onClick:() => this.setContactCat(c.key), sel: s.contactCat===c.key, bg: s.contactCat===c.key ? '#1E40FF' : '#fff', fg: s.contactCat===c.key ? '#fff' : '#0A0A0A', border: s.contactCat===c.key ? '#1E40FF' : '#dcdcd6' })),
       feedbackTitle:s.feedbackTitle, onFeedbackTitle:this.onFeedbackTitle, feedbackText:s.feedbackText, onFeedbackText:this.onFeedbackText, submitFeedback:this.submitFeedback,
       changePassword:this.changePassword,
-      onOAuth:this.onOAuth, onAuthContinue:this.onAuthContinue, onAuthKey:this.onAuthKey, setAuthEl:this.setAuthEl,
+      onOAuth:this.onOAuth, onGoogle:this.onGoogle, onApple:this.onApple, onAuthContinue:this.onAuthContinue, onAuthKey:this.onAuthKey, setAuthEl:this.setAuthEl,
+      setCodeEl:this.setCodeEl, onCodeInput:this.onCodeInput, onCodeKey:this.onCodeKey, onVerifyCode:this.onVerifyCode, authBack:this.authBack,
       pillIn:this.pillIn, pillOut:this.pillOut,
       onAuthFocus:this.onAuthFocus, onAuthBlur:this.onAuthBlur, onAuthInput:this.onAuthInput,
       authBorder: s.authFocus ? '#1E40FF' : '#e4e4df',
@@ -2587,34 +3571,85 @@ class Component extends DCLogic {
       openLogin:this.openLogin, closeLogin:this.closeLogin, onLoginId:this.onLoginId, onLoginPw:this.onLoginPw, onLoginKey:this.onLoginKey, onLogin:this.onLogin, stop:this.stop,
       setLoginIdEl:this.setLoginIdEl, setLoginPwEl:this.setLoginPwEl,
       goTalk:this.goTalk, goProfile:this.goProfile, goGenerate:this.goGenerate, goShare:this.goShare, goSearch:this.goSearch,
-      navHome, navCreate, navProfile, navShare, navSearch, navSettings,
+      navHome, navCreate, navProfile, navShare, navSearch, navSettings, homeUnread: s.homeUnread,
+      onboardOpen: s.onboardOpen, closeOnboard: this.closeOnboard,
+      obKicker: pick('はじめかた','HOW IT WORKS','시작하기'),
+      obTitle: pick('LORE の使い方','How LORE works','LORE 사용법'),
+      obSubtitle: pick('たった4ステップ。','Just 4 steps.','단 4단계.'),
+      obRow1: obDef(1), obRow2: obDef(2), obRow3: obDef(3), obRow4: obDef(4),
+      obDot1: obDotC(1), obDot2: obDotC(2), obDot3: obDotC(3), obDot4: obDotC(4),
+      obDot1W: obDotW(1), obDot2W: obDotW(2), obDot3W: obDotW(3), obDot4W: obDotW(4),
+      obS1: pick('LOREと話す','Talk with LORE','LORE와 대화'),
+      obS1d: pick('AIと話すだけ。今日のこと、なんでも。','Just chat with the AI — about anything.','AI와 대화만 하면 돼요. 무엇이든.'),
+      obS2: pick('あなたに合う候補が届く','Tailored ideas appear','맞춤 후보가 떠요'),
+      obS2d: pick('会話から、あなたを表すコンテンツ候補をAIが用意。','From your chat, the AI prepares content ideas about you.','대화에서 당신을 표현할 후보를 AI가 준비해요.'),
+      obS3: pick('好きなものを選んで作る','Create what you like','마음에 드는 걸 만들기'),
+      obS3d: pick('気に入った候補をワンタップでコンテンツ化。','Turn any idea you like into content in one tap.','마음에 드는 후보를 한 번에 콘텐츠로.'),
+      obS4: pick('友達にシェア','Share with friends','친구에게 공유'),
+      obS4d: pick('作ったコンテンツやプロフィールを共有。','Share your content and profile.','만든 콘텐츠와 프로필을 공유해요.'),
+      obCta: pick('はじめる','Get started','시작하기'),
+      obHint: pick('この案内は次回から表示されません','We won’t show this again','다음부터 표시되지 않아요'),
       navWidth: s.navExpanded ? '230px' : '72px', navLabelOpacity: s.navExpanded ? '1' : '0',
       navShadow: s.navExpanded ? '4px 0 24px rgba(10,10,10,.10)' : 'none', onNavEnter:this.onNavEnter, onNavLeave:this.onNavLeave,
       isSearch: screen==='search',
       langOpen:s.langOpen, toggleLangMenu:this.toggleLangMenu,
       isContent: screen==='content' && !publicContent,
-      vcTitle: vc.title||'', vcBody: vc.body||'',
+      vcTitle: vc.title||'',
+      vcBody: (s.cTransOn && s.cTransKey===String(vc.id||vc.title||'')) ? s.cTransText : (vc.body||''),
+      onTranslateContent:this.onTranslateContent,
+      showTranslate: !!vc.body && s.contentBackTo!=='profile',   // 他人のコンテンツにだけ控えめに出す
+      transBusy: s.cTransBusy,
+      transLabel: s.cTransBusy ? pick('翻訳中…','Translating…','번역 중…')
+        : ((s.cTransOn && s.cTransKey===String(vc.id||vc.title||'')) ? pick('原文を表示','Show original','원문 보기') : pick('翻訳','Translate','번역')),
       vcAuthorName: contentFromUser ? s.viewUser.name : '丸山',
       vcAuthorId: contentFromUser ? s.viewUser.userId : 'maruyama',
       vcAuthorAvatar: contentFromUser ? s.viewUser.avatar : '丸',
       goContentBack:this.goContentBack, contentBackLabel: contentFromUser ? s.viewUser.name : (s.contentBackTo==='public' ? 'プロフィール' : 'lore'),
       openContentShare:this.openContentShare, closeContentShare:this.closeContentShare, onContentCopy:this.onContentCopy,
-      contentShareOpen:s.contentShareOpen, contentShareUrl:'lore.app/c/'+s.contentShareToken, contentCopyLabel: s.contentCopied ? 'コピー済' : 'コピー',
+      contentShareOpen:s.contentShareOpen, contentShareUrl:'yourlore.xyz/c/'+s.contentShareToken, contentCopyLabel: s.contentCopied ? 'コピー済' : 'コピー',
       vcCloseOnly: !!vc.closeOnly,
       vcHasImage: !!vc.image, vcImage: vc.image || '',
 
-      messages: s.messages.map(m => ({ ...m, isAI:m.role==='ai', isUser:m.role==='user' })),
+      messages: (() => {
+        const q = (s.chatSearchQ || '').trim().toLowerCase();
+        const base = q ? s.messages.filter(m => (m.text || '').toLowerCase().includes(q)) : s.messages;
+        return base.map(m => ({ ...m, isFlow:!!m.flow, isTopics:!!m.topics, isAI:m.role==='ai' && !m.flow && !m.topics, isUser:m.role==='user',
+          bg: m.isRead ? 'var(--accentBg)' : 'var(--surface)',
+          border: m.isRead ? '1px solid var(--accentBorder)' : 'none',
+          weight: m.isRead ? '700' : '500' }));
+      })(),
+      flowTitle: pick('はじめかた','HOW IT WORKS','시작하기'),
+      flowS1: pick('LOREと話す','Talk with LORE','LORE와 대화'),
+      flowS2: pick('あなたにあったコンテンツが準備される','Content tailored to you is prepared','당신에게 맞는 콘텐츠가 준비돼요'),
+      flowS3: pick('その中から好きなコンテンツを作る','Create the ones you like','그중 마음에 드는 걸 만들어요'),
+      flowS4: pick('作ったコンテンツやプロフィールを友達にシェア','Share your content & profile with friends','만든 콘텐츠와 프로필을 친구에게 공유'),
+      topic1: pick('最近のいい出来事','A good thing that happened lately','요즘 있었던 좋은 일'),
+      topic2: pick('ちょっとした悩み','Something on my mind','사소한 고민'),
+      topic3: pick('いま夢中なこと','What I’m into right now','요즘 빠져 있는 것'),
+      topicHint: pick('タップして話しはじめる・自由に書いてもOK','Tap to start — or just type','탭해서 시작 · 자유롭게 써도 OK'),
+      onTopic1: () => this.pickTopic(this.tt('最近あったいいこと、聞いてほしい','I want to share something good that happened lately','최근에 있었던 좋은 일을 얘기하고 싶어')),
+      onTopic2: () => this.pickTopic(this.tt('最近ちょっと悩んでることがある','There’s something I’ve been thinking about lately','요즘 좀 고민되는 게 있어')),
+      onTopic3: () => this.pickTopic(this.tt('最近ハマってることがあるんだ','There’s something I’m really into lately','요즘 푹 빠져 있는 게 있어')),
+      chatSearchOpen: s.chatSearchOpen, chatSearchQ: s.chatSearchQ,
+      toggleChatSearch:this.toggleChatSearch, closeChatSearch:this.closeChatSearch, onChatSearchInput:this.onChatSearchInput,
+      onChatScroll:this.onChatScroll, jumpChatBottom:this.jumpChatBottom,
+      tChatSearchPh: pick('会話を検索','Search messages','대화 검색'),
+      tJumpLatest: pick('最新へ','Jump to latest','최신으로'),
+      chatSearchActive: !!(s.chatSearchQ || '').trim(),
+      chatSearchCount: (() => { const q=(s.chatSearchQ||'').trim().toLowerCase(); if(!q) return ''; const n=s.messages.filter(m=>(m.text||'').toLowerCase().includes(q)).length; return pick(n+' 件', n+(n===1?' hit':' hits'), n+' 건'); })(),
+      showJumpBottom: screen==='home' && !s.atChatBottom && !(s.chatSearchQ || '').trim(),
       input:s.input, onChatInput:this.onChatInput, onChatKey:this.onChatKey, onSend:this.onSend,
       typing:s.typing,
       sendBtnOpacity: (s.sending || s.typing || !(s.input||'').trim()) ? '.4' : '1',
       sendBtnCursor: (s.sending || s.typing || !(s.input||'').trim()) ? 'default' : 'pointer',
       imgBusy: s.imgBusy, imgBtnOpacity: s.imgBusy ? '.5' : '1',
       suggestions, hasSuggestions: suggestions.length>0,
-      pendingStrike:s.pendingStrike,
+      intakeAgeActive, ageVal: s.ageVal, onAgeInput: this.onAgeInput, intakeAgeConfirm: this.intakeAgeConfirm,
       reactAgree:this.reactAgree, reactUnsure:this.reactUnsure, reactDisagree:this.reactDisagree,
       obProgressPct: Math.round(Math.min(1, s.convIdx/this.script.length)*100)+'%',
 
       displayName: vu ? vu.name : s.profileName, displayNameShort: vu ? vu.name : s.profileName, userId: vu ? vu.userId : s.profileId,
+      homeAvatar: (s.profileAvatar || (s.profileName || '').slice(0,1) || (s.profileId || '').slice(0,1) || '·'),
       bio: vu ? vu.bio : s.profileBio,
       pubAvatar: vu ? vu.avatar : s.profileAvatar,
       myAvatarImg: s.profileAvatarImg || '', hasMyAvatarImg: !!s.profileAvatarImg,
@@ -2623,6 +3658,95 @@ class Component extends DCLogic {
       renameOpen: s.renameId!==null, renameVal: s.renameVal,
       onRenameInput:this.onRenameInput, closeRename:this.closeRename, confirmRename:this.confirmRename,
       onNudge:this.onNudge, latestRead:s.latestRead,
+
+      // ---- plan / paywall ----
+      isPlan: screen==='plan',
+      isPremium: s.plan==='premium',
+      planFromRate: !!s.planFromRate,
+      planRateMsg: pick('今日の無料の会話量に達しました。Premium なら、この続きを無制限に話せます。','You’ve reached today’s free conversation limit. With Premium you can keep talking, unlimited.','오늘의 무료 대화량에 도달했어요. Premium이면 계속 무제한으로 이야기할 수 있어요.'),
+      planBadgeLabel: s.plan==='premium' ? 'PREMIUM' : 'FREE',
+      planBadgeBg: s.plan==='premium' ? '#1E40FF' : 'var(--surface3)',
+      planBadgeFg: s.plan==='premium' ? '#fff' : 'var(--muted)',
+      planRowLabel: pick('プラン','Plan','플랜'),
+      planRecommend: pick('おすすめ','BEST','추천'),
+      trialHeadline: pick('LORE プレミアムを\n無料で試そう','Try LORE Premium\nfor free','LORE 프리미엄을\n무료로 써보기'),
+      planFreeRows: [
+        { label:pick('会話','Talk','대화'), val:pick('毎日上限あり','Daily limit','매일 상한 있음') },
+        { label:pick('コンテンツ生成','Content','콘텐츠 생성'), val:pick('1日 20回まで','20 / day','하루 20회') },
+        { label:pick('プレミアム生成','Premium gen.','프리미엄 생성'), val:pick('週 1回','1 / week','주 1회') },
+        { label:pick('月次レポート','Monthly report','월간 리포트'), val:pick('—','—','—') },
+      ],
+      planPremiumRows: [
+        { label:pick('会話','Talk','대화'), val:pick('無制限','Unlimited','무제한') },
+        { label:pick('コンテンツ生成','Content','콘텐츠 생성'), val:pick('1日 100回','100 / day','하루 100회') },
+        { label:pick('プレミアム生成','Premium gen.','프리미엄 생성'), val:pick('週 50回','50 / week','주 50회') },
+        { label:pick('月次レポート','Monthly report','월간 리포트'), val:pick('月1回・先月比較・持ち越し可','Monthly · vs last month','월 1회 · 지난달 비교') },
+      ],
+      // 月額 / 年額 トグル
+      monthlyLabel: pick('月額','Monthly','월간'), yearlyLabel: pick('年額','Yearly','연간'),
+      yearlySave: pick('2ヶ月分お得','2 mo free','2개월 무료'),
+      setBillingMonthly: () => this.setState({ billingCycle:'monthly' }),
+      setBillingYearly: () => this.setState({ billingCycle:'yearly' }),
+      monBg: s.billingCycle!=='yearly' ? 'var(--surface)' : 'transparent',
+      monFg: s.billingCycle!=='yearly' ? 'var(--text)' : 'var(--muted)',
+      monShadow: s.billingCycle!=='yearly' ? '0 2px 6px rgba(10,10,10,.12)' : 'none',
+      yrBg: s.billingCycle==='yearly' ? 'var(--surface)' : 'transparent',
+      yrFg: s.billingCycle==='yearly' ? 'var(--text)' : 'var(--muted)',
+      yrShadow: s.billingCycle==='yearly' ? '0 2px 6px rgba(10,10,10,.12)' : 'none',
+      // 30日トライアル・価格は空けておく
+      trialPriceMain: pick('30日間は ¥0','30 days for ¥0','30일간 ¥0'),
+      trialAfterPre: pick('その後は','then','이후'),
+      planPriceBlank: '¥—',
+      periodWord: s.billingCycle==='yearly' ? pick('/ 年','/ yr','/ 년') : pick('/ 月','/ mo','/ 월'),
+      // 価格ヒーロー（例。実価格は要差し替え）
+      priceNum: s.billingCycle==='yearly' ? '¥9,800' : '¥980',
+      priceUnit: s.billingCycle==='yearly' ? pick('/ 年','/ yr','/ 년') : pick('/ 月','/ mo','/ 월'),
+      priceNote: s.billingCycle==='yearly'
+        ? pick('¥817 / 月 相当 — 2ヶ月分お得','≈¥817/mo — 2 months free','월 ¥817 상당 — 2개월 무료')
+        : pick('いつでも解約できます','Cancel anytime','언제든 해지할 수 있어요'),
+      trialBadge: pick('最初の30日間は無料','First 30 days free','첫 30일 무료'),
+      trialCta: pick('30日間無料ではじめる','Start 30-day free trial','30일 무료로 시작하기'),
+      planIsFree: s.plan!=='premium', planIsPremium: s.plan==='premium',
+      upgradePlan:this.upgradePlan, cancelPlan:this.cancelPlan, goPlanBtn: () => this.goPlan(false),
+      planFinePrint: pick('30日間は無料。その後は自動更新（いつでも解約可）。デモのため実際の請求は発生しません。','Free for 30 days, then auto-renews. Cancel anytime. No real billing in this demo.','30일간 무료, 이후 자동 갱신(언제든 해지 가능). 데모라 실제 청구는 없어요.'),
+      planActiveMsg: pick('Premium を利用中です。','You’re on Premium.','Premium 이용 중이에요.'),
+      planCancelCta: pick('プランを解約する','Cancel subscription','구독 해지'),
+      planCancelNote: pick('解約しても、今の請求期間の終わりまでは Premium を使えます。','You keep Premium until the end of the current period.','해지해도 현재 결제 기간 끝까지 Premium을 쓸 수 있어요.'),
+
+      // ---- generate tabs + monthly report ----
+      genHeading: (s.plan==='premium' && s.genTab==='report') ? pick('レポート','Report','리포트') : t.s95,
+      genTabContent: !(s.plan==='premium' && s.genTab==='report'),
+      genTabReport: s.plan==='premium' && s.genTab==='report',
+      setTabContent: () => this.setGenTab('content'), setTabReport: () => this.setGenTab('report'),
+      reportTabLabel: pick('レポート','Report','리포트'),
+      tabContentBg: s.genTab!=='report' ? 'var(--surface)' : 'transparent', tabContentFg: s.genTab!=='report' ? 'var(--text)' : 'var(--muted)',
+      tabReportBg: s.genTab==='report' ? 'var(--surface)' : 'transparent', tabReportFg: s.genTab==='report' ? 'var(--text)' : 'var(--muted)',
+      reportLocked: s.reportStep==='idle' && s.cards.length<10,
+      reportReady: s.reportStep==='idle' && s.cards.length>=10 && (s.reportQuota||0)>0,
+      reportNoQuota: s.reportStep==='idle' && s.cards.length>=10 && (s.reportQuota||0)<=0,
+      reportGenerating: s.reportStep==='generating',
+      reportView: s.reportStep==='view' && !!s.reportData,
+      reportMonth: pick('2026年6月','June 2026','2026년 6월'),
+      reportLockTitle: pick('最初のレポートまで、あと少し','Your first report is close','첫 리포트까지 조금만'),
+      reportLockBody: pick('レポートは、十分に積み上がった内面データから一気に書き上げる。10個のコンテンツが集まると、最初の1通が生成できる。','A report is written all at once from enough accumulated data. Once you have 10 contents, your first one can be generated.','리포트는 충분히 쌓인 내면 데이터로 한 번에 써내요. 콘텐츠가 10개 모이면 첫 한 통을 생성할 수 있어요.'),
+      reportCountLine: pick('いま '+s.cards.length+' / 10','Now '+s.cards.length+' / 10', '지금 '+s.cards.length+' / 10'),
+      reportTalkCta: pick('話してコンテンツを増やす','Talk to make more','대화로 콘텐츠 늘리기'),
+      goTalkBtn:this.goTalk,
+      reportReadyTitle: pick('今月のレポートが、準備できました。','Your report for this month is ready.','이번 달 리포트가 준비됐어요.'),
+      reportReadyBody: pick('これまでのすべての会話とコンテンツから、いまのあなたをあらゆる角度で読み解く。','From everything you’ve talked about and made, we read who you are now — from every angle.','지금까지의 모든 대화와 콘텐츠에서 지금의 당신을 모든 각도로 읽어내요.'),
+      reportCreateCta: pick('レポートを作成','Create report','리포트 작성'),
+      reportQuotaLine: pick('今月分 · 1通','This month · 1 left','이번 달 · 1통'),
+      reportDoneTitle: pick('今月のレポートは作成済み','This month’s report is done','이번 달 리포트는 작성 완료'),
+      reportDoneBody: pick('次のレポートは来月。未使用の月があれば、翌月に持ち越されます。','The next one is next month. Unused months carry over.','다음 리포트는 다음 달에. 사용하지 않은 달은 이월돼요.'),
+      reportComposing: ja ? 'よみといています…' : pick('','COMPOSING…','읽어내는 중…'),
+      reportComposingSub: pick('数か月分の輪郭を、一枚に束ねています。','Binding months of contours into one.','몇 달치 윤곽을 한 장으로 묶고 있어요.'),
+      reportDataTitle: s.reportData ? s.reportData.title : '',
+      reportDataExcerpt: s.reportData ? s.reportData.excerpt : '',
+      reportCompareTeaser: s.reportData ? s.reportData.compareTeaser : '',
+      reportSections: s.reportData ? s.reportData.sections : [],
+      reportShareNote: pick('一部を選んでコンテンツとして公開・共有できます。','Publish and share parts of it as content.','일부를 골라 콘텐츠로 공개·공유할 수 있어요.'),
+      reportPublishCta: pick('レポートを公開する','Publish report','리포트 공개하기'),
+      createReport:this.createReport, publishReport:this.publishReport,
 
       isStepSwipe: s.genStep==='swipe',
       isStepGenerating: s.genStep==='generating', isStepReview: s.genStep==='review',
@@ -2636,6 +3760,7 @@ class Component extends DCLogic {
       setFileEl:this.setFileEl, onPickImage:this.onPickImage, triggerPick:this.triggerPick, removeImage:this.removeImage,
       hasPubImage: !!s.pubImage, noPubImage: !s.pubImage, pubImage: s.pubImage || '',
       cropOpen:s.cropOpen, cropSrc:s.cropSrc, cropScale:s.cropScale, cropX:s.cropX, cropY:s.cropY,
+      cropAspect: s.cropTarget==='avatar' ? '1 / 1' : '16 / 9', cropRadius: s.cropTarget==='avatar' ? '16px' : '10px',
       setCropFrame:this.setCropFrame, onCropDown:this.onCropDown, onCropMove:this.onCropMove, onCropUp:this.onCropUp,
       onCropZoom:this.onCropZoom, cancelCrop:this.cancelCrop, confirmCrop:this.confirmCrop,
       closeCheck: closeOn ? '♥' : '', closeHint: closeOn ? pick('一般には表示されません','Hidden from everyone else','일반에는 표시되지 않아요') : pick('オフなら、みんなに公開されます','Off means visible to everyone','끄면 모두에게 공개돼요'),
@@ -2647,7 +3772,7 @@ class Component extends DCLogic {
       defGranOptions, deletedList, deletedCount: s.deleted.length, hasDeleted: s.deleted.length>0, noDeleted: s.deleted.length===0,
 
       shareCreated:s.shareCreated, shareNotCreated:!s.shareCreated,
-      shareUrl:'lore.app/s/'+s.shareToken,
+      shareUrl:'yourlore.xyz/s/'+s.shareToken,
       shareIsPrivate: s.profilePrivate,
       shareCards: [...s.cards].filter(c => !c.closeOnly).sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0)).slice(0,3).map(c => ({ title:c.title, pinned: !!c.pinned })),
       shareHasCards: s.cards.filter(c => !c.closeOnly).length>0, shareEmpty: s.cards.filter(c => !c.closeOnly).length===0,

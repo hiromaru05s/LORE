@@ -12,6 +12,7 @@ export default defineSchema({
     bio: v.string(),
     avatar: v.string(),
     profilePrivate: v.boolean(),
+    intake: v.optional(v.any()),          // 初回オンボーディングで聞いた基本情報（本人申告）。完了済みフラグも兼ねる
   })
     .index('by_clerk', ['clerkId'])
     .index('by_handle', ['userId']),
@@ -25,7 +26,9 @@ export default defineSchema({
     text: v.string(),
     inputMode: v.optional(v.string()),
     refs: v.optional(v.any()),
-  }).index('by_session', ['sessionId']),
+  })
+    .index('by_session', ['sessionId'])
+    .index('by_user', ['userId']),
 
   // ② 内面モデル：Fragment（中核）
   fragments: defineTable({
@@ -108,6 +111,7 @@ export default defineSchema({
     premiumQuota: v.any(),
     memoryHighlights: v.array(v.string()),
     reaskDue: v.array(v.string()),
+    preferences: v.optional(v.any()),   // 受信ダイヤル: {strikeIntensity, boundariesNg[], tone, intro:{missWelcomeShown}}
   }).index('by_user', ['userId']),
 
   sessions: defineTable({
@@ -119,6 +123,8 @@ export default defineSchema({
     turnsSinceStrike: v.number(),
     pendingFragment: v.optional(v.id('fragments')),
     turnCount: v.number(),
+    pendingBoundary: v.optional(v.string()),   // 直前のask_boundaryで聞いたテーマ（次の発話=その回答）
+    lastBoundaryTurn: v.optional(v.number()),  // 最後に境界を聞いた turnCount（間隔制御用）
   }).index('by_user', ['userId']),
 
   // 最小ともだち申請（受信表示＋承認のみ。フォロー/通知は無し）

@@ -4,7 +4,7 @@
 import 'dotenv/config';
 import { scoreAnswer, materialWeight } from '../convex/lib/scoring';
 import { decideMove } from '../convex/lib/controller';
-import { generateTurn, generateStrike, generateRestrike } from '../convex/lib/generate';
+import { generateTurn, generateStrike, generateRestrike, generateBoundaryAsk } from '../convex/lib/generate';
 import { reactionPatch, missPatch, halfLifeFor } from '../convex/lib/belief';
 import { computeResolution } from '../convex/lib/resolution';
 import { buildSeeds, selectFormat, generateContentBody } from '../convex/lib/content';
@@ -34,6 +34,9 @@ let turnsSinceStrike = 99;
 let turnCount = 0;
 let lastDomain = '';
 let domainRepeat = 0;
+let turnsSinceBoundary = 999;
+const BOUNDARY_TOPICS = ['恋愛', '家族', '仕事', 'お金', '過去', 'コンプレックス'];
+const boundaryAsked: string[] = [];
 const recent: { role: string; text: string }[] = [];
 
 async function userTurn(text: string) {
@@ -49,9 +52,11 @@ async function userTurn(text: string) {
   lastDomain = score.domain;
 
   const due = reaskDue(agreed(), Date.now());
+  const boundaryRemaining = BOUNDARY_TOPICS.filter(t => !boundaryAsked.includes(t)).length;
   const { move, inputMode } = decideMove({
     lastMove, lastScore: score.scores, contourMaterial: c.material,
     reaskDueCount: due.length, turnsSinceStrike, domainRepeat, turnCount,
+    boundaryRemaining, turnsSinceBoundary,
   });
 
   return produceAI(move, inputMode, text, score.domain, due[0]);
@@ -64,7 +69,15 @@ async function produceAI(move: any, inputMode: any, lastAnswer: string, domain: 
     relation: relationSummary(store.rel), memory: memoryHighlights(agreed()),
     reaskText: reaskFrag?.text, struck: contourOf(domain).struck, domain,
   };
-  turnCount++;
+  turnCount++; turnsSinceBoundary++;
+  if (move === 'ask_boundary') {
+    const topic = BOUNDARY_TOPICS.filter(t => !boundaryAsked.includes(t))[0];
+    const ba = await generateBoundaryAsk({ ...gin, move: 'ask_boundary', boundaryTopic: topic });
+    boundaryAsked.push(topic); turnsSinceBoundary = 0; lastMove = 'ask_boundary';
+    recent.push({ role: 'ai', text: ba.message });
+    line(`LORE(ask_boundary:${topic}): ${ba.message}  [${ba.choices.map((c: any) => c.label).join(' / ')}]`);
+    return { kind: 'boundary', topic, choices: ba.choices };
+  }
   if (move === 'strike') {
     const s = await generateStrike(gin);
     const frag = { id: 'f' + store.fragments.length, text: s.message, type: s.type, domain: s.domain, components: s.components, confidence: s.confidence, status: 'proposed', reactions: [], recency: { lastConfirmedAt: null, halfLifeDays: halfLifeFor(s.type) || 0 } };
@@ -147,6 +160,23 @@ async function main() {
     line(`  聞き直し対象: ${due.length}件`);
     assert(due.length >= 1, '半年経過で聞き直し対象になる');
   }
+
+  hr(); line('境界の聞き取り(ask_boundary)'); hr();
+  // コントローラ: 残テーマあり・規定ターン経過・直近strikeでない → ask_boundary を選ぶ
+  const bm = decideMove({ lastMove: 'dig', lastScore: { specificity: 1, emotionalDepth: 1, selfInsight: 1 }, contourMaterial: 0, reaskDueCount: 0, turnsSinceStrike: 3, domainRepeat: 0, turnCount: 8, boundaryRemaining: 3, turnsSinceBoundary: 99 });
+  line(`  controller → ${bm.move}/${bm.inputMode}`);
+  assert(bm.move === 'ask_boundary', '条件が揃うと ask_boundary を選ぶ');
+  // 直近が strike の時は割り込まない（ゾワッを先）
+  const bm2 = decideMove({ lastMove: 'strike', lastScore: { specificity: 1, emotionalDepth: 1, selfInsight: 1 }, contourMaterial: 0, reaskDueCount: 0, turnsSinceStrike: 0, domainRepeat: 0, turnCount: 8, boundaryRemaining: 3, turnsSinceBoundary: 99 });
+  assert(bm2.move !== 'ask_boundary', 'strike直後は境界を聞かない');
+  // 残テーマ0なら聞かない
+  const bm3 = decideMove({ lastMove: 'dig', lastScore: { specificity: 1, emotionalDepth: 1, selfInsight: 1 }, contourMaterial: 0, reaskDueCount: 0, turnsSinceStrike: 3, domainRepeat: 0, turnCount: 8, boundaryRemaining: 0, turnsSinceBoundary: 99 });
+  assert(bm3.move !== 'ask_boundary', '残テーマ0なら境界を聞かない');
+  // 生成: message ＋ 固定二択（routing保証）
+  const ba = await generateBoundaryAsk({ move: 'ask_boundary', inputMode: 'tap', recentTurns: recent.slice(-4), lastAnswer: '', fragments: [], relation: relationSummary(store.rel), memory: [], struck: 0, domain: '日常', boundaryTopic: '家族' });
+  line(`  ask: ${ba.message}  [${ba.choices.map((c: any) => c.label).join(' / ')}]`);
+  assert(!!ba.message, '境界質問の本文が生成された');
+  assert(ba.choices.length === 2 && ba.choices.some((c: any) => c.value === 'ng'), '固定二択(ok/ng)が付く');
 
   hr();
   if (fail === 0) line('✅ 全アサート通過 / エンジン検証 完走');
