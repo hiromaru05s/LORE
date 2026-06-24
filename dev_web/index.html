@@ -532,7 +532,7 @@ textarea{resize:none}
         <img src="{{ logoMark }}" alt="LORE" style="width:26px;height:26px;display:block;flex:none">
         <span style="font-weight:900;letter-spacing:-.02em;font-size:18px;opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap;color:var(--text)">LORE</span>
       </button>
-      <button onClick="{{ navHome.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navHome.bg }};color:{{ navHome.color }};font-weight:{{ navHome.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s17 }}</span></button>
+      <button onClick="{{ navHome.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navHome.bg }};color:{{ navHome.color }};font-weight:{{ navHome.weight }}"><span style="position:relative;flex:none;display:flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><sc-if value="{{ homeUnread }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#FF3B30;border:2px solid var(--surface)"></span></sc-if></span><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s17 }}</span></button>
       <button onClick="{{ navCreate.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navCreate.bg }};color:{{ navCreate.color }};font-weight:{{ navCreate.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 5v14M5 12h14"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s20 }}</span></button>
       <button onClick="{{ navSearch.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navSearch.bg }};color:{{ navSearch.color }};font-weight:{{ navSearch.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s19 }}</span></button>
       <button onClick="{{ navProfile.onClick }}" style="appearance:none;cursor:pointer;border:none;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:15px;text-align:left;background:{{ navProfile.bg }};color:{{ navProfile.color }};font-weight:{{ navProfile.weight }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="opacity:{{ navLabelOpacity }};transition:opacity .15s;white-space:nowrap">{{ t.s74 }}</span></button>
@@ -554,7 +554,7 @@ textarea{resize:none}
   <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg);position:relative">
     <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:11px 18px">
       <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px;position:relative">
-        <div style="width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em">丸</div>
+        <div style="position:relative;width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em;overflow:hidden">{{ homeAvatar }}<sc-if value="{{ hasMyAvatarImg }}" hint-placeholder-val="{{ false }}"><img src="{{ myAvatarImg }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></sc-if></div>
         <div style="min-width:0">
           <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">{{ displayName }}</div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.04em">{{ userId }}</div>
@@ -1562,7 +1562,7 @@ textarea{resize:none}
   <!-- mobile bottom nav -->
   <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ true }}">
   <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);display:flex;height:62px">
-    <button onClick="{{ navHome.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navHome.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navHome.dot }}"></span></button>
+    <button onClick="{{ navHome.onClick }}" style="position:relative;flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navHome.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg><sc-if value="{{ homeUnread }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:6px;right:calc(50% - 14px);width:9px;height:9px;border-radius:50%;background:#FF3B30;border:2px solid var(--surface)"></span></sc-if><span style="width:5px;height:5px;border-radius:50%;background:{{ navHome.dot }}"></span></button>
     <button onClick="{{ navCreate.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navCreate.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navCreate.dot }}"></span></button>
     <button onClick="{{ navSearch.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navSearch.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navSearch.dot }}"></span></button>
     <button onClick="{{ navProfile.onClick }}" style="flex:1;appearance:none;cursor:pointer;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ navProfile.color }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg><span style="width:5px;height:5px;border-radius:50%;background:{{ navProfile.dot }}"></span></button>
@@ -1727,6 +1727,7 @@ class Component extends DCLogic {
     atChatBottom: true,
     chatSearchOpen: false,
     chatSearchQ: '',
+    homeUnread: false,
     input: '',
     sending: false,
     imgBusy: false,
@@ -2157,9 +2158,23 @@ class Component extends DCLogic {
     this.setState({ screen:'home', mode:'home', messages:[], suggestions:[], reactionMode:false, sessionId:null, typing:true });
     this.setResolution(0.12, 400);
     be.getMe().then(me => {
+      this._applyMe(me);   // ヘッダー等を実プロフィールに同期（ダミーのmaruyamaを排除）
       if (me && me.intakeDone) this._startBackend('home');
       else this._startIntake();
     }).catch(e => { this._beError(e); this._startBackend('home'); });
+  };
+  // 実プロフィールを state に反映（名前/ID/アバター/非公開）。home ヘッダー等のダミー表示を防ぐ。
+  _applyMe = (me) => {
+    if (!me) return;
+    const id = (me.userId || '').replace(/^@/, '');
+    this.setState({
+      profileName: me.displayName || id || this.state.profileName,
+      profileId: id || this.state.profileId,
+      profileBio: (me.bio != null ? me.bio : this.state.profileBio),
+      profileAvatar: me.avatar || ((me.displayName || id || '').slice(0, 1)) || this.state.profileAvatar,
+      profileAvatarImg: me.avatarImg || this.state.profileAvatarImg,
+      profilePrivate: !!me.profilePrivate,
+    });
   };
 
   // ---- 初回基本情報インテーク（テンプレ） ----
@@ -2285,8 +2300,9 @@ class Component extends DCLogic {
   goTalk = () => {
     const empty = this.state.messages.length === 0;
     if (this._be()) {
-      this.setState({ screen:'home', mode:'home' });
+      this.setState({ screen:'home', mode:'home', homeUnread:false });   // 開いた＝既読。赤バッジを消す
       if (empty || !this.state.sessionId) this._startBackend('home');
+      else { this._stickBottom = true; this._armIdle(); }
       this.setResolution(this.state.resolution||0.66);
       return;
     }
@@ -2322,15 +2338,17 @@ class Component extends DCLogic {
   };
   _clearIdle = () => clearTimeout(this._idleTimer);
   _idleNudge = () => {
-    // 直前の状況をチェック：home会話中・AIが喋ってない・特殊待ち受け中でない・未送信の下書きも無い
-    if (!this._be() || this.state.screen!=='home' || this.state.mode!=='home') return;
+    // home会話中・AIが喋ってない・特殊待ち受け中でない・未送信の下書きも無いこと（画面はhome以外でも可）
+    if (!this._be() || this.state.mode!=='home') return;
     if (this.state.typing || this.state.intakeActive || this.state.reactionMode || this.state.awaitingMiss) return;
     if ((this.state.input||'').trim()) { this._armIdle(); return; }   // 下書きがあるならまだ書いてる→待つ
     if ((this._pendingTurns||[]).length) return;                     // 送信キュー処理中
+    const onHome = this.state.screen==='home';
     this._stickBottom = true;
     this.setState(s => ({
       messages:[...s.messages, { role:'ai', text:this.tt('さっきの話、途中で止まっちゃったね。続きを話す？それとも新しい話にする？','Looks like we trailed off. Want to pick up where we left off, or start something new?','아까 얘기가 중간에 멈췄네. 이어서 할까, 아니면 새로운 얘기로 갈까?') }],
       suggestions:[ this.tt('さっきの続きを話す','Continue where we left off','이어서 얘기할게'), this.tt('新しい話にしたい','Start something new','새로운 얘기로') ],
+      homeUnread: onHome ? false : true,   // はなす画面を見ていなければ赤バッジ
     }));
   };
   _renderTurn = (r) => {
@@ -2340,7 +2358,7 @@ class Component extends DCLogic {
     if (r.move==='strike' && r.strike) {
       this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message, isRead:true }], pendingFragmentId:r.strike.fragmentId, suggestions:[], reactionMode:true, awaitingMiss:false }));
     } else {
-      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
+      this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false, homeUnread: this.state.screen==='home' ? s.homeUnread : true }));
       this._armIdle();   // ボールはユーザー側へ。無反応が続いたら追い討ち
     }
   };
@@ -2357,9 +2375,15 @@ class Component extends DCLogic {
       } catch(e){ console.warn('[LORE] getHistory', e); }
     }
     try {
-      const r = await this._be().startSession(mode);
-      this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
-      if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
+      // 履歴があるなら quiet で再開（毎回「最近どう？」を生成・表示しない＝挨拶連発を防ぐ）。初回だけ挨拶。
+      const quiet = mode==='home' && history.length > 0;
+      const r = await this._be().startSession(mode, quiet);
+      if (quiet) {
+        this.setState({ typing:false, sessionId:r.sessionId, messages:history, suggestions:[], homeUnread:false });
+      } else {
+        this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), homeUnread:false });
+        if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
+      }
       this._armIdle();
     } catch(e){ this.setState({ typing:false, messages:history }); this._beError(e); }
   };
@@ -3412,7 +3436,7 @@ class Component extends DCLogic {
       openLogin:this.openLogin, closeLogin:this.closeLogin, onLoginId:this.onLoginId, onLoginPw:this.onLoginPw, onLoginKey:this.onLoginKey, onLogin:this.onLogin, stop:this.stop,
       setLoginIdEl:this.setLoginIdEl, setLoginPwEl:this.setLoginPwEl,
       goTalk:this.goTalk, goProfile:this.goProfile, goGenerate:this.goGenerate, goShare:this.goShare, goSearch:this.goSearch,
-      navHome, navCreate, navProfile, navShare, navSearch, navSettings,
+      navHome, navCreate, navProfile, navShare, navSearch, navSettings, homeUnread: s.homeUnread,
       navWidth: s.navExpanded ? '230px' : '72px', navLabelOpacity: s.navExpanded ? '1' : '0',
       navShadow: s.navExpanded ? '4px 0 24px rgba(10,10,10,.10)' : 'none', onNavEnter:this.onNavEnter, onNavLeave:this.onNavLeave,
       isSearch: screen==='search',
@@ -3460,6 +3484,7 @@ class Component extends DCLogic {
       obProgressPct: Math.round(Math.min(1, s.convIdx/this.script.length)*100)+'%',
 
       displayName: vu ? vu.name : s.profileName, displayNameShort: vu ? vu.name : s.profileName, userId: vu ? vu.userId : s.profileId,
+      homeAvatar: (s.profileAvatar || (s.profileName || '').slice(0,1) || (s.profileId || '').slice(0,1) || '·'),
       bio: vu ? vu.bio : s.profileBio,
       pubAvatar: vu ? vu.avatar : s.profileAvatar,
       myAvatarImg: s.profileAvatarImg || '', hasMyAvatarImg: !!s.profileAvatarImg,
