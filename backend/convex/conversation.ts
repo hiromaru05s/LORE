@@ -149,8 +149,8 @@ export const saveStrike = internalMutation({
 
 // ───────────────────────── public actions ─────────────────────────
 export const startSession = action({
-  args: { mode: v.optional(v.string()), quiet: v.optional(v.boolean()) },
-  handler: async (ctx, { mode, quiet }): Promise<any> => {
+  args: { mode: v.optional(v.string()), quiet: v.optional(v.boolean()), lang: v.optional(v.string()) },
+  handler: async (ctx, { mode, quiet, lang }): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m = mode === 'home' ? 'home' : 'onboarding';
     const open: any = await ctx.runMutation(internal.conversation.openSession, { uid, mode: m });
@@ -158,14 +158,14 @@ export const startSession = action({
     // quiet: セッションだけ用意して開始発話は出さない（インテーク後など、FE側で導入済みのとき）
     if (quiet) return { sessionId, quiet: true };
     const relation = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId, domain: '日常' });
-    const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常', firstMeeting });
+    const turn = await generateTurn({ move: 'open', inputMode: 'choice_free', recentTurns: [], lastAnswer: '', fragments: [], relation: relation.relation, memory: relation.memory, struck: 0, domain: '日常', firstMeeting, lang });
     const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId, move: 'open', inputMode: 'choice_free', text: turn.message });
     return { sessionId, move: 'open', inputMode: 'choice_free', message: turn.message, choices: turn.choices, resolution };
   },
 });
 
 export const sendTurn = action({
-  args: { sessionId: v.id('sessions'), text: v.string(), inputMode: v.optional(v.string()) },
+  args: { sessionId: v.id('sessions'), text: v.string(), inputMode: v.optional(v.string()), lang: v.optional(v.string()) },
   handler: async (ctx, a): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const text = (a.text || '').trim();
@@ -176,7 +176,7 @@ export const sendTurn = action({
     const bd: any = await ctx.runMutation(internal.conversation.consumeBoundaryAnswer, { uid, sessionId: a.sessionId, text });
     if (bd.consumed) {
       const bcx = await ctx.runQuery(internal.conversation.loadCtx, { uid, sessionId: a.sessionId, domain: '日常' });
-      const bgin = { move: 'dig' as const, inputMode: 'choice_free' as const, recentTurns: bcx.recentTurns, lastAnswer: '', fragments: bcx.fragments, relation: bcx.relation, memory: bcx.memory, struck: bcx.struck, domain: '日常', intensity: bcx.prefs.strikeIntensity, avoidTopics: bcx.prefs.boundariesNg, tone: bcx.prefs.tone, depth: bcx.prefs.depth };
+      const bgin = { move: 'dig' as const, inputMode: 'choice_free' as const, recentTurns: bcx.recentTurns, lastAnswer: '', fragments: bcx.fragments, relation: bcx.relation, memory: bcx.memory, struck: bcx.struck, domain: '日常', intensity: bcx.prefs.strikeIntensity, avoidTopics: bcx.prefs.boundariesNg, tone: bcx.prefs.tone, depth: bcx.prefs.depth, lang: a.lang };
       const bturn = await generateTurn(bgin);
       const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move: 'dig', inputMode: 'choice_free', text: bturn.message });
       return { move: 'dig', inputMode: 'choice_free', message: bturn.message, choices: bturn.choices, resolution };
@@ -192,7 +192,7 @@ export const sendTurn = action({
       boundaryRemaining: cx.prefs.boundaryRemaining.length, turnsSinceBoundary: cx.turnsSinceBoundary,
     });
     const ctxDomain = cx.lastDomain || '日常';
-    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: ctxDomain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth };
+    const gin = { move, inputMode: outMode, recentTurns: cx.recentTurns, lastAnswer: text, fragments: cx.fragments, relation: cx.relation, memory: cx.memory, reaskText: cx.reaskText || undefined, struck: cx.struck, domain: ctxDomain, intensity: cx.prefs.strikeIntensity, avoidTopics: cx.prefs.boundariesNg, tone: cx.prefs.tone, depth: cx.prefs.depth, lang: a.lang };
 
     // #4 自明ターン（極短文）は採点をスキップ＝材料0扱い（LLM呼び出しを1回に）
     const scoreP: Promise<any> = isTrivialAnswer(text)
@@ -292,7 +292,7 @@ export const applyMissMut = internalMutation({
 });
 
 export const miss = action({
-  args: { sessionId: v.id('sessions'), fragmentId: v.id('fragments'), type: v.string(), detail: v.optional(v.string()) },
+  args: { sessionId: v.id('sessions'), fragmentId: v.id('fragments'), type: v.string(), detail: v.optional(v.string()), lang: v.optional(v.string()) },
   handler: async (ctx, a): Promise<any> => {
     const uid = await ctx.runMutation(api.users.ensureUser, {});
     const m: any = await ctx.runMutation(internal.conversation.applyMissMut, { uid, sessionId: a.sessionId, fragmentId: a.fragmentId, type: a.type, detail: a.detail });
@@ -300,12 +300,12 @@ export const miss = action({
     if (m.followup === 'reason' || m.followup === 'whole') {
       const move = m.followup === 'reason' ? 'dig' : 'pivot';
       const inputMode = m.followup === 'reason' ? 'free' : 'choice_free';
-      const turn = await generateTurn({ move: move as any, inputMode: inputMode as any, recentTurns: m.recentTurns, lastAnswer: a.detail || '', fragments: [], relation: m.relation, memory: m.memory, struck: 0, domain: m.domain });
+      const turn = await generateTurn({ move: move as any, inputMode: inputMode as any, recentTurns: m.recentTurns, lastAnswer: a.detail || '', fragments: [], relation: m.relation, memory: m.memory, struck: 0, domain: m.domain, lang: a.lang });
       const resolution = await ctx.runMutation(internal.conversation.saveAiTurn, { uid, sessionId: a.sessionId, move, inputMode, text: turn.message });
       return { next: { move, inputMode, message: turn.message, choices: inputMode === 'free' ? [] : turn.choices, resolution } };
     }
     // restrike
-    const rs = await generateRestrike({ missType: a.type, detail: a.detail, fragmentText: m.fragmentText, domain: m.domain, recentTurns: m.recentTurns });
+    const rs = await generateRestrike({ missType: a.type, detail: a.detail, fragmentText: m.fragmentText, domain: m.domain, recentTurns: m.recentTurns, lang: a.lang });
     const contourId = m.contourId || (await ctx.runMutation(internal.conversation.recordAnswer, { uid, sessionId: a.sessionId, text: '(restrike)', inputMode: 'tap', domain: m.domain, materialW: 0 })).contourId;
     const { fragmentId, resolution } = await ctx.runMutation(internal.conversation.saveStrike, { uid, sessionId: a.sessionId, strike: rs, domain: m.domain, contourId });
     return { next: { move: 'strike', inputMode: 'tap', message: rs.message, strike: { fragmentId, components: rs.components, confidence: rs.confidence }, missCandidates: rs.missCandidates, resolution } };

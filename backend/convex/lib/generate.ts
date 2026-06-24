@@ -20,7 +20,17 @@ export interface GenInput {
   depth?: string;           // 返しの深さ（light|deep）
   boundaryTopic?: string;   // ask_boundary で許可を取りに行くテーマ
   firstMeeting?: boolean;   // 履歴ゼロの初対面（open時に自己紹介する）
+  lang?: string;            // 出力言語（ja|en|ko）。ja以外は出力をその言語に強制する
 }
+
+const LANG_NAME: Record<string, string> = { ja: '日本語', en: 'English', ko: '한국어' };
+/** 出力言語の強制。ja のときは無指定（プロンプトが日本語ネイティブ）。 */
+const langLine = (lang?: string) => {
+  const n = lang && LANG_NAME[lang];
+  return n && lang !== 'ja'
+    ? `\n\n[OUTPUT LANGUAGE] message と choices（label/value以外の表示文）は必ず ${n} で書くこと。日本語にしない。`
+    : '';
+};
 
 /** 境界質問の固定二択（LLMに作らせず routing を保証）。FEはlabelをそのまま送る→BEがpendingBoundaryで解釈。 */
 export const BOUNDARY_CHOICES = [
@@ -51,7 +61,7 @@ export async function generateTurn(g: GenInput): Promise<any> {
 choices は「タップするとそのまま“ユーザーの発言”として送信される文」。
 ★選択肢を出すのは「数個の具体的な答えで自然に片づくクローズドな問い」のときだけ（例：「どっちかというと朝型？夜型？」→「朝型かな」「夜は強い」）。
 ★相手が自分の言葉で語る必要がある“オープンな問い”（例：「そのこと、もっと聞かせて」「最近どう？」「なんでそう思ったの？」）では、必ず choices を空配列 [] にして自由入力に委ねる。逃げ道が要る場面でも添えるのは「違う話題にしよう」1個まで。
-出すときは本人の一人称・話し言葉でそのまま送れる返答にし、最大2〜3個。行動説明・ト書き・方向ラベル（「詳細を語る」「素直に話す」等）や機械的二択（「いい感じ／微妙」）は禁止。迷ったら空配列。`,
+出すときは本人の一人称・話し言葉でそのまま送れる返答にし、最大2〜3個。行動説明・ト書き・方向ラベル（「詳細を語る」「素直に話す」等）や機械的二択（「いい感じ／微妙」）は禁止。迷ったら空配列。${langLine(g.lang)}`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
@@ -60,7 +70,7 @@ choices は「タップするとそのまま“ユーザーの発言”として
 export async function generateBoundaryAsk(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, lastAnswer: g.lastAnswer,
-    extra: `【今回の手: ask_boundary】今回確認したいテーマ＝「${g.boundaryTopic || ''}」。${MOVE_INSTRUCTION.ask_boundary}${styleLine(g.tone, g.depth)}`,
+    extra: `【今回の手: ask_boundary】今回確認したいテーマ＝「${g.boundaryTopic || ''}」。${MOVE_INSTRUCTION.ask_boundary}${styleLine(g.tone, g.depth)}${langLine(g.lang)}`,
   });
   const out = await llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: 'ask_boundary', topic: g.boundaryTopic } });
   return { message: out.message, choices: BOUNDARY_CHOICES };
@@ -70,16 +80,16 @@ export async function generateBoundaryAsk(g: GenInput): Promise<any> {
 export async function generateStrike(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, fragments: g.fragments, memory: g.memory, lastAnswer: g.lastAnswer,
-    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nまだ本人に言っていない読みを一文で刺せ。`,
+    extra: `対象領域: ${g.domain}。攻め強度=${g.intensity || 'gentle'}（gentle=「〜なんじゃない？」とやんわり仮説で／bold=断定気味にズバッと）。${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}\nまだ本人に言っていない読みを一文で刺せ。${langLine(g.lang)}`,
   });
   return llm({ purpose: 'strike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { struck: g.struck, domain: g.domain, lastText: g.lastAnswer } });
 }
 
 /** ハズレ回復の再strike を Pro で生成。 */
-export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[] }): Promise<any> {
+export async function generateRestrike(args: { missType: string; detail?: string; fragmentText: string; domain: string; recentTurns: { role: string; text: string }[]; lang?: string }): Promise<any> {
   const user = buildContext({
     recentTurns: args.recentTurns,
-    extra: `直前の読み「${args.fragmentText}」は外した。ハズレ型=${args.missType}${args.detail ? `／本人の言葉「${args.detail}」` : ''}。この差分を燃料に、もう一度当て直す一文を出せ。`,
+    extra: `直前の読み「${args.fragmentText}」は外した。ハズレ型=${args.missType}${args.detail ? `／本人の言葉「${args.detail}」` : ''}。この差分を燃料に、もう一度当て直す一文を出せ。${langLine(args.lang)}`,
   });
   return llm({ purpose: 'restrike', model: 'pro', system: SYS_STRIKE, user, schema: StrikeSchema, hints: { missType: args.missType, detail: args.detail, fragmentText: args.fragmentText, domain: args.domain } });
 }

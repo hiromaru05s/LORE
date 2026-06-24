@@ -118,12 +118,13 @@ const Backend = {
   isPremium() { return this._q('entitlements:isPremium', {}); },
 
   // ── 会話 ──
-  startSession(mode = 'onboarding', quiet = false) { return this._a('conversation:startSession', { mode, quiet }); },
-  sendTurn(sessionId, text, inputMode = 'choice_free') { return this._a('conversation:sendTurn', { sessionId, text, inputMode }); },
+  startSession(mode = 'onboarding', quiet = false, lang) { return this._a('conversation:startSession', { mode, quiet, lang }); },
+  sendTurn(sessionId, text, inputMode = 'choice_free', lang) { return this._a('conversation:sendTurn', { sessionId, text, inputMode, lang }); },
   react(sessionId, fragmentId, kind) { return this._a('conversation:react', { sessionId, fragmentId, kind }); },
-  miss(sessionId, fragmentId, type, detail) { return this._a('conversation:miss', { sessionId, fragmentId, type, detail }); },
+  miss(sessionId, fragmentId, type, detail, lang) { return this._a('conversation:miss', { sessionId, fragmentId, type, detail, lang }); },
   nudge() { return this._q('conversation:nudge', {}); },
   getHistory(limit) { return this._q('conversation:getHistory', limit ? { limit } : {}); },   // 過去ログ全件（継続スレッド）
+  translate(text, target) { return this._a('translate:translate', { text, target }); },   // コンテンツ翻訳（X風）
 
   // ── コンテンツ ──
   buildCandidates() { return this._a('content:buildCandidates', {}); },

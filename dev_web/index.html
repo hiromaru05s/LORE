@@ -54,6 +54,13 @@ textarea{resize:none}
 @keyframes loreBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
 @keyframes loreMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes loreSheen{0%{transform:translateX(-120%)}60%,100%{transform:translateX(220%)}}
+@keyframes obTalk{0%,100%{transform:translateY(0) scale(1)}28%{transform:translateY(-4px) scale(1.08)}58%{transform:translateY(1px) scale(.98)}}
+@keyframes obSway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-3px)}}
+@keyframes obCheckPop{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.14) rotate(-3deg)}70%{transform:scale(.98)}}
+@keyframes obSharePulse{0%,100%{transform:scale(1) rotate(0)}45%{transform:scale(1.1) rotate(6deg)}}
+@keyframes swHintL{0%,100%{transform:translateX(0);opacity:.8}50%{transform:translateX(-8px);opacity:1}}
+@keyframes swHintR{0%,100%{transform:translateX(0);opacity:.8}50%{transform:translateX(8px);opacity:1}}
+@keyframes swCardHint{0%,72%,100%{transform:translateX(0) rotate(0)}80%{transform:translateX(13px) rotate(2.4deg)}88%{transform:translateX(-13px) rotate(-2.4deg)}}
 </style>
 </helmet>
 
@@ -517,36 +524,36 @@ textarea{resize:none}
     <button onClick="{{ onDemo }}" style="appearance:none;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:11px;flex:none">skip →</button>
   </div>
 
-  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px">
-    <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 6px">
+    <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
       <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
         <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
             <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-            <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:{{ m.weight }};max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+            <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:18px 18px 18px 5px;padding:8px 13px;font-size:14px;line-height:1.5;font-weight:{{ m.weight }};max-width:80%;box-shadow:0 1px 2px rgba(10,10,10,.06)">{{ m.text }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
-            <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+            <div style="background:#1E40FF;color:#fff;border-radius:18px 18px 5px 18px;padding:8px 13px;font-size:14px;line-height:1.45;font-weight:500;max-width:80%">{{ m.text }}</div>
           </div>
         </sc-if>
       </sc-for>
     </div>
   </div>
 
-  <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px 16px">
+  <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px 11px">
     <div style="max-width:620px;margin:0 auto">
       <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
-            <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--text)">{{ s.text }}</button>
+            <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--text)">{{ s.text }}</button>
           </sc-for>
         </div>
       </sc-if>
       <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s102 }}" style="flex:1;border:1px solid var(--border);border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:var(--surface2)"></textarea>
-        <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+        <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s102 }}" style="flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 15px;font-size:14px;line-height:1.4;min-height:38px;max-height:110px;outline:none;background:var(--surface2)"></textarea>
+        <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff" style="transform:translateX(1px)"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .65.65 1.1 1.39.91z"></path></svg></button>
       </div>
     </div>
   </div>
@@ -597,8 +604,8 @@ textarea{resize:none}
   <!-- HOME = TALK -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
   <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg);position:relative">
-    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:11px 18px">
-      <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px;position:relative">
+    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:9px 14px">
+      <div style="max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;position:relative">
         <div style="position:relative;width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em;overflow:hidden">{{ homeAvatar }}<sc-if value="{{ hasMyAvatarImg }}" hint-placeholder-val="{{ false }}"><img src="{{ myAvatarImg }}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></sc-if></div>
         <div style="min-width:0">
           <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">{{ displayName }}</div>
@@ -675,18 +682,18 @@ textarea{resize:none}
     </div>
     </sc-if>
 
-    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px;min-height:0">
-      <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 6px;min-height:0">
+      <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
         <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
           <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:8px;align-items:flex-end;animation:loreFade .4s ease both">
               <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
-              <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:20px 20px 20px 6px;padding:10px 15px;font-size:15px;line-height:1.45;font-weight:{{ m.weight }};max-width:76%;box-shadow:0 1px 2px rgba(10,10,10,.07)">{{ m.text }}</div>
+              <div style="background:{{ m.bg }};border:{{ m.border }};border-radius:18px 18px 18px 5px;padding:8px 13px;font-size:14px;line-height:1.5;font-weight:{{ m.weight }};max-width:80%;box-shadow:0 1px 2px rgba(10,10,10,.06)">{{ m.text }}</div>
             </div>
           </sc-if>
           <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
-              <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+              <div style="background:#1E40FF;color:#fff;border-radius:18px 18px 5px 18px;padding:8px 13px;font-size:14px;line-height:1.45;font-weight:500;max-width:80%">{{ m.text }}</div>
             </div>
           </sc-if>
           <sc-if value="{{ m.isFlow }}" hint-placeholder-val="{{ true }}">
@@ -756,12 +763,12 @@ textarea{resize:none}
     <sc-if value="{{ showJumpBottom }}" hint-placeholder-val="{{ false }}">
       <button onClick="{{ jumpChatBottom }}" aria-label="{{ tJumpLatest }}" style="position:absolute;right:18px;bottom:96px;z-index:15;appearance:none;cursor:pointer;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 14px rgba(10,10,10,.18);display:flex;align-items:center;justify-content:center;color:var(--ink);animation:loreFade .2s ease both"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></button>
     </sc-if>
-    <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px 16px">
+    <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px 11px">
       <div style="max-width:620px;margin:0 auto">
         <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
             <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="2">
-              <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:18px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--text)">{{ s.text }}</button>
+              <button onClick="{{ s.onClick }}" style="appearance:none;cursor:pointer;background:var(--surface2);border:none;border-radius:16px;padding:7px 13px;font-size:12.5px;font-weight:600;color:var(--text)">{{ s.text }}</button>
             </sc-for>
           </div>
         </sc-if>
@@ -773,8 +780,8 @@ textarea{resize:none}
           </div>
         </sc-if>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s128 }}" style="flex:1;border:1px solid var(--border);border-radius:24px;padding:13px 18px;font-size:15px;line-height:1.4;min-height:48px;max-height:120px;outline:none;background:var(--surface2)"></textarea>
-          <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg></button>
+          <textarea value="{{ input }}" onChange="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ t.s128 }}" style="flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 15px;font-size:14px;line-height:1.4;min-height:38px;max-height:110px;outline:none;background:var(--surface2)"></textarea>
+          <button onClick="{{ onSend }}" style="appearance:none;cursor:{{ sendBtnCursor }};opacity:{{ sendBtnOpacity }};background:#1E40FF;color:#fff;border:none;border-radius:50%;width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff" style="transform:translateX(1px)"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .65.65 1.1 1.39.91z"></path></svg></button>
         </div>
       </div>
     </div>
@@ -1157,7 +1164,10 @@ textarea{resize:none}
         <div style="font-weight:800;font-size:14px">{{ vcAuthorName }}</div>
         <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted)">{{ vcAuthorId }}</div>
       </div>
-      <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 20px;white-space:pre-wrap">{{ vcBody }}</p>
+      <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 10px;white-space:pre-wrap">{{ vcBody }}</p>
+      <sc-if value="{{ showTranslate }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ onTranslateContent }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;margin:0 0 20px;display:inline-flex;align-items:center;gap:6px;color:#1E40FF;font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7M9 3v2c0 4-2 7-5 8"></path><path d="M5 9c0 2.5 2.5 4.5 5 5"></path><path d="m12 20 4-9 4 9M13.4 17h5.2"></path></svg>{{ transLabel }}</button>
+      </sc-if>
       <sc-if value="{{ vcHasImage }}" hint-placeholder-val="{{ false }}">
         <img src="{{ vcImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--border);border-radius:10px;display:block">
       </sc-if>
@@ -1270,6 +1280,10 @@ textarea{resize:none}
                 </div>
               </div>
             </sc-for>
+          </div>
+          <div style="display:flex;justify-content:center;gap:9px;margin-top:2px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#E5484D;background:var(--dangerBg);border-radius:14px;padding:5px 12px;animation:swHintL 1.6s ease-in-out infinite"><span style="font-size:14px;line-height:1">←</span>{{ t.s0 }}</span>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#1E40FF;background:var(--accentBg);border-radius:14px;padding:5px 12px;animation:swHintR 1.6s ease-in-out infinite">{{ t.s20 }}<span style="font-size:14px;line-height:1">→</span></span>
           </div>
         </sc-if>
       </sc-if>
@@ -1541,6 +1555,25 @@ textarea{resize:none}
       <!-- トライアル見出し -->
       <div style="font-weight:900;font-size:30px;letter-spacing:-.03em;line-height:1.25;margin:0 0 20px;white-space:pre-line">{{ trialHeadline }}</div>
 
+      <!-- 月額/年額トグル + 価格ヒーロー（上部・主要サービス風） -->
+      <sc-if value="{{ planIsFree }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:4px;margin:0 0 14px">
+          <button onClick="{{ setBillingMonthly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ monBg }};color:{{ monFg }};box-shadow:{{ monShadow }};transition:all .2s">{{ monthlyLabel }}</button>
+          <button onClick="{{ setBillingYearly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ yrBg }};color:{{ yrFg }};box-shadow:{{ yrShadow }};transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px">{{ yearlyLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.04em;background:#1E40FF;color:#fff;border-radius:5px;padding:2px 6px">{{ yearlySave }}</span></button>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:18px;padding:22px 20px;margin:0 0 22px;background:var(--surface);box-shadow:0 10px 28px rgba(10,10,10,.08)">
+          <div style="display:flex;align-items:flex-end;gap:7px">
+            <span style="font-weight:900;font-size:42px;letter-spacing:-.03em;line-height:.95">{{ priceNum }}</span>
+            <span style="font-size:15px;color:var(--muted);font-weight:800;margin-bottom:7px">{{ priceUnit }}</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:8px">{{ priceNote }}</div>
+          <div style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:11px;padding:8px 12px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span style="color:#1E40FF;font-weight:900;font-size:13px">{{ trialBadge }}</span>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- 比較（左右） -->
       <div style="display:flex;gap:12px;margin-bottom:22px;align-items:stretch">
         <!-- FREE -->
@@ -1572,22 +1605,7 @@ textarea{resize:none}
 
       <!-- CTA -->
       <sc-if value="{{ planIsFree }}" hint-placeholder-val="{{ true }}">
-        <!-- 月額 / 年額 トグル -->
-        <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px;box-shadow:inset 0 1px 2px rgba(10,10,10,.05)">
-          <button onClick="{{ setBillingMonthly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ monBg }};color:{{ monFg }};box-shadow:{{ monShadow }}">{{ monthlyLabel }}</button>
-          <button onClick="{{ setBillingYearly }}" style="flex:1;appearance:none;cursor:pointer;border:none;border-radius:9px;padding:11px 8px;font-weight:800;font-size:14px;background:{{ yrBg }};color:{{ yrFg }};box-shadow:{{ yrShadow }};display:flex;align-items:center;justify-content:center;gap:6px">{{ yearlyLabel }}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;background:#1E40FF;color:#fff;border-radius:5px;padding:2px 6px">{{ yearlySave }}</span></button>
-        </div>
-
-        <!-- トライアル価格ブロック -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 18px;margin-bottom:14px;box-shadow:0 10px 28px rgba(10,10,10,.10);display:flex;align-items:center;gap:14px">
-          <div style="flex:none;width:46px;height:46px;border-radius:13px;background:var(--accentBg);display:flex;align-items:center;justify-content:center;font-size:22px">🎁</div>
-          <div style="min-width:0;flex:1">
-            <div style="font-weight:900;font-size:19px;letter-spacing:-.02em;line-height:1.3">{{ trialPriceMain }}</div>
-            <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:3px">{{ trialAfterPre }} <span style="color:var(--text);font-weight:800">{{ planPriceBlank }}</span> {{ periodWord }}</div>
-          </div>
-        </div>
-
-        <button onClick="{{ upgradePlan }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:13px;padding:18px;font-weight:900;font-size:16px;box-shadow:0 12px 30px rgba(30,64,255,.40)">{{ trialCta }}</button>
+        <button onClick="{{ upgradePlan }}" style="width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:13px;padding:17px;font-weight:900;font-size:16px;box-shadow:0 12px 30px rgba(30,64,255,.40)">{{ trialCta }}</button>
         <p style="font-size:11px;color:var(--faint);text-align:center;margin:13px 0 0;font-weight:500;line-height:1.7">{{ planFinePrint }}</p>
       </sc-if>
       <sc-if value="{{ planIsPremium }}" hint-placeholder-val="{{ false }}">
@@ -1691,7 +1709,10 @@ textarea{resize:none}
     <sc-if value="{{ vcHasImage }}" hint-placeholder-val="{{ false }}">
       <img src="{{ vcImage }}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--border);border-radius:10px;display:block;margin:0 0 20px">
     </sc-if>
-    <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0;white-space:pre-wrap">{{ vcBody }}</p>
+    <p style="font-size:17px;line-height:1.9;color:var(--text2);font-weight:500;margin:0 0 10px;white-space:pre-wrap">{{ vcBody }}</p>
+    <sc-if value="{{ showTranslate }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ onTranslateContent }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;display:inline-flex;align-items:center;gap:6px;color:#1E40FF;font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7M9 3v2c0 4-2 7-5 8"></path><path d="M5 9c0 2.5 2.5 4.5 5 5"></path><path d="m12 20 4-9 4 9M13.4 17h5.2"></path></svg>{{ transLabel }}</button>
+    </sc-if>
 
     <div style="background:var(--ink);color:#fff;border-radius:10px;padding:30px 24px;margin-top:34px;text-align:center">
       <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.26em;color:rgba(255,255,255,.55);margin-bottom:12px">READ YOURSELF</div>
@@ -1722,6 +1743,7 @@ class Component extends DCLogic {
     closeFriends: {},
     friendsListOpen: false,
     viewCard: null,
+    cTransOn: false, cTransText: '', cTransKey: '', cTransBusy: false,
     contentBackTo: 'profile',
     pubViewUsed: false,
     legalDoc: null,
@@ -1971,11 +1993,20 @@ class Component extends DCLogic {
     try {
       if (!localStorage.getItem('lore_onboarded')) {
         this.setState({ onboardOpen:true, obStep:1 });
-        this._obTimer = setInterval(() => this.setState(s => ({ obStep: s.obStep>=4 ? 1 : s.obStep+1 })), 2100);
+        this._scheduleOb();
       }
     } catch(_) {}
   }
-  closeOnboard = () => { clearInterval(this._obTimer); try { localStorage.setItem('lore_onboarded','1'); } catch(_) {} this.setState({ onboardOpen:false }); };
+  // 1番だけ滞在を1.5倍にして、視線が乗る前に次へ行かないようにする
+  _scheduleOb = () => {
+    clearTimeout(this._obTimer);
+    const dwell = this.state.obStep===1 ? 3150 : 2100;
+    this._obTimer = setTimeout(() => {
+      this.setState(s => ({ obStep: s.obStep>=4 ? 1 : s.obStep+1 }));
+      this._scheduleOb();
+    }, dwell);
+  };
+  closeOnboard = () => { clearTimeout(this._obTimer); try { localStorage.setItem('lore_onboarded','1'); } catch(_) {} this.setState({ onboardOpen:false }); };
   closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null, prefsOpen:false });
   installApp = () => { const p = this._deferredPrompt; if (!p) { this.showToast(this.tt('インストールはブラウザのメニューから行えます','You can install from your browser menu','브라우저 메뉴에서 설치할 수 있어요')); return; } p.prompt(); p.userChoice.finally(() => { this._deferredPrompt = null; this.setState({ canInstall:false }); }); };
   // ---- routing helpers ----
@@ -2024,7 +2055,7 @@ class Component extends DCLogic {
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
       s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); clearInterval(this._obTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); clearTimeout(this._obTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -2436,7 +2467,7 @@ class Component extends DCLogic {
       // 履歴があるなら quiet で再開（毎回「最近どう？」を生成・表示しない＝挨拶連発を防ぐ）。初回だけ挨拶。
       const quiet = mode==='home' && history.length > 0;
       if (!quiet) this.setState({ typing:true });   // 新しい挨拶が来るときだけ“てんてん”を出す
-      const r = await this._be().startSession(mode, quiet);
+      const r = await this._be().startSession(mode, quiet, this.state.lang);
       if (quiet) {
         this.setState({ typing:false, sessionId:r.sessionId, messages:history, suggestions:[], homeUnread:false });
       } else {
@@ -2452,10 +2483,10 @@ class Component extends DCLogic {
     try {
       let r;
       if (this.state.awaitingMiss && this.state.pendingFragmentId) {
-        const mr = await be.miss(sid, this.state.pendingFragmentId, 'custom', text);
+        const mr = await be.miss(sid, this.state.pendingFragmentId, 'custom', text, this.state.lang);
         r = mr.next || mr;
       } else {
-        r = await be.sendTurn(sid, text, 'choice_free');
+        r = await be.sendTurn(sid, text, 'choice_free', this.state.lang);
       }
       this.setState({ sending:false });
       this._renderTurn(r);
@@ -2568,7 +2599,20 @@ class Component extends DCLogic {
   setLangEn = () => this.setLang('en');
   setLangKo = () => this.setLang('ko');
   toggleLangMenu = () => this.setState(s => ({ langOpen: !s.langOpen }));
-  openContent = (c) => this.setState({ screen:'content', viewCard:c, contentBackTo:'profile' });
+  openContent = (c) => this.setState({ screen:'content', viewCard:c, contentBackTo:'profile', cTransOn:false });
+  // X風コンテンツ翻訳：自分の設定言語に切り替え（再タップで原文）。キーはカードidで管理。
+  onTranslateContent = () => {
+    const vc = this.state.viewCard; if (!vc || !vc.body) return;
+    const key = String(vc.id || vc.title || '');
+    if (this.state.cTransOn && this.state.cTransKey===key) { this.setState({ cTransOn:false }); return; }
+    if (this.state.cTransKey===key && this.state.cTransText) { this.setState({ cTransOn:true }); return; }  // キャッシュ
+    const be = this._be();
+    if (!be) { this.showToast(this.tt('翻訳は接続後に使えます','Translation needs a connection','연결 후 번역할 수 있어요')); return; }
+    this.setState({ cTransBusy:true });
+    be.translate(vc.body, this.state.lang).then(r => {
+      this.setState({ cTransText:(r && r.text) || vc.body, cTransOn:true, cTransKey:key, cTransBusy:false });
+    }).catch(e => { this.setState({ cTransBusy:false }); this._beError(e); });
+  };
   // ---- content card menu ----
   toggleCardMenu = (id) => this.setState(s => ({ openCardMenu: s.openCardMenu===id ? null : id }));
   closeCardMenu = () => this.setState({ openCardMenu:null });
@@ -3180,8 +3224,9 @@ class Component extends DCLogic {
     const navActiveBg = s.dark ? '#2a2a30' : '#f0efec';
     const mkNav = (key, onClick) => { const a = activeKey===key; return { onClick, color: a?navActive:'#8c8c88', weight: a?'800':'600', bg: a?navActiveBg:'transparent', dot: a?navActive:'transparent' }; };
     // オンボーディング: アクティブな手順を強調（ループでハイライトが1→4へ移動）
+    const obAnim = { 1:'obTalk 1s ease-in-out infinite', 2:'obSway 1.7s ease-in-out infinite', 3:'obCheckPop 1.5s ease-in-out infinite', 4:'obSharePulse 1.4s ease-in-out infinite' };
     const obDef = (n) => s.obStep===n
-      ? { op:'1', sc:'1', bd:'#1E40FF', bg:'var(--surface)', sh:'0 10px 26px rgba(30,64,255,.16)', anim:'loreFloat 2.4s ease-in-out infinite' }
+      ? { op:'1', sc:'1', bd:'#1E40FF', bg:'var(--surface)', sh:'0 10px 26px rgba(30,64,255,.16)', anim:obAnim[n] }
       : { op:'.42', sc:'.985', bd:'var(--border)', bg:'var(--surface2)', sh:'none', anim:'none' };
     const obDotC = (n) => s.obStep===n ? '#1E40FF' : 'var(--border)';
     const obDotW = (n) => s.obStep===n ? '22px' : '7px';
@@ -3527,7 +3572,13 @@ class Component extends DCLogic {
       isSearch: screen==='search',
       langOpen:s.langOpen, toggleLangMenu:this.toggleLangMenu,
       isContent: screen==='content' && !publicContent,
-      vcTitle: vc.title||'', vcBody: vc.body||'',
+      vcTitle: vc.title||'',
+      vcBody: (s.cTransOn && s.cTransKey===String(vc.id||vc.title||'')) ? s.cTransText : (vc.body||''),
+      onTranslateContent:this.onTranslateContent,
+      showTranslate: !!vc.body && s.contentBackTo!=='profile',   // 他人のコンテンツにだけ控えめに出す
+      transBusy: s.cTransBusy,
+      transLabel: s.cTransBusy ? pick('翻訳中…','Translating…','번역 중…')
+        : ((s.cTransOn && s.cTransKey===String(vc.id||vc.title||'')) ? pick('原文を表示','Show original','원문 보기') : pick('翻訳','Translate','번역')),
       vcAuthorName: contentFromUser ? s.viewUser.name : '丸山',
       vcAuthorId: contentFromUser ? s.viewUser.userId : 'maruyama',
       vcAuthorAvatar: contentFromUser ? s.viewUser.avatar : '丸',
@@ -3618,6 +3669,13 @@ class Component extends DCLogic {
       trialAfterPre: pick('その後は','then','이후'),
       planPriceBlank: '¥—',
       periodWord: s.billingCycle==='yearly' ? pick('/ 年','/ yr','/ 년') : pick('/ 月','/ mo','/ 월'),
+      // 価格ヒーロー（例。実価格は要差し替え）
+      priceNum: s.billingCycle==='yearly' ? '¥9,800' : '¥980',
+      priceUnit: s.billingCycle==='yearly' ? pick('/ 年','/ yr','/ 년') : pick('/ 月','/ mo','/ 월'),
+      priceNote: s.billingCycle==='yearly'
+        ? pick('¥817 / 月 相当 — 2ヶ月分お得','≈¥817/mo — 2 months free','월 ¥817 상당 — 2개월 무료')
+        : pick('いつでも解約できます','Cancel anytime','언제든 해지할 수 있어요'),
+      trialBadge: pick('最初の30日間は無料','First 30 days free','첫 30일 무료'),
       trialCta: pick('30日間無料ではじめる','Start 30-day free trial','30일 무료로 시작하기'),
       planIsFree: s.plan!=='premium', planIsPremium: s.plan==='premium',
       upgradePlan:this.upgradePlan, cancelPlan:this.cancelPlan, goPlanBtn: () => this.goPlan(false),
