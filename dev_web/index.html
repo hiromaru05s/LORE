@@ -524,7 +524,7 @@ textarea{resize:none}
     <button onClick="{{ onDemo }}" style="appearance:none;cursor:pointer;background:transparent;border:none;color:rgba(255,255,255,.5);font-family:'Space Mono',monospace;font-size:11px;flex:none">skip →</button>
   </div>
 
-  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 6px">
+  <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 20px">
     <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
       <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
         <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
@@ -682,7 +682,7 @@ textarea{resize:none}
     </div>
     </sc-if>
 
-    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 6px;min-height:0">
+    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:14px 14px 20px;min-height:0">
       <div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:11px">
         <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
           <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
@@ -741,6 +741,17 @@ textarea{resize:none}
                   </div>
                 </div>
 
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isTopics }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;align-items:flex-start;animation:loreFade .4s ease both">
+              <div style="width:28px;height:28px;background:var(--ink);border-radius:50%;flex:none;padding:5px;display:flex;align-items:center;justify-content:center"><img src="mark-white.png" alt="LORE" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+              <div style="display:flex;flex-direction:column;gap:7px;max-width:82%">
+                <button onClick="{{ onTopic1 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic1 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <button onClick="{{ onTopic2 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic2 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <button onClick="{{ onTopic3 }}" style="appearance:none;cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--accentBorder);border-radius:14px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(10,10,10,.05)"><span style="flex:1;font-weight:700;font-size:13.5px;color:var(--text)">{{ topic3 }}</span><span style="color:#1E40FF;font-size:16px;line-height:1">›</span></button>
+                <div style="font-size:11px;color:var(--faint);font-weight:500;padding:2px 2px 0">{{ topicHint }}</div>
               </div>
             </div>
           </sc-if>
@@ -2299,14 +2310,18 @@ class Component extends DCLogic {
     const be = this._be();
     if (be) { try { await be.saveIntake(a); } catch(e){ this._beError(e); } }
     this.setState({ intakeActive:false, suggestions:[] });
-    // 使い方の図解は入室時（_startIntake）に既出。ここではそのまま会話へ。
-    this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。','さて、前置きはこのくらいで。最近、どう？'], async () => {
+    // 締めは柔らかく。「最近どう？」と丸投げせず、話題の入口を3つチャット内に出して選べるようにする。
+    this._seqBubbles([
+      this.tt('ありがとう。なんとなく、君の輪郭が見えてきた気がする。','Thanks. I’m starting to get a sense of who you are.','고마워. 어렴풋이 너의 윤곽이 보이기 시작했어.'),
+      this.tt('さて、ここからは気楽に話そう。どんな話からいく？','Okay, let’s just chat from here. Where should we start?','이제부턴 편하게 얘기하자. 어떤 얘기부터 할까?'),
+    ], async () => {
       if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
-      // 「最近どう？」はオープンな問い → 選択肢は出さず自由入力に委ねる
-      this.setState({ suggestions:[] });
-      this._armIdle();   // 無反応が続いたら追い討ち
+      this.setState(s => ({ messages:[...s.messages, { role:'ai', topics:true }], suggestions:[] }));   // 話題3択をチャット内に
+      this._armIdle();
     }, 650);
   };
+  // 話題チップを選んだら、その話題を“ユーザーの発話”として送る（ピッカーは消す）
+  pickTopic = (text) => { this.setState(s => ({ messages: s.messages.filter(m => !m.topics) })); this.send(text); };
   // AIバブルを順番に出すヘルパ（typingを挟みながら）
   _seqBubbles = (lines, done, delay) => {
     const arr = (lines||[]).slice(); delay = delay || 520;
@@ -3591,7 +3606,7 @@ class Component extends DCLogic {
       messages: (() => {
         const q = (s.chatSearchQ || '').trim().toLowerCase();
         const base = q ? s.messages.filter(m => (m.text || '').toLowerCase().includes(q)) : s.messages;
-        return base.map(m => ({ ...m, isFlow:!!m.flow, isAI:m.role==='ai' && !m.flow, isUser:m.role==='user',
+        return base.map(m => ({ ...m, isFlow:!!m.flow, isTopics:!!m.topics, isAI:m.role==='ai' && !m.flow && !m.topics, isUser:m.role==='user',
           bg: m.isRead ? 'var(--accentBg)' : 'var(--surface)',
           border: m.isRead ? '1px solid var(--accentBorder)' : 'none',
           weight: m.isRead ? '700' : '500' }));
@@ -3601,6 +3616,13 @@ class Component extends DCLogic {
       flowS2: pick('あなたにあったコンテンツが準備される','Content tailored to you is prepared','당신에게 맞는 콘텐츠가 준비돼요'),
       flowS3: pick('その中から好きなコンテンツを作る','Create the ones you like','그중 마음에 드는 걸 만들어요'),
       flowS4: pick('作ったコンテンツやプロフィールを友達にシェア','Share your content & profile with friends','만든 콘텐츠와 프로필을 친구에게 공유'),
+      topic1: pick('最近のいい出来事','A good thing that happened lately','요즘 있었던 좋은 일'),
+      topic2: pick('ちょっとした悩み','Something on my mind','사소한 고민'),
+      topic3: pick('いま夢中なこと','What I’m into right now','요즘 빠져 있는 것'),
+      topicHint: pick('タップして話しはじめる・自由に書いてもOK','Tap to start — or just type','탭해서 시작 · 자유롭게 써도 OK'),
+      onTopic1: () => this.pickTopic(this.tt('最近あったいいこと、聞いてほしい','I want to share something good that happened lately','최근에 있었던 좋은 일을 얘기하고 싶어')),
+      onTopic2: () => this.pickTopic(this.tt('最近ちょっと悩んでることがある','There’s something I’ve been thinking about lately','요즘 좀 고민되는 게 있어')),
+      onTopic3: () => this.pickTopic(this.tt('最近ハマってることがあるんだ','There’s something I’m really into lately','요즘 푹 빠져 있는 게 있어')),
       chatSearchOpen: s.chatSearchOpen, chatSearchQ: s.chatSearchQ,
       toggleChatSearch:this.toggleChatSearch, closeChatSearch:this.closeChatSearch, onChatSearchInput:this.onChatSearchInput,
       onChatScroll:this.onChatScroll, jumpChatBottom:this.jumpChatBottom,
