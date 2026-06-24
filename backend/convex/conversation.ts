@@ -313,6 +313,24 @@ export const miss = action({
 });
 
 // nudge（TAP TO RESOLVE）：未提示の agreed を1件開示
+// 会話ログ全件（継続スレッド用）。直近 limit 件を時系列昇順で返す。
+export const getHistory = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, { limit }) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid) return { turns: [] as Array<{ role: string; type: string; text: string; ts: number }> };
+    const lim = Math.min(Math.max(limit ?? 600, 1), 2000);
+    // 新しい順に取得 → 反転して時系列昇順に
+    const rows = await ctx.db
+      .query('turns')
+      .withIndex('by_user', (q) => q.eq('userId', uid))
+      .order('desc')
+      .take(lim);
+    const turns = rows.reverse().map((t) => ({ role: t.role, type: t.type, text: t.text, ts: t._creationTime }));
+    return { turns };
+  },
+});
+
 export const nudge = query({
   args: {},
   handler: async (ctx) => {

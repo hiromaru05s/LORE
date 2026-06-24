@@ -123,6 +123,7 @@ const Backend = {
   react(sessionId, fragmentId, kind) { return this._a('conversation:react', { sessionId, fragmentId, kind }); },
   miss(sessionId, fragmentId, type, detail) { return this._a('conversation:miss', { sessionId, fragmentId, type, detail }); },
   nudge() { return this._q('conversation:nudge', {}); },
+  getHistory(limit) { return this._q('conversation:getHistory', limit ? { limit } : {}); },   // 過去ログ全件（継続スレッド）
 
   // ── コンテンツ ──
   buildCandidates() { return this._a('content:buildCandidates', {}); },

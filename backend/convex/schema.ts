@@ -26,7 +26,9 @@ export default defineSchema({
     text: v.string(),
     inputMode: v.optional(v.string()),
     refs: v.optional(v.any()),
-  }).index('by_session', ['sessionId']),
+  })
+    .index('by_session', ['sessionId'])
+    .index('by_user', ['userId']),
 
   // ② 内面モデル：Fragment（中核）
   fragments: defineTable({

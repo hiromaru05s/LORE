@@ -25,8 +25,11 @@
 <link rel="apple-touch-icon" href="mark-blue.png">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
+/* ページ自体のスクロール/バウンスを止める（モバイルで画面全体が持ち上がるのを防ぐ） */
+body{position:fixed;inset:0;width:100%;height:100%;background:var(--ink);font-family:'Archivo','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+/* 内側のスクロール領域だけが動く。スクロール連鎖（チェーン）も止める */
+[style*="overflow-y:auto"],[style*="overflow:auto"]{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 ::selection{background:var(--ink);color:#fff}
 
 /* ===== theme tokens ===== */
@@ -54,7 +57,7 @@ textarea{resize:none}
 </style>
 </helmet>
 
-<div style="height:100vh;width:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Archivo','Noto Sans JP',sans-serif">
+<div style="height:100vh;height:100dvh;width:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'Archivo','Noto Sans JP',sans-serif">
 
 <!-- ============ WELCOME ============ -->
 <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
@@ -548,7 +551,7 @@ textarea{resize:none}
 
   <!-- HOME = TALK -->
   <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
-  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg)">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg);position:relative">
     <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:11px 18px">
       <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px;position:relative">
         <div style="width:34px;height:34px;background:var(--ink);border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;letter-spacing:-.02em">丸</div>
@@ -556,7 +559,8 @@ textarea{resize:none}
           <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">{{ displayName }}</div>
           <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.04em">{{ userId }}</div>
         </div>
-        <button onClick="{{ toggleHomeMenu }}" aria-label="{{ t.s36 }}" style="margin-left:auto;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px;flex:none"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
+        <button onClick="{{ toggleChatSearch }}" aria-label="{{ t.s10 }}" style="margin-left:auto;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;flex:none;color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg></button>
+        <button onClick="{{ toggleHomeMenu }}" aria-label="{{ t.s36 }}" style="margin-left:2px;appearance:none;cursor:pointer;background:none;border:none;padding:8px 6px;display:flex;align-items:center;gap:4px;flex:none"><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span><span style="width:4px;height:4px;border-radius:50%;background:var(--ink)"></span></button>
         <sc-if value="{{ homeMenuOpen }}" hint-placeholder-val="{{ false }}">
           <div onClick="{{ closeHomeMenu }}" style="position:fixed;inset:0;z-index:19"></div>
           <div onClick="{{ stop }}" style="position:absolute;top:46px;right:0;z-index:20;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(10,10,10,.18);padding:6px;min-width:240px">
@@ -615,7 +619,18 @@ textarea{resize:none}
       </div>
     </div>
 
-    <div ref="{{ setChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px;min-height:0">
+    <sc-if value="{{ chatSearchOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px">
+      <div style="max-width:620px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:12px;padding:8px 14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input value="{{ chatSearchQ }}" onChange="{{ onChatSearchInput }}" placeholder="{{ tChatSearchPh }}" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-weight:600">
+        <sc-if value="{{ chatSearchActive }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);flex:none">{{ chatSearchCount }}</span></sc-if>
+        <button onClick="{{ closeChatSearch }}" aria-label="{{ t.s28 }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:2px 4px;color:var(--muted);font-size:16px;line-height:1;flex:none">✕</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <div ref="{{ setChatScroll }}" onScroll="{{ onChatScroll }}" style="flex:1;overflow-y:auto;padding:22px 18px 8px;min-height:0">
       <div style="max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
         <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
           <sc-if value="{{ m.isAI }}" hint-placeholder-val="{{ true }}">
@@ -627,6 +642,32 @@ textarea{resize:none}
           <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;justify-content:flex-end;animation:loreFade .4s ease both">
               <div style="background:#1E40FF;color:#fff;border-radius:20px 20px 6px 20px;padding:10px 15px;font-size:15px;line-height:1.4;font-weight:500;max-width:76%">{{ m.text }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isFlow }}" hint-placeholder-val="{{ true }}">
+            <div style="animation:loreFade .45s ease both;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 16px 16px;box-shadow:0 2px 10px rgba(10,10,10,.07)">
+              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-align:center;margin-bottom:16px">{{ flowTitle }}</div>
+              <div style="display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;gap:13px">
+                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"></path></svg></div>
+                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS1 }}</div>
+                </div>
+                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
+                <div style="display:flex;align-items:center;gap:13px">
+                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"></path><path d="M5 18.5 5.7 20M19 18l.6 1.4"></path></svg></div>
+                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS2 }}</div>
+                </div>
+                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
+                <div style="display:flex;align-items:center;gap:13px">
+                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M4 9h16M9 9v11"></path></svg></div>
+                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS3 }}</div>
+                </div>
+                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
+                <div style="display:flex;align-items:center;gap:13px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:13px;padding:8px 10px;margin:2px -4px 0">
+                  <div style="width:40px;height:40px;border-radius:11px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg></div>
+                  <div style="font-weight:800;font-size:14.5px;color:#1E40FF">{{ flowS4 }}</div>
+                </div>
+              </div>
             </div>
           </sc-if>
         </sc-for>
@@ -645,6 +686,9 @@ textarea{resize:none}
       </div>
     </div>
 
+    <sc-if value="{{ showJumpBottom }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ jumpChatBottom }}" aria-label="{{ tJumpLatest }}" style="position:absolute;right:18px;bottom:96px;z-index:15;appearance:none;cursor:pointer;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 14px rgba(10,10,10,.18);display:flex;align-items:center;justify-content:center;color:var(--ink);animation:loreFade .2s ease both"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></button>
+    </sc-if>
     <div style="flex:none;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px 16px">
       <div style="max-width:620px;margin:0 auto">
         <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
@@ -1658,6 +1702,9 @@ class Component extends DCLogic {
     ageVal: 25,
     vw: 1024,
     messages: [],
+    atChatBottom: true,
+    chatSearchOpen: false,
+    chatSearchQ: '',
     input: '',
     sending: false,
     imgBusy: false,
@@ -1824,9 +1871,13 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this.buildPixels();
+    this._stickBottom = true;   // チャットは初期状態で最下部追従
     this.dispRes = 0;
     this._readIdx = 0;
-    this.setState({ cards: this.seedCards.slice(), candidates: this.seedCandidates.slice() });
+    // デモ種データは「バックエンド未設定（デモモード）」の時だけ。本番(Convex接続)は getMe()/buildCandidates() で実データを取る。
+    if (!(typeof window !== 'undefined' && window.LORE_CONVEX_URL)) {
+      this.setState({ cards: this.seedCards.slice(), candidates: this.seedCandidates.slice() });
+    }
     const onResize = () => this.setState({ vw: window.innerWidth });
     window.addEventListener('resize', onResize);
     this._onResize = onResize;
@@ -2039,7 +2090,19 @@ class Component extends DCLogic {
   };
 
   setChatScroll = (el) => { this._chatEl = el; };
-  scrollChat(){ if(this._chatEl){ this._chatEl.scrollTop = this._chatEl.scrollHeight; } }
+  scrollChat(){ const el=this._chatEl; if(!el) return; if(this._stickBottom !== false){ el.scrollTop = el.scrollHeight; } }
+  // チャットスクロール監視: 最下部付近にいるかを追跡（過去ログを読んでる間は自動スクロールを止める）
+  onChatScroll = (e) => {
+    const el = (e && e.currentTarget) || this._chatEl; if(!el) return;
+    const atBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 80;
+    this._stickBottom = atBottom;
+    if (atBottom !== this.state.atChatBottom) this.setState({ atChatBottom: atBottom });
+  };
+  jumpChatBottom = () => { const el=this._chatEl; this._stickBottom = true; if(el){ el.scrollTo({ top: el.scrollHeight, behavior:'smooth' }); } this.setState({ atChatBottom:true }); };
+  // チャット検索
+  toggleChatSearch = () => this.setState(s => ({ chatSearchOpen: !s.chatSearchOpen, chatSearchQ: s.chatSearchOpen ? '' : s.chatSearchQ }));
+  closeChatSearch = () => this.setState({ chatSearchOpen:false, chatSearchQ:'' });
+  onChatSearchInput = (e) => this.setState({ chatSearchQ: e.target.value });
   pushBubbles(bubbles, chips){
     const list = (bubbles||[]).slice(); let i = 0;
     this.setState({ suggestions:[] });
@@ -2112,17 +2175,19 @@ class Component extends DCLogic {
     if (be) { try { await be.saveIntake(a); } catch(e){ this._beError(e); } }
     this.setState({ intakeActive:false, suggestions:[] });
     const firstTime = a.firstTime !== '前にも使ったことある';
-    const lines = ['ありがとう。なんとなく、君の輪郭が見えてきた気がする。'];
-    if (firstTime) {
-      lines.push('LORE はね、これから話していくうちに、君が自分でもまだ言葉にしてない自分を、僕が少しずつ言い当てていく場所なんだ。');
-      lines.push('ここで話したことをもとに、君を表すコンテンツの候補を僕が出すよ。気に入ったものは「つくる」から形にできる。');
-      lines.push('作ったものはプロフィールに溜まっていく。友達にシェアすれば、君のことをもっと知ってもらうきっかけになるはず。');
-    }
-    lines.push('さて、前置きはこのくらいで。最近、どう？');
-    this._seqBubbles(lines, async () => {
+    const finishUp = async () => {
       if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
       this.setState({ suggestions:['実はいいことあったんだ','まあ、いつも通りかな'] });
-    }, 650);
+    };
+    if (firstTime) {
+      // 文字は最小限。使い方はビジュアルの利用フローカードで「見るだけで分かる」ように見せる。
+      this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。'], () => {
+        this.setState(s => ({ messages:[...s.messages, { role:'ai', flow:true }] }));
+        this._seqBubbles(['まずは気軽に話してみて。最近、どう？'], finishUp, 700);
+      }, 520);
+    } else {
+      this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。','さて、前置きはこのくらいで。最近、どう？'], finishUp, 650);
+    }
   };
   // AIバブルを順番に出すヘルパ（typingを挟みながら）
   _seqBubbles = (lines, done, delay) => {
@@ -2243,13 +2308,22 @@ class Component extends DCLogic {
     }
   };
   _startBackend = async (mode) => {
-    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true });
+    this._stickBottom = true;   // 新規入室は最下部に貼り付く
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true, atChatBottom:true });
     this.setResolution(mode==='home'?0.2:0.12, 400);
+    // 継続スレッド: home では過去ログを読み戻してから新しい発話を続ける
+    let history = [];
+    if (mode==='home') {
+      try {
+        const h = await this._be().getHistory();
+        history = ((h && h.turns) || []).map(t => ({ role: t.role==='user' ? 'user' : 'ai', text: t.text, isRead: t.type==='strike' }));
+      } catch(e){ console.warn('[LORE] getHistory', e); }
+    }
     try {
       const r = await this._be().startSession(mode);
-      this.setState({ typing:false, sessionId:r.sessionId, messages:[{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
+      this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
       if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
-    } catch(e){ this.setState({ typing:false }); this._beError(e); }
+    } catch(e){ this.setState({ typing:false, messages:history }); this._beError(e); }
   };
   _sendBackend = async (text) => {
     const be=this._be(), sid=this.state.sessionId;
@@ -2294,6 +2368,7 @@ class Component extends DCLogic {
     if (!t) return;
     if (this.state.intakeActive) { this.intakeAnswer(t); return; }   // インテーク中は回答として処理
     // （会話中のダミーレート制限は撤去。プラン画面は別導線から開く。本番の制限は別途設計）
+    this._stickBottom = true;   // 送信したら最下部に追従
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
     if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
@@ -3297,10 +3372,27 @@ class Component extends DCLogic {
       vcCloseOnly: !!vc.closeOnly,
       vcHasImage: !!vc.image, vcImage: vc.image || '',
 
-      messages: s.messages.map(m => ({ ...m, isAI:m.role==='ai', isUser:m.role==='user',
-        bg: m.isRead ? 'var(--accentBg)' : 'var(--surface)',
-        border: m.isRead ? '1px solid var(--accentBorder)' : 'none',
-        weight: m.isRead ? '700' : '500' })),
+      messages: (() => {
+        const q = (s.chatSearchQ || '').trim().toLowerCase();
+        const base = q ? s.messages.filter(m => (m.text || '').toLowerCase().includes(q)) : s.messages;
+        return base.map(m => ({ ...m, isFlow:!!m.flow, isAI:m.role==='ai' && !m.flow, isUser:m.role==='user',
+          bg: m.isRead ? 'var(--accentBg)' : 'var(--surface)',
+          border: m.isRead ? '1px solid var(--accentBorder)' : 'none',
+          weight: m.isRead ? '700' : '500' }));
+      })(),
+      flowTitle: pick('はじめかた','HOW IT WORKS','시작하기'),
+      flowS1: pick('LOREと話す','Talk with LORE','LORE와 대화'),
+      flowS2: pick('候補からコンテンツを作成','Create from suggestions','후보로 콘텐츠 생성'),
+      flowS3: pick('プロフィールに溜まる','Fills your profile','프로필에 쌓임'),
+      flowS4: pick('友達にシェア','Share with friends','친구에게 공유'),
+      chatSearchOpen: s.chatSearchOpen, chatSearchQ: s.chatSearchQ,
+      toggleChatSearch:this.toggleChatSearch, closeChatSearch:this.closeChatSearch, onChatSearchInput:this.onChatSearchInput,
+      onChatScroll:this.onChatScroll, jumpChatBottom:this.jumpChatBottom,
+      tChatSearchPh: pick('会話を検索','Search messages','대화 검색'),
+      tJumpLatest: pick('最新へ','Jump to latest','최신으로'),
+      chatSearchActive: !!(s.chatSearchQ || '').trim(),
+      chatSearchCount: (() => { const q=(s.chatSearchQ||'').trim().toLowerCase(); if(!q) return ''; const n=s.messages.filter(m=>(m.text||'').toLowerCase().includes(q)).length; return pick(n+' 件', n+(n===1?' hit':' hits'), n+' 건'); })(),
+      showJumpBottom: screen==='home' && !s.atChatBottom && !(s.chatSearchQ || '').trim(),
       input:s.input, onChatInput:this.onChatInput, onChatKey:this.onChatKey, onSend:this.onSend,
       typing:s.typing,
       sendBtnOpacity: (s.sending || s.typing || !(s.input||'').trim()) ? '.4' : '1',

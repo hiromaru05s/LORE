@@ -228,3 +228,61 @@ webhook URL: `https://<deployment>.convex.site/stripe/webhook` ／ `/revenuecat/
 - ドメイン：`yourlore.xyz`（安価TLDで先行、必要なら後で乗り換え）。
 - LLM：当面 **全部Flash**（プレミアム乱発でPro原価が膨らむのを回避）。
 - ブランチ：`feat/backend`（main＝FEデモは温存）。
+
+---
+
+## 9. 実装メモ：会話チューニング（旧 handoff-conversation-design）
+
+> 背景原理は §3。ここは実装に落とす差分。核心ルール：**lore は当てる／preference は聞く。** lore（どういう人か）は推定して strike で当てる（聞いたら負け）。preference（どう話されたいか）は推定不能なので明示で聞く。**送信ダイヤル ≠ 受信ダイヤル**（打つ量から返してほしい量は推定不能）。
+
+### LLM チューニング7点
+1. **テンポ／逸脱の集中**：strike を安売りしない（substantive 2〜3 に対し 1）。`dig`/`reflect` は低密度側、逸脱は `strike` に集中。応答長を意図的に分散（毎ターン同密度がテンポを壊す主因）。
+2. **言い当て強度（`strike_intensity`）**：`やんわり仮説`⇄`断定ズバッ` を preference で切替。ゾワッの安全弁。
+3. **受信ボリューム（`reply_length`）**：返す量・深さを送信長と独立に制御（short/long＋max_tokens）。送信長は推定にも矯正にも使わない。
+4. **トーン／人格（`persona`）**：**ミラーリング禁止**（文体の鏡写しをしない明示制約）。会話から自然に設定された値を使う。
+5. **テーマ境界ゲーティング（`topic_boundaries`）**：NGテーマには `dig`/`strike` で踏み込ませない（controllerでフィルタ＋プロンプト明記）。最優先の安全制約。
+6. **コールドスタートの順序**：**ゾワッを先・設定提示を後**。初手で軽い read を一発見せてから話し方調整を案内（逆だと「設定を埋めるアプリ」化）。
+7. **miss 歓迎の規範**：初回に一度「違ったら教えて／君に興味がある」を宣言 → 以降は攻めの strike を許容。
+
+### BE（Convex）
+- **preferences スキーマ**（lore fragment とは別物・内面モデルに混ぜない）：`replyLength | strikeIntensity | persona{tone,register} | topicBoundaries[{topic,state:allowed|blocked|unasked,source}] | elicitation{askedTopics,lastAskedAt,nextEligibleAt}`。
+- **エリシテーション controller**：コールドスタートで一度だけ提示→以降会話から消す。テーマ境界は**3つずつ**提示→全部OKならその文脈で継続→`nextEligibleAt` で間隔を空け再訪。反応起点（急な話題切り上げ検知）で「嫌なら次回から聞かない」を1回だけ。
+- **シグナル検知（軽め）**：急な話題切り上げ/離脱を検知して境界確認をトリガ。受信preferenceは送信行動から推定しない（誤爆回避）。
+- **オーケストレーション差分（`conversation.ts`）**：プロンプトに preference state を注入、`dig`/`strike` 候補を `topicBoundaries` でフィルタ。
+
+### FE（`index.html` / `lore-convex.js`）
+- 会話内マイクロ調整UI（tap choices）を**一度だけ**自然に。強度確認・テーマ境界(3つずつ)・トーン確認・反応起点トリガ。**フォーム化しない**（診断アプリ臭を回避）。
+- 設定サーフェス：replyLength/strikeIntensity/persona/topicBoundaries を後から変更可（軽トグル）。「いつでもここで変えてね」と一度誘導。
+- コピー（初回宣言）：miss歓迎「君のことを知りたいから色々聞くし『こうじゃない？』とも言うけど、違ったらその度に教えてね。僕は君にすごく興味があるんだ。」／強度確認「君について思うこと、結構ズバリ言っちゃっていい？ それともちょっと控えめに伝えようか？」
+- 短く打ちたい人を罰しない：`tap`/短文の選択肢を常時用意。
+
+### やらないこと（明示ガード）
+送信長から受信preferenceを推定／性格・価値観・本音を「聞く」（当てる対象）／文体ミラーリング／受信Viewの初回プレビュー／preferenceを会話中に繰り返す／通知・フォロー。
+
+### 優先順位
+1) テーマ境界ゲーティング（最優先・現状の穴） 2) 言い当て強度ダイヤル 3) 受信ボリューム＋トーン 4) エリシテーション漸進/再訪/反応起点 5) コールドスタート順序＋miss歓迎コピー。
+
+---
+
+## 10. 実装メモ：レイテンシ（旧 handoff-latency-no-quality-loss）
+
+> 現状1ターン3〜6秒。原因は直列2回のLLM（①scoreAnswer→⑤generate）＋DB往復4回。**出力テキストの質を一切変えずに**秒数だけ削る手のみ。プロンプト・温度・controllerは無改変。
+
+### 効く順（品質中立）
+1. **① score と ⑤ generate を並列化（最優先・最大）**：手の決定が依存する `contour.material` は累積値なので、今回の score を1ターン遅れで反映しても strike タイミングはほぼ不変。手は前ターン状態で決め `generate` を即発射、`scoreAnswer` は `Promise.all` で並走→次ターンの燃料に。体感ほぼ半減。
+2. **⑤ message をストリーミング**：`message` だけ先にストリーム配信→初トークン約1秒で出始め。最終テキストは同一。FE↔Convexのストリーム受け実装が要る（リスク中）。
+3. **score スロットを高速モデルへ**：採点は3軸0〜3の粗い数値＝小型・低レイテンシモデルで十分。生成モデルは据え置き（生成品質不変）。
+4. **自明ターンの採点スキップ**：極短文・定型tap（4文字以下）は採点LLMを呼ばず材料0扱い（`isTrivialAnswer`）。
+5. **DB往復の前倒し・集約**：`loadCtx` を①と並列で先読み（session/contour/recentTurns/prefs は domain非依存）。`recordAnswer` の確定書き込みは generate と並走/後追い。
+
+### やらないこと（効かない/質が落ちる）
+temperature/top_p変更（秒数に効かない）／`max_tokens`を絞る（返しの質・長さが変わる）／best-of-N削減（今は単発）／プロンプト短縮（効果小・ガードレール削るとリスク）。
+
+### 実装状況（2026-06-23）
+- ✅ **1 並列化**：`sendTurn` で手を前ターン状態から決定、`scoreAnswer`と`generate`を`Promise.all`。`loadCtx` は domain省略時 `lastDomain` で先読み。
+- ✅ **4 採点スキップ**：4文字以下は採点せず材料0（`isTrivialAnswer`）。
+- ⬜ **2 ストリーミング**：未（体感への効きは最大なので次点）。
+- ⬜ **3 score高速モデル**：高速モデル契約待ち（envで差すだけにはなっている）。
+- ⬜ **5 DB整理**：loadCtx先読みは入れたが recordAnswer 並走化は未（影響小）。
+
+着手順：**1 → 3 → 4 → 2 → 5**。1だけで体感ほぼ半減・最小改修。
