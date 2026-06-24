@@ -367,7 +367,7 @@ textarea{resize:none}
 <div style="position:fixed;inset:0;background:rgba(10,10,10,.78);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--surface);color:var(--text);width:100%;max-width:440px;border-radius:16px;padding:20px;box-shadow:0 22px 54px rgba(0,0,0,.42)">
     <div style="font-weight:900;font-size:18px;margin-bottom:14px">{{ t.s91 }}</div>
-    <div ref="{{ setCropFrame }}" onPointerDown="{{ onCropDown }}" onPointerMove="{{ onCropMove }}" onPointerUp="{{ onCropUp }}" onPointerLeave="{{ onCropUp }}" style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;background:#000;touch-action:none;cursor:grab;user-select:none">
+    <div ref="{{ setCropFrame }}" onPointerDown="{{ onCropDown }}" onPointerMove="{{ onCropMove }}" onPointerUp="{{ onCropUp }}" onPointerLeave="{{ onCropUp }}" style="position:relative;width:100%;aspect-ratio:{{ cropAspect }};overflow:hidden;border-radius:{{ cropRadius }};background:#000;touch-action:none;cursor:grab;user-select:none">
       <img src="{{ cropSrc }}" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:translate({{ cropX }}px,{{ cropY }}px) scale({{ cropScale }});transform-origin:center;will-change:transform;pointer-events:none">
       <div style="position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)"></div>
     </div>
@@ -1753,6 +1753,7 @@ class Component extends DCLogic {
     pubCloseOnly: false,
     pubImage: null,
     cropOpen: false,
+    cropTarget: 'content',   // 'content' | 'avatar'
     cropSrc: '',
     cropScale: 1,
     cropX: 0,
@@ -2589,10 +2590,8 @@ class Component extends DCLogic {
   setEditAvatarEl = (el) => { this._editAvatarEl = el; };
   triggerEditAvatar = () => { if (this._editAvatarEl) this._editAvatarEl.click(); };
   onPickEditAvatar = (e) => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => this.setState({ editAvatarImg: r.result });
-    r.readAsDataURL(f); e.target.value='';
+    const f = e.target.files && e.target.files[0]; e.target.value='';
+    this._openCrop(f, 'avatar');   // アバターもトリミングを通す（正方形）
   };
   removeEditAvatar = () => this.setState({ editAvatarImg:null });
   saveProfileEdit = () => {
@@ -2976,20 +2975,23 @@ class Component extends DCLogic {
   triggerPick = () => { if (this._fileEl) this._fileEl.click(); };
   removeImage = () => this.setState({ pubImage:null });
   onPickImage = (e) => {
-    const f = e.target.files && e.target.files[0]; if (!f) return;
-    if (this.state.imgBusy) return;
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    this._openCrop(f, 'content');   // コンテンツ画像（16:9）
+  };
+  // ファイル→画像読み込み→トリミングモーダルを開く（avatar/content 共通）
+  _openCrop = (f, target) => {
+    if (!f || this.state.imgBusy) return;
     this.setState({ imgBusy:true });
     const reader = new FileReader();
     reader.onload = () => {
       const url = reader.result;
       const img = new Image();
-      img.onload = () => { this._imgEl = img; this._imgNat = { w:img.naturalWidth, h:img.naturalHeight }; this.setState({ cropOpen:true, cropSrc:url, cropScale:1, cropX:0, cropY:0, imgBusy:false }); };
+      img.onload = () => { this._imgEl = img; this._imgNat = { w:img.naturalWidth, h:img.naturalHeight }; this.setState({ cropOpen:true, cropTarget:target||'content', cropSrc:url, cropScale:1, cropX:0, cropY:0, imgBusy:false }); };
       img.onerror = () => this.setState({ imgBusy:false });
       img.src = url;
     };
     reader.onerror = () => this.setState({ imgBusy:false });
     reader.readAsDataURL(f);
-    e.target.value = '';
   };
   setCropFrame = (el) => { if (el) this._cropFrame = el; };
   onCropDown = (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_) {} this._cropDrag = { sx:e.clientX, sy:e.clientY, ox:this.state.cropX, oy:this.state.cropY }; };
@@ -3011,7 +3013,9 @@ class Component extends DCLogic {
     const cx = OUT_W/2 + (this.state.cropX||0)*r, cy = OUT_H/2 + (this.state.cropY||0)*r;
     ctx.drawImage(img, cx-dw/2, cy-dh/2, dw, dh);
     let url=''; try { url = cnv.toDataURL('image/jpeg', 0.85); } catch(_) { url=''; }
-    this.setState({ pubImage:url||this.state.cropSrc, cropOpen:false, cropSrc:'' });
+    const out = url || this.state.cropSrc;
+    if (this.state.cropTarget==='avatar') this.setState({ editAvatarImg:out, cropOpen:false, cropSrc:'' });
+    else this.setState({ pubImage:out, cropOpen:false, cropSrc:'' });
   };
 
   // ---- share ----
@@ -3591,6 +3595,7 @@ class Component extends DCLogic {
       setFileEl:this.setFileEl, onPickImage:this.onPickImage, triggerPick:this.triggerPick, removeImage:this.removeImage,
       hasPubImage: !!s.pubImage, noPubImage: !s.pubImage, pubImage: s.pubImage || '',
       cropOpen:s.cropOpen, cropSrc:s.cropSrc, cropScale:s.cropScale, cropX:s.cropX, cropY:s.cropY,
+      cropAspect: s.cropTarget==='avatar' ? '1 / 1' : '16 / 9', cropRadius: s.cropTarget==='avatar' ? '16px' : '10px',
       setCropFrame:this.setCropFrame, onCropDown:this.onCropDown, onCropMove:this.onCropMove, onCropUp:this.onCropUp,
       onCropZoom:this.onCropZoom, cancelCrop:this.cancelCrop, confirmCrop:this.confirmCrop,
       closeCheck: closeOn ? '♥' : '', closeHint: closeOn ? pick('一般には表示されません','Hidden from everyone else','일반에는 표시되지 않아요') : pick('オフなら、みんなに公開されます','Off means visible to everyone','끄면 모두에게 공개돼요'),
