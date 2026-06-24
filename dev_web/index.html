@@ -2257,9 +2257,9 @@ class Component extends DCLogic {
     this.setResolution(0.12, 400);
     be.getMe().then(me => {
       this._applyMe(me);   // ヘッダー等を実プロフィールに同期（ダミーのmaruyamaを排除）
-      if (me && me.intakeDone) this._startBackend('home');
+      if (me && me.intakeDone) this._startBackend('home', { resume:true });   // 再訪は継続再開（再挨拶しない）
       else this._startIntake();
-    }).catch(e => { this._beError(e); this._startBackend('home'); });
+    }).catch(e => { this._beError(e); this._startBackend('home', { resume:true }); });
   };
   // 実プロフィールを state に反映（名前/ID/アバター/非公開）。home ヘッダー等のダミー表示を防ぐ。
   _applyMe = (me) => {
@@ -2316,7 +2316,11 @@ class Component extends DCLogic {
       this.tt('さて、ここからは気楽に話そう。どんな話からいく？','Okay, let’s just chat from here. Where should we start?','이제부턴 편하게 얘기하자. 어떤 얘기부터 할까?'),
     ], async () => {
       if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
-      this.setState(s => ({ messages:[...s.messages, { role:'ai', topics:true }], suggestions:[] }));   // 話題3択をチャット内に
+      this.setState(s => {
+        // インテークの会話をDBに保存（リロードしてもログが飛ばない／再挨拶されない）
+        if (be) { const log = s.messages.filter(m => m.text && (m.role==='ai'||m.role==='user')).map(m => ({ role:m.role, text:m.text })); be.logTurns(log).catch(()=>{}); }
+        return { messages:[...s.messages, { role:'ai', topics:true }], suggestions:[] };   // 話題3択をチャット内に
+      });
       this._armIdle();
     }, 650);
   };
@@ -2464,7 +2468,8 @@ class Component extends DCLogic {
       this._armIdle();   // ボールはユーザー側へ。無反応が続いたら追い討ち
     }
   };
-  _startBackend = async (mode) => {
+  _startBackend = async (mode, opts) => {
+    const resume = !!(opts && opts.resume);   // intake済みの再訪：履歴が空でも挨拶を新生成しない
     this._stickBottom = true;   // 新規入室は最下部に貼り付く
     this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:false, atChatBottom:true });
     this.setResolution(mode==='home'?0.2:0.12, 400);
@@ -2479,12 +2484,14 @@ class Component extends DCLogic {
       if (history.length) { this.setState({ messages: history }); requestAnimationFrame(() => this.scrollChat()); }
     }
     try {
-      // 履歴があるなら quiet で再開（毎回「最近どう？」を生成・表示しない＝挨拶連発を防ぐ）。初回だけ挨拶。
-      const quiet = mode==='home' && history.length > 0;
+      // 履歴がある or intake済み再訪なら quiet で再開（挨拶を新生成しない）。本当の新規だけ挨拶。
+      const quiet = mode==='home' && (history.length > 0 || resume);
       if (!quiet) this.setState({ typing:true });   // 新しい挨拶が来るときだけ“てんてん”を出す
       const r = await this._be().startSession(mode, quiet, this.state.lang);
       if (quiet) {
-        this.setState({ typing:false, sessionId:r.sessionId, messages:history, suggestions:[], homeUnread:false });
+        // 再訪で履歴が空（旧データ等）のときだけ、軽い「おかえり」を出す（first-meeting挨拶は出さない）
+        const msgs = (history.length===0 && resume) ? [{ role:'ai', text:this.tt('おかえり。続きから話そう。','Welcome back. Let’s pick up where we left off.','어서 와. 이어서 얘기하자.') }] : history;
+        this.setState({ typing:false, sessionId:r.sessionId, messages:msgs, suggestions:[], homeUnread:false });
       } else {
         this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), homeUnread:false });
         if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);

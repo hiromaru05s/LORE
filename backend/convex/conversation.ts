@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { action, internalMutation, internalQuery, query } from './_generated/server';
+import { action, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { api, internal } from './_generated/api';
 import { decideMove } from './lib/controller';
 import { scoreAnswer, materialWeight } from './lib/scoring';
@@ -313,6 +313,29 @@ export const miss = action({
 });
 
 // nudge（TAP TO RESOLVE）：未提示の agreed を1件開示
+// フロント発の会話（インテークQ&A・導入の挨拶など、sendTurnを経由しない発話）を turns に保存。
+// これでリロード後も getHistory で復元される（＝ログが飛ばない／再挨拶されない）。
+export const logTurns = mutation({
+  args: { items: v.array(v.object({ role: v.string(), text: v.string() })) },
+  handler: async (ctx, { items }) => {
+    const uid = await resolveUserId(ctx);
+    if (!uid || !items.length) return { saved: 0 };
+    // 既に同等の保存があればスキップ（多重保存防止）：このユーザーの turns 件数が items 以上なら既存とみなさず素直に追加はしない
+    const existing = await ctx.db.query('turns').withIndex('by_user', (q) => q.eq('userId', uid)).take(1);
+    if (existing.length) return { saved: 0 };   // 既に何らかのログがある＝重複保存しない
+    let sess = await ctx.db.query('sessions').withIndex('by_user', (q) => q.eq('userId', uid)).order('desc').first();
+    const sessionId = sess ? sess._id : await ctx.db.insert('sessions', { userId: uid, mode: 'intake', lastMove: 'open', lastDomain: '', domainRepeat: 0, turnsSinceStrike: 99, turnCount: 0 });
+    let n = 0;
+    for (const it of items) {
+      const t = (it.text || '').trim();
+      if (!t) continue;
+      await ctx.db.insert('turns', { userId: uid, sessionId, role: it.role === 'user' ? 'user' : 'ai', type: it.role === 'user' ? 'answer' : 'question', text: t });
+      n++;
+    }
+    return { saved: n };
+  },
+});
+
 // 会話ログ全件（継続スレッド用）。直近 limit 件を時系列昇順で返す。
 export const getHistory = query({
   args: { limit: v.optional(v.number()) },

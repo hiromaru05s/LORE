@@ -1,5 +1,28 @@
 import { v } from 'convex/values';
-import { internalMutation } from './_generated/server';
+import { internalMutation, internalQuery } from './_generated/server';
+
+// 調査用：各ユーザーのデータ状況を一覧（turns/sessions/totalSessions/intake有無）
+export const inspect = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query('users').collect();
+    const turns = await ctx.db.query('turns').collect();
+    const sessions = await ctx.db.query('sessions').collect();
+    const rels = await ctx.db.query('relationshipState').collect();
+    return users.map((u) => {
+      const rel = rels.find((r) => r.userId === u._id);
+      return {
+        userId: u.userId,
+        clerkId: u.clerkId ?? null,
+        intakeDone: !!u.intake,
+        turns: turns.filter((t) => t.userId === u._id).length,
+        sessions: sessions.filter((s) => s.userId === u._id).length,
+        totalSessions: rel?.totalSessions ?? '(no rel)',
+        totalTurns: rel?.totalTurns ?? '(no rel)',
+      };
+    });
+  },
+});
 
 // ──────────────────────────────────────────────────────────────────
 //  管理用：特定ユーザーのデータを完全削除（最初からやり直す用）。

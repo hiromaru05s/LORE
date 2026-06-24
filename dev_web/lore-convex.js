@@ -124,6 +124,7 @@ const Backend = {
   miss(sessionId, fragmentId, type, detail, lang) { return this._a('conversation:miss', { sessionId, fragmentId, type, detail, lang }); },
   nudge() { return this._q('conversation:nudge', {}); },
   getHistory(limit) { return this._q('conversation:getHistory', limit ? { limit } : {}); },   // 過去ログ全件（継続スレッド）
+  logTurns(items) { return this._m('conversation:logTurns', { items }); },   // フロント発の会話(インテーク等)を保存
   translate(text, target) { return this._a('translate:translate', { text, target }); },   // コンテンツ翻訳（X風）
 
   // ── コンテンツ ──
