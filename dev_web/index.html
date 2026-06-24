@@ -645,28 +645,50 @@ textarea{resize:none}
             </div>
           </sc-if>
           <sc-if value="{{ m.isFlow }}" hint-placeholder-val="{{ true }}">
-            <div style="animation:loreFade .45s ease both;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 16px 16px;box-shadow:0 2px 10px rgba(10,10,10,.07)">
-              <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-align:center;margin-bottom:16px">{{ flowTitle }}</div>
+            <div style="animation:loreUp .5s ease both;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:20px 15px 17px;box-shadow:0 8px 28px rgba(10,10,10,.12);overflow:hidden">
+              <div style="text-align:center;margin-bottom:18px">
+                <div style="display:inline-flex;align-items:center;gap:7px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:20px;padding:5px 13px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#1E40FF;display:inline-block"></span>
+                  <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:#1E40FF;font-weight:700">{{ flowTitle }}</span>
+                </div>
+              </div>
               <div style="display:flex;flex-direction:column">
-                <div style="display:flex;align-items:center;gap:13px">
-                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"></path></svg></div>
-                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS1 }}</div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">1</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="2" y="7" width="40" height="17" rx="8.5" style="fill:currentColor;opacity:.16"></rect><circle cx="13" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="21" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="29" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><rect x="22" y="28" width="40" height="16" rx="8" fill="#1E40FF"></rect></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS1 }}</div>
+                  </div>
                 </div>
-                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
-                <div style="display:flex;align-items:center;gap:13px">
-                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"></path><path d="M5 18.5 5.7 20M19 18l.6 1.4"></path></svg></div>
-                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS2 }}</div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">2</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="13" y="11" width="26" height="32" rx="5" transform="rotate(-10 26 27)" style="fill:none;stroke:currentColor;opacity:.4" stroke-width="2"></rect><rect x="25" y="9" width="26" height="32" rx="5" transform="rotate(8 38 25)" style="fill:none;stroke:currentColor;opacity:.55" stroke-width="2"></rect><rect x="19" y="10" width="26" height="32" rx="5" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><path d="M50 5 l1.2 3 l3 1.2 l-3 1.2 L50 14.6 l-1.2-3.2 l-3-1.2 l3-1.2 z" fill="#1E40FF"></path></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS2 }}</div>
+                  </div>
                 </div>
-                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
-                <div style="display:flex;align-items:center;gap:13px">
-                  <div style="width:44px;height:44px;border-radius:13px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M4 9h16M9 9v11"></path></svg></div>
-                  <div style="font-weight:700;font-size:14.5px;color:var(--text)">{{ flowS3 }}</div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">3</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="9" y="7" width="34" height="34" rx="6" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><rect x="15" y="14" width="22" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><rect x="15" y="21" width="15" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><circle cx="46" cy="34" r="11" fill="#1E40FF"></circle><path d="M41 34 l3.2 3.2 l6.2-6.6" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+                    <div style="font-weight:700;font-size:13.5px;line-height:1.45;color:var(--text)">{{ flowS3 }}</div>
+                  </div>
                 </div>
-                <div style="width:44px;display:flex;justify-content:center;padding:5px 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div>
-                <div style="display:flex;align-items:center;gap:13px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:13px;padding:8px 10px;margin:2px -4px 0">
-                  <div style="width:40px;height:40px;border-radius:11px;background:#1E40FF;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg></div>
-                  <div style="font-weight:800;font-size:14.5px;color:#1E40FF">{{ flowS4 }}</div>
+                <div style="display:flex"><div style="width:28px;flex:none;display:flex;justify-content:center;padding:3px 0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></div></div>
+
+                <div style="display:flex;gap:11px;align-items:stretch">
+                  <div style="width:28px;flex:none;display:flex;justify-content:center"><div style="width:26px;height:26px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(30,64,255,.4)">4</div></div>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;gap:11px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:15px;padding:10px 12px">
+                    <div style="flex:none;color:var(--muted)"><svg width="56" height="42" viewBox="0 0 64 48" fill="none"><rect x="3" y="8" width="34" height="34" rx="7" style="fill:currentColor;opacity:.13"></rect><circle cx="13" cy="19" r="5" style="fill:currentColor;opacity:.5"></circle><rect x="20" y="15" width="13" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="20" y="21" width="9" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="8" y="29" width="25" height="8" rx="3" style="fill:currentColor;opacity:.22"></rect><circle cx="53" cy="11" r="5" fill="#1E40FF"></circle><circle cx="44" cy="26" r="5" fill="#1E40FF"></circle><circle cx="56" cy="37" r="5" fill="#1E40FF"></circle><path d="M48.5 23.5 L50 14.5 M48.5 28.5 L52.5 34" stroke="#1E40FF" stroke-width="2" stroke-linecap="round"></path></svg></div>
+                    <div style="font-weight:800;font-size:13.5px;line-height:1.45;color:#1E40FF">{{ flowS4 }}</div>
+                  </div>
                 </div>
+
               </div>
             </div>
           </sc-if>
@@ -1945,7 +1967,7 @@ class Component extends DCLogic {
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
       s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -2142,7 +2164,8 @@ class Component extends DCLogic {
 
   // ---- 初回基本情報インテーク（テンプレ） ----
   _startIntake = () => {
-    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
+    // 入った瞬間に「使い方の図解」を最初に表示 → そのあと基本質問へ
+    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[{ role:'ai', flow:true }], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
     this.setResolution(0.12, 400);
     this._intakeNext();
   };
@@ -2174,20 +2197,12 @@ class Component extends DCLogic {
     const be = this._be();
     if (be) { try { await be.saveIntake(a); } catch(e){ this._beError(e); } }
     this.setState({ intakeActive:false, suggestions:[] });
-    const firstTime = a.firstTime !== '前にも使ったことある';
-    const finishUp = async () => {
+    // 使い方の図解は入室時（_startIntake）に既出。ここではそのまま会話へ。
+    this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。','さて、前置きはこのくらいで。最近、どう？'], async () => {
       if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
-      this.setState({ suggestions:['実はいいことあったんだ','まあ、いつも通りかな'] });
-    };
-    if (firstTime) {
-      // 文字は最小限。使い方はビジュアルの利用フローカードで「見るだけで分かる」ように見せる。
-      this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。'], () => {
-        this.setState(s => ({ messages:[...s.messages, { role:'ai', flow:true }] }));
-        this._seqBubbles(['まずは気軽に話してみて。最近、どう？'], finishUp, 700);
-      }, 520);
-    } else {
-      this._seqBubbles(['ありがとう。なんとなく、君の輪郭が見えてきた気がする。','さて、前置きはこのくらいで。最近、どう？'], finishUp, 650);
-    }
+      // 「最近どう？」はオープンな問い → 選択肢は出さず自由入力に委ねる
+      this.setState({ suggestions:[] });
+    }, 650);
   };
   // AIバブルを順番に出すヘルパ（typingを挟みながら）
   _seqBubbles = (lines, done, delay) => {
@@ -2367,11 +2382,28 @@ class Component extends DCLogic {
     const t = (text !== undefined ? text : this.state.input).trim();
     if (!t) return;
     if (this.state.intakeActive) { this.intakeAnswer(t); return; }   // インテーク中は回答として処理
-    // （会話中のダミーレート制限は撤去。プラン画面は別導線から開く。本番の制限は別途設計）
     this._stickBottom = true;   // 送信したら最下部に追従
+    if (this._be() && this.state.sessionId) {
+      // 発言は即表示。ただし返信はすぐ返さず、相手が打ち終えるまで“間”を取る（まだ話の途中かを検知）。
+      this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[] }));
+      this._queueUserTurn(t);
+      return;
+    }
     this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[], sending:true }));
-    if (this._be() && this.state.sessionId) { this._sendBackend(t); return; }
     setTimeout(() => { this.setState({ sending:false }); this.advance(); }, 480);
+  };
+  // 送信をデバウンス：連投はまとめて1ターンとして受ける（読む“間”＝自然な会話テンポ）。
+  _queueUserTurn = (t) => {
+    this._pendingTurns = this._pendingTurns || [];
+    this._pendingTurns.push(t);
+    clearTimeout(this._turnTimer);
+    const joinedLen = this._pendingTurns.join('').length;
+    const wait = Math.min(3200, 1200 + joinedLen * 22);   // 文量が多いほど“読む”時間を長く取る
+    this._turnTimer = setTimeout(() => {
+      const text = (this._pendingTurns || []).join('\n');
+      this._pendingTurns = [];
+      if (text) this._sendBackend(text);
+    }, wait);
   };
   advance() {
     const home = this.state.mode==='home';
@@ -3382,9 +3414,9 @@ class Component extends DCLogic {
       })(),
       flowTitle: pick('はじめかた','HOW IT WORKS','시작하기'),
       flowS1: pick('LOREと話す','Talk with LORE','LORE와 대화'),
-      flowS2: pick('候補からコンテンツを作成','Create from suggestions','후보로 콘텐츠 생성'),
-      flowS3: pick('プロフィールに溜まる','Fills your profile','프로필에 쌓임'),
-      flowS4: pick('友達にシェア','Share with friends','친구에게 공유'),
+      flowS2: pick('あなたにあったコンテンツが準備される','Content tailored to you is prepared','당신에게 맞는 콘텐츠가 준비돼요'),
+      flowS3: pick('その中から好きなコンテンツを作る','Create the ones you like','그중 마음에 드는 걸 만들어요'),
+      flowS4: pick('作ったコンテンツやプロフィールを友達にシェア','Share your content & profile with friends','만든 콘텐츠와 프로필을 친구에게 공유'),
       chatSearchOpen: s.chatSearchOpen, chatSearchQ: s.chatSearchQ,
       toggleChatSearch:this.toggleChatSearch, closeChatSearch:this.closeChatSearch, onChatSearchInput:this.onChatSearchInput,
       onChatScroll:this.onChatScroll, jumpChatBottom:this.jumpChatBottom,

@@ -47,7 +47,11 @@ export async function generateTurn(g: GenInput): Promise<any> {
   const user = buildContext({
     relation: g.relation, recentTurns: g.recentTurns, memory: g.memory, lastAnswer: g.lastAnswer,
     reaskText: g.move === 'reask' ? g.reaskText : undefined,
-    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}\nchoices は「タップするとそのまま“ユーザーの発言”として送信される文」。必ず本人の一人称・話し言葉で、そのまま送れる返答にする（例：「実はいいことあったんだ」「ちょっと愚痴ってもいい？」「うーん、特にないかな」「逆に君はどう？」）。★「詳細を語る」「素直に話す」「話題を変える」のような行動の説明・ト書き・方向ラベルは絶対にダメ（送信文として意味をなさない）。機械的な確認二択（「いい感じ／微妙」）にもしない。文脈に沿って自然な分岐を2個。自由入力もできるので全部はカバーしなくていい。`,
+    extra: `【今回の手: ${g.move}】${(g.move === 'open' && g.firstMeeting) ? INTRO_INSTRUCTION : (MOVE_INSTRUCTION[g.move] || '')}${avoidLine(g.avoidTopics)}${styleLine(g.tone, g.depth)}${lengthLine(g.lastAnswer)}
+choices は「タップするとそのまま“ユーザーの発言”として送信される文」。
+★選択肢を出すのは「数個の具体的な答えで自然に片づくクローズドな問い」のときだけ（例：「どっちかというと朝型？夜型？」→「朝型かな」「夜は強い」）。
+★相手が自分の言葉で語る必要がある“オープンな問い”（例：「そのこと、もっと聞かせて」「最近どう？」「なんでそう思ったの？」）では、必ず choices を空配列 [] にして自由入力に委ねる。逃げ道が要る場面でも添えるのは「違う話題にしよう」1個まで。
+出すときは本人の一人称・話し言葉でそのまま送れる返答にし、最大2〜3個。行動説明・ト書き・方向ラベル（「詳細を語る」「素直に話す」等）や機械的二択（「いい感じ／微妙」）は禁止。迷ったら空配列。`,
   });
   return llm({ purpose: 'turn', model: 'flash', system: SYS_BASE, user, schema: TurnSchema, hints: { move: g.move, lastText: g.lastAnswer, inputMode: g.inputMode } });
 }
