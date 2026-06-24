@@ -363,6 +363,51 @@ textarea{resize:none}
 </sc-if>
 
 <!-- ============ IMAGE CROP ============ -->
+<sc-if value="{{ onboardOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:95;background:rgba(8,8,10,.74);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px;animation:loreFade .28s ease both">
+  <div style="background:var(--surface);color:var(--text);width:100%;max-width:430px;max-height:92vh;overflow:auto;border-radius:26px;box-shadow:0 34px 90px rgba(0,0,0,.55);padding:26px 20px 20px;animation:loreUp .4s ease both">
+    <div style="text-align:center">
+      <span style="display:inline-flex;align-items:center;gap:7px;background:var(--accentBg);border:1px solid var(--accentBorder);border-radius:20px;padding:5px 13px"><span style="width:6px;height:6px;border-radius:50%;background:#1E40FF;animation:lorePulse 1.4s infinite"></span><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.2em;color:#1E40FF;font-weight:700">{{ obKicker }}</span></span>
+    </div>
+    <div style="text-align:center;font-weight:900;font-size:22px;letter-spacing:-.01em;margin:10px 0 3px">{{ obTitle }}</div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:18px">{{ obSubtitle }}</div>
+
+    <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px">
+      <span style="width:{{ obDot1W }};height:7px;border-radius:4px;background:{{ obDot1 }};transition:all .4s"></span>
+      <span style="width:{{ obDot2W }};height:7px;border-radius:4px;background:{{ obDot2 }};transition:all .4s"></span>
+      <span style="width:{{ obDot3W }};height:7px;border-radius:4px;background:{{ obDot3 }};transition:all .4s"></span>
+      <span style="width:{{ obDot4W }};height:7px;border-radius:4px;background:{{ obDot4 }};transition:all .4s"></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow1.bd }};background:{{ obRow1.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow1.op }};transform:scale({{ obRow1.sc }});box-shadow:{{ obRow1.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">1</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow1.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="2" y="7" width="40" height="17" rx="8.5" style="fill:currentColor;opacity:.16"></rect><circle cx="13" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="21" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><circle cx="29" cy="15.5" r="2" style="fill:currentColor;opacity:.55"></circle><rect x="22" y="28" width="40" height="16" rx="8" fill="#1E40FF"></rect></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS1 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS1d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow2.bd }};background:{{ obRow2.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow2.op }};transform:scale({{ obRow2.sc }});box-shadow:{{ obRow2.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">2</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow2.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="13" y="11" width="26" height="32" rx="5" transform="rotate(-10 26 27)" style="fill:none;stroke:currentColor;opacity:.4" stroke-width="2"></rect><rect x="25" y="9" width="26" height="32" rx="5" transform="rotate(8 38 25)" style="fill:none;stroke:currentColor;opacity:.55" stroke-width="2"></rect><rect x="19" y="10" width="26" height="32" rx="5" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><path d="M50 5 l1.2 3 l3 1.2 l-3 1.2 L50 14.6 l-1.2-3.2 l-3-1.2 l3-1.2 z" fill="#1E40FF"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS2 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS2d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow3.bd }};background:{{ obRow3.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow3.op }};transform:scale({{ obRow3.sc }});box-shadow:{{ obRow3.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">3</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow3.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="9" y="7" width="34" height="34" rx="6" fill="#1E40FF" fill-opacity=".12" stroke="#1E40FF" stroke-width="2"></rect><rect x="15" y="14" width="22" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><rect x="15" y="21" width="15" height="3" rx="1.5" style="fill:#1E40FF;opacity:.5"></rect><circle cx="46" cy="34" r="11" fill="#1E40FF"></circle><path d="M41 34 l3.2 3.2 l6.2-6.6" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS3 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS3d }}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;border:1px solid {{ obRow4.bd }};background:{{ obRow4.bg }};border-radius:16px;padding:11px 12px;opacity:{{ obRow4.op }};transform:scale({{ obRow4.sc }});box-shadow:{{ obRow4.sh }};transition:all .45s cubic-bezier(.2,.8,.2,1)">
+        <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#1E40FF;color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center">4</div>
+        <div style="flex:none;color:var(--muted);animation:{{ obRow4.anim }}"><svg width="52" height="40" viewBox="0 0 64 48" fill="none"><rect x="3" y="8" width="34" height="34" rx="7" style="fill:currentColor;opacity:.13"></rect><circle cx="13" cy="19" r="5" style="fill:currentColor;opacity:.5"></circle><rect x="20" y="15" width="13" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="20" y="21" width="9" height="3" rx="1.5" style="fill:currentColor;opacity:.4"></rect><rect x="8" y="29" width="25" height="8" rx="3" style="fill:currentColor;opacity:.22"></rect><circle cx="53" cy="11" r="5" fill="#1E40FF"></circle><circle cx="44" cy="26" r="5" fill="#1E40FF"></circle><circle cx="56" cy="37" r="5" fill="#1E40FF"></circle><path d="M48.5 23.5 L50 14.5 M48.5 28.5 L52.5 34" stroke="#1E40FF" stroke-width="2" stroke-linecap="round"></path></svg></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px">{{ obS4 }}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:2px">{{ obS4d }}</div></div>
+      </div>
+    </div>
+
+    <button onClick="{{ closeOnboard }}" style="margin-top:18px;width:100%;appearance:none;cursor:pointer;background:#1E40FF;color:#fff;border:none;border-radius:14px;padding:15px;font-weight:900;font-size:15px;box-shadow:0 8px 20px rgba(30,64,255,.32)">{{ obCta }}</button>
+    <div style="text-align:center;margin-top:9px;font-size:11px;color:var(--faint)">{{ obHint }}</div>
+  </div>
+</div>
+</sc-if>
+
 <sc-if value="{{ cropOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:fixed;inset:0;background:rgba(10,10,10,.78);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--surface);color:var(--text);width:100%;max-width:440px;border-radius:16px;padding:20px;box-shadow:0 22px 54px rgba(0,0,0,.42)">
@@ -1728,6 +1773,8 @@ class Component extends DCLogic {
     chatSearchOpen: false,
     chatSearchQ: '',
     homeUnread: false,
+    onboardOpen: false,
+    obStep: 1,
     input: '',
     sending: false,
     imgBusy: false,
@@ -1920,7 +1967,15 @@ class Component extends DCLogic {
     window.addEventListener('lore-authed', this._onAuthed);   // Google復帰/メール確定でアプリへ
     this._initRoute();
     requestAnimationFrame(() => this.drawAll());
+    // 初回のみ：使い方ポップアップを表示し、1→4をループでハイライト（視線誘導）。閉じたら二度と出さない。
+    try {
+      if (!localStorage.getItem('lore_onboarded')) {
+        this.setState({ onboardOpen:true, obStep:1 });
+        this._obTimer = setInterval(() => this.setState(s => ({ obStep: s.obStep>=4 ? 1 : s.obStep+1 })), 2100);
+      }
+    } catch(_) {}
   }
+  closeOnboard = () => { clearInterval(this._obTimer); try { localStorage.setItem('lore_onboarded','1'); } catch(_) {} this.setState({ onboardOpen:false }); };
   closeAllOverlays = () => this.setState({ loginOpen:false, legalDoc:null, profileEditOpen:false, idChangeConfirm:false, deleteConfirmId:null, reportOpen:false, accountDeleteConfirm:false, friendsListOpen:false, privUserOpen:false, pubConfirmOpen:false, contentShareOpen:false, shareRefreshOpen:false, genSettingsOpen:false, homeMenuOpen:false, langOpen:false, openCardMenu:null, userMenuOpen:false, otherCardMenu:null, renameId:null, prefsOpen:false });
   installApp = () => { const p = this._deferredPrompt; if (!p) { this.showToast(this.tt('インストールはブラウザのメニューから行えます','You can install from your browser menu','브라우저 메뉴에서 설치할 수 있어요')); return; } p.prompt(); p.userChoice.finally(() => { this._deferredPrompt = null; this.setState({ canInstall:false }); }); };
   // ---- routing helpers ----
@@ -1969,7 +2024,7 @@ class Component extends DCLogic {
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
       s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); clearInterval(this._obTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -2180,8 +2235,8 @@ class Component extends DCLogic {
 
   // ---- 初回基本情報インテーク（テンプレ） ----
   _startIntake = () => {
-    // 入った瞬間に「使い方の図解」を最初に表示 → そのあと基本質問へ
-    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[{ role:'ai', flow:true }], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
+    // 使い方は入室時のオンボーディングポップアップで案内する（チャット内には出さない）
+    this.setState({ screen:'home', mode:'intake', intakeActive:true, intakeIdx:-1, intakeAnswers:{}, ageVal:25, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, typing:false });
     this.setResolution(0.12, 400);
     this._intakeNext();
   };
@@ -3124,6 +3179,12 @@ class Component extends DCLogic {
     const navActive = s.dark ? '#f0f0f2' : '#0A0A0A';
     const navActiveBg = s.dark ? '#2a2a30' : '#f0efec';
     const mkNav = (key, onClick) => { const a = activeKey===key; return { onClick, color: a?navActive:'#8c8c88', weight: a?'800':'600', bg: a?navActiveBg:'transparent', dot: a?navActive:'transparent' }; };
+    // オンボーディング: アクティブな手順を強調（ループでハイライトが1→4へ移動）
+    const obDef = (n) => s.obStep===n
+      ? { op:'1', sc:'1', bd:'#1E40FF', bg:'var(--surface)', sh:'0 10px 26px rgba(30,64,255,.16)', anim:'loreFloat 2.4s ease-in-out infinite' }
+      : { op:'.42', sc:'.985', bd:'var(--border)', bg:'var(--surface2)', sh:'none', anim:'none' };
+    const obDotC = (n) => s.obStep===n ? '#1E40FF' : 'var(--border)';
+    const obDotW = (n) => s.obStep===n ? '22px' : '7px';
     const navHome = mkNav('home', this.goTalk);
     const navCreate = mkNav('generate', this.goGenerate);
     const navSearch = mkNav('search', this.goSearch);
@@ -3444,6 +3505,23 @@ class Component extends DCLogic {
       setLoginIdEl:this.setLoginIdEl, setLoginPwEl:this.setLoginPwEl,
       goTalk:this.goTalk, goProfile:this.goProfile, goGenerate:this.goGenerate, goShare:this.goShare, goSearch:this.goSearch,
       navHome, navCreate, navProfile, navShare, navSearch, navSettings, homeUnread: s.homeUnread,
+      onboardOpen: s.onboardOpen, closeOnboard: this.closeOnboard,
+      obKicker: pick('はじめかた','HOW IT WORKS','시작하기'),
+      obTitle: pick('LORE の使い方','How LORE works','LORE 사용법'),
+      obSubtitle: pick('たった4ステップ。','Just 4 steps.','단 4단계.'),
+      obRow1: obDef(1), obRow2: obDef(2), obRow3: obDef(3), obRow4: obDef(4),
+      obDot1: obDotC(1), obDot2: obDotC(2), obDot3: obDotC(3), obDot4: obDotC(4),
+      obDot1W: obDotW(1), obDot2W: obDotW(2), obDot3W: obDotW(3), obDot4W: obDotW(4),
+      obS1: pick('LOREと話す','Talk with LORE','LORE와 대화'),
+      obS1d: pick('AIと話すだけ。今日のこと、なんでも。','Just chat with the AI — about anything.','AI와 대화만 하면 돼요. 무엇이든.'),
+      obS2: pick('あなたに合う候補が届く','Tailored ideas appear','맞춤 후보가 떠요'),
+      obS2d: pick('会話から、あなたを表すコンテンツ候補をAIが用意。','From your chat, the AI prepares content ideas about you.','대화에서 당신을 표현할 후보를 AI가 준비해요.'),
+      obS3: pick('好きなものを選んで作る','Create what you like','마음에 드는 걸 만들기'),
+      obS3d: pick('気に入った候補をワンタップでコンテンツ化。','Turn any idea you like into content in one tap.','마음에 드는 후보를 한 번에 콘텐츠로.'),
+      obS4: pick('友達にシェア','Share with friends','친구에게 공유'),
+      obS4d: pick('作ったコンテンツやプロフィールを共有。','Share your content and profile.','만든 콘텐츠와 프로필을 공유해요.'),
+      obCta: pick('はじめる','Get started','시작하기'),
+      obHint: pick('この案内は次回から表示されません','We won’t show this again','다음부터 표시되지 않아요'),
       navWidth: s.navExpanded ? '230px' : '72px', navLabelOpacity: s.navExpanded ? '1' : '0',
       navShadow: s.navExpanded ? '4px 0 24px rgba(10,10,10,.10)' : 'none', onNavEnter:this.onNavEnter, onNavLeave:this.onNavLeave,
       isSearch: screen==='search',
