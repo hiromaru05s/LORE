@@ -1967,7 +1967,7 @@ class Component extends DCLogic {
       s.accountDeleteConfirm || s.friendsListOpen || s.privUserOpen || s.pubConfirmOpen || s.contentShareOpen ||
       s.shareRefreshOpen || s.genSettingsOpen || s.cropOpen || s.prefsOpen);
   }
-  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
+  componentWillUnmount(){ window.removeEventListener('resize', this._onResize); window.removeEventListener('keydown', this._onKeyDown); window.removeEventListener('beforeinstallprompt', this._onBIP); window.removeEventListener('popstate', this._onPop); window.removeEventListener('lore-backend-ready', this._onBeReady); try{ document.body.style.overflow=''; }catch(_){} cancelAnimationFrame(this._raf); cancelAnimationFrame(this._glowRaf); clearTimeout(this._bt); clearTimeout(this._toastT); clearTimeout(this._turnTimer); clearTimeout(this._idleTimer); if(this._io)this._io.disconnect(); if(this._pio)this._pio.disconnect(); }
   componentDidUpdate(){
     requestAnimationFrame(() => this.drawAll()); this.scrollChat();
     // 背景スクロールロック
@@ -2202,6 +2202,7 @@ class Component extends DCLogic {
       if (be) { try { const r = await be.startSession('home', true); this.setState({ sessionId: r.sessionId }); } catch(e){ this._beError(e); } }
       // 「最近どう？」はオープンな問い → 選択肢は出さず自由入力に委ねる
       this.setState({ suggestions:[] });
+      this._armIdle();   // 無反応が続いたら追い討ち
     }, 650);
   };
   // AIバブルを順番に出すヘルパ（typingを挟みながら）
@@ -2312,6 +2313,26 @@ class Component extends DCLogic {
   // ---- backend bridge (Convex接続。未設定ならnull→デモにフォールバック) ----
   _be(){ return (typeof window!=='undefined' && window.LoreBackend && window.LoreBackend.ready) ? window.LoreBackend : null; }
   _beError = (e) => { console.error('[LORE backend]', e); this.showToast(this.tt('通信に失敗しました。','Connection failed.','연결에 실패했어요.')); if (this.state.genStep==='generating') this.setState({ genStep:'error' }); };
+  // ---- アイドル・ナッジ（会話が途中で止まったら一定時間後にこちらから追い討ち）----
+  _IDLE_MS = 180000;   // 3分。タイピング（未送信）や送信で都度リセットされる
+  _armIdle = () => {
+    if (!this._be() || this.state.mode!=='home') return;   // バックエンド会話中のみ
+    clearTimeout(this._idleTimer);
+    this._idleTimer = setTimeout(this._idleNudge, this._IDLE_MS);
+  };
+  _clearIdle = () => clearTimeout(this._idleTimer);
+  _idleNudge = () => {
+    // 直前の状況をチェック：home会話中・AIが喋ってない・特殊待ち受け中でない・未送信の下書きも無い
+    if (!this._be() || this.state.screen!=='home' || this.state.mode!=='home') return;
+    if (this.state.typing || this.state.intakeActive || this.state.reactionMode || this.state.awaitingMiss) return;
+    if ((this.state.input||'').trim()) { this._armIdle(); return; }   // 下書きがあるならまだ書いてる→待つ
+    if ((this._pendingTurns||[]).length) return;                     // 送信キュー処理中
+    this._stickBottom = true;
+    this.setState(s => ({
+      messages:[...s.messages, { role:'ai', text:this.tt('さっきの話、途中で止まっちゃったね。続きを話す？それとも新しい話にする？','Looks like we trailed off. Want to pick up where we left off, or start something new?','아까 얘기가 중간에 멈췄네. 이어서 할까, 아니면 새로운 얘기로 갈까?') }],
+      suggestions:[ this.tt('さっきの続きを話す','Continue where we left off','이어서 얘기할게'), this.tt('新しい話にしたい','Start something new','새로운 얘기로') ],
+    }));
+  };
   _renderTurn = (r) => {
     if (!r) return;
     if (typeof r.resolution==='number') this.setResolution(r.resolution, 700);
@@ -2320,6 +2341,7 @@ class Component extends DCLogic {
       this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message, isRead:true }], pendingFragmentId:r.strike.fragmentId, suggestions:[], reactionMode:true, awaitingMiss:false }));
     } else {
       this.setState(s => ({ typing:false, messages:[...s.messages,{ role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label), pendingFragmentId:null, awaitingMiss:false }));
+      this._armIdle();   // ボールはユーザー側へ。無反応が続いたら追い討ち
     }
   };
   _startBackend = async (mode) => {
@@ -2338,6 +2360,7 @@ class Component extends DCLogic {
       const r = await this._be().startSession(mode);
       this.setState({ typing:false, sessionId:r.sessionId, messages:[...history, { role:'ai', text:r.message }], suggestions:(r.choices||[]).map(c=>c.label) });
       if (typeof r.resolution==='number') this.setResolution(r.resolution, 600);
+      this._armIdle();
     } catch(e){ this.setState({ typing:false, messages:history }); this._beError(e); }
   };
   _sendBackend = async (text) => {
@@ -2368,7 +2391,7 @@ class Component extends DCLogic {
   };
 
   // ---- chat ----
-  onChatInput = (e) => this.setState({ input: e.target.value });
+  onChatInput = (e) => { this.setState({ input: e.target.value }); this._armIdle(); };   // 未送信のタイピングも“活動中”→アイドル計測をリセット
   onChatKey = (e) => {
     if (e.key !== 'Enter' || e.shiftKey) return;
     // 日本語のみ：IME変換確定のEnterでは送信しない（en/ko は即送信）
@@ -2385,6 +2408,7 @@ class Component extends DCLogic {
     this._stickBottom = true;   // 送信したら最下部に追従
     if (this._be() && this.state.sessionId) {
       // 発言は即表示。ただし返信はすぐ返さず、相手が打ち終えるまで“間”を取る（まだ話の途中かを検知）。
+      this._clearIdle();   // 送信＝活動。返信後に再アーム
       this.setState(s => ({ messages:[...s.messages,{role:'user',text:t}], input:'', suggestions:[] }));
       this._queueUserTurn(t);
       return;
