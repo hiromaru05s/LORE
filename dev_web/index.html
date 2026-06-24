@@ -2155,7 +2155,7 @@ class Component extends DCLogic {
     const be = this._be();
     if (!be) { this._startBackend('home'); return; }
     // 初回（インテーク未完了）なら基本情報インテーク、完了済みなら通常会話
-    this.setState({ screen:'home', mode:'home', messages:[], suggestions:[], reactionMode:false, sessionId:null, typing:true });
+    this.setState({ screen:'home', mode:'home', messages:[], suggestions:[], reactionMode:false, sessionId:null, typing:false });
     this.setResolution(0.12, 400);
     be.getMe().then(me => {
       this._applyMe(me);   // ヘッダー等を実プロフィールに同期（ダミーのmaruyamaを排除）
@@ -2364,7 +2364,7 @@ class Component extends DCLogic {
   };
   _startBackend = async (mode) => {
     this._stickBottom = true;   // 新規入室は最下部に貼り付く
-    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:true, atChatBottom:true });
+    this.setState({ screen: mode==='home'?'home':'onboarding', mode, messages:[], suggestions:[], reactionMode:false, sessionId:null, pendingFragmentId:null, awaitingMiss:false, convIdx:1, typing:false, atChatBottom:true });
     this.setResolution(mode==='home'?0.2:0.12, 400);
     // 継続スレッド: home では過去ログを読み戻してから新しい発話を続ける
     let history = [];
@@ -2373,10 +2373,13 @@ class Component extends DCLogic {
         const h = await this._be().getHistory();
         history = ((h && h.turns) || []).map(t => ({ role: t.role==='user' ? 'user' : 'ai', text: t.text, isRead: t.type==='strike' }));
       } catch(e){ console.warn('[LORE] getHistory', e); }
+      // ★履歴は読み込んだ“瞬間”に表示する（startSession の完了を待たない＝てんてん中も履歴が見える）
+      if (history.length) { this.setState({ messages: history }); requestAnimationFrame(() => this.scrollChat()); }
     }
     try {
       // 履歴があるなら quiet で再開（毎回「最近どう？」を生成・表示しない＝挨拶連発を防ぐ）。初回だけ挨拶。
       const quiet = mode==='home' && history.length > 0;
+      if (!quiet) this.setState({ typing:true });   // 新しい挨拶が来るときだけ“てんてん”を出す
       const r = await this._be().startSession(mode, quiet);
       if (quiet) {
         this.setState({ typing:false, sessionId:r.sessionId, messages:history, suggestions:[], homeUnread:false });
